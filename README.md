@@ -1,43 +1,70 @@
-pi-forall language
-------------------
+pi-forall
+=========
 
-This language implementation is designed to accompany four lectures at
-OPLSS during Summer 2022. Notes for these lectures are included in the
-distribution:
+A demo implementation of a simple dependently-typed language for OPLSS
+(used in 2022, 2014 and 2013). Notes for the lectures are included in the
+distribution: [oplss.pdf](doc/oplss.pdf).
 
-- [oplss.pdf](doc/oplss.pdf)
+The goal of this project is to bring up the design issues that occur in the
+implementation of the type checkers of languages like Agda, Coq, Epigram, Idris, etc.
+Of course, it can't cover everything, but this code is a starting point for discussion.
 
-(The documentation [README.md](doc/README.md) includes details about
-how the notes are typeset.)
+As its main purpose is didactic, the code itself has been written for
+clarity, not for speed. The point of this implementation is an introduction to
+practical issues of language design and how specific features interact with
+each other.
 
-These lecture notes correspond to an increasingly expressive demo
-implementation of dependently-typed lambda calculus. Each of the
-following subdirectories is self-contained (and all are generated
-from the same source, located in the [main/](main/) directory).
+Installation
+------------
 
-- [version1/](version1/):   Basic language implementation
-- [version2/](version2/):   Basic language extended with nontrivial definitional equality
-- [version3/](version3/):   Above, extended with irrelevant arguments
-- [full/](full/):           Full language with datatypes
+Compiling pi-forall requires GHC and stack. Recommended tools (see links for instructions):
 
-The implementation [README.md](main/README.md) includes instructions about
-how to compile and work with these implementations.
+1. [ghcup](https://www.haskell.org/ghcup/)
 
-History
--------
+   The ghcup tool is an installer for general purpose Haskell tools, including GHC, Cabal, Stack and the Haskell language server (HLS). You'll want to install the recommended versions of all of these tools.
 
-This is a revised version of lecture notes originally presented at OPLSS
-during 2014 and 2013.
+2. [VSCode](https://code.visualstudio.com/) and [Haskell language extension](https://marketplace.visualstudio.com/items?itemName=haskell.haskell)   
 
-Videos from the 2014 lectures are also available from the
-[OPLSS website](https://www.cs.uoregon.edu/research/summerschool/summer14/curriculum.html).
-If you want to watch these videos, you should look at the
-2014 branch of this repository.
 
-An abridged version of these lectures was also given at the Compose
-Conference, January 2015. Notes from this version are also available.
+Contents
+--------
 
-- [compose.md](old/compose.md): Overview of pi-forall implementation
+The implementation has the following structure:
 
---
-Stephanie Weirich
+```
+pi/*.pi            example pi-forall files
+src/*.hs           source code
+app/Main.hs        entry point
+test/Main.hs
+README.md (this file)
+LICENSE
+pi-forall.cabal
+stack.yaml
+
+```
+
+To build each version, go to that directory and type:
+
+```sh
+stack build
+```
+
+and to type check a source file:
+
+```sh
+stack exec -- pi-forall <sourcefile>
+```
+
+
+Acknowledgements
+----------------
+
+Some of this code was adapted from the 'zombie-trellys' implementation by the
+Trellys team. The Trellys team includes Aaron Stump, Tim Sheard, Stephanie
+Weirich, Garrin Kimmell, Harley D. Eades III, Peng Fu, Chris Casinghino,
+Vilhelm Sjöberg, Nathan Collins, and Ki Yung Ahn.
+
+This material is based upon work supported by the National Science Foundation
+under Grant Number 0910786. Any opinions, findings, and conclusions or
+recommendations expressed in this material are those of the author(s) and do
+not necessarily reflect the views of the National Science Foundation.

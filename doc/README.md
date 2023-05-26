@@ -1,5 +1,32 @@
-Source files for Lecture Notes, PDF [oplss.pdf](oplss.pdf)
------------------------------------------------------------
+pi-forall Language
+------------------
+
+This language implementation is designed to accompany four lectures at
+OPLSS during Summer 2022.
+These lecture notes correspond to an increasingly expressive demo
+implementation of dependently-typed lambda calculus.
+The implementation [README.md](../src/README.md) includes instructions about
+how to compile and work with these implementations.
+
+History
+-------
+
+This is a revised version of lecture notes originally presented at OPLSS
+during 2014 and 2013.
+
+Videos from the 2014 lectures are also available from the
+[OPLSS website](https://www.cs.uoregon.edu/research/summerschool/summer14/curriculum.html).
+If you want to watch these videos, you should look at the
+2014 branch of this repository.
+
+An abridged version of these lectures was also given at the Compose
+Conference, January 2015. Notes from this version are also available.
+
+- [compose.md](old/compose.md): Overview of pi-forall implementation
+
+
+Source files for Lecture Notes
+------------------------------
 
 To typeset these notes, you will need to have installed LaTeX and the Ott tool. The easiest way to install Ott is through [opam](https://opam.ocaml.org/).
 
