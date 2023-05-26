@@ -94,7 +94,7 @@ makeGoal cs = do
                     constrain $ 0 .<= x
                     return (v,x)) vs
   mapM_ (`process` varmap) cs
-  SBV.forSome [] sTrue
+  SBV.existential [] sTrue
   -- minimize "goal" (sum (map snd vars))
 
 type Vars = [(LName, SInteger)]
