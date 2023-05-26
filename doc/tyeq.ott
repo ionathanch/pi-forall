@@ -9,19 +9,19 @@ tm, a , b , A , B :: '' ::= {{ com terms and types }}
   | subst a by b  ::   :: Subst  {{ com equality type elimination }}
   | contra a      ::   :: Contra {{ com false elimination }}
 
-v :: 'v_' ::= 
-  | a = b         ::   :: TyEq 
-  | refl          ::   :: Refl 
-  | subst a by p  ::   :: Subst 
+v :: 'v_' ::=
+  | a = b         ::   :: TyEq
+  | refl          ::   :: Refl
+  | subst a by p  ::   :: Subst
 
 path, p :: 'p_' ::=
-  | subst a by p  ::   :: Subst 
+  | subst a by p  ::   :: Subst
 
-defns 
-Jwhnf :: '' ::= 
+defns
+Jwhnf :: '' ::=
 
 defn
-whnf a ~> v ::    :: whnf :: 'whnf_' 
+whnf a ~> v ::    :: whnf :: 'whnf_'
 {{ tex whnf [[a]] \leadsto [[v]] }}
 by
 
@@ -50,7 +50,7 @@ a ~> b ::   :: step :: 's_'
 {{ com single-step operational semantics, i. e. head reduction }}
 by
 
-defns 
+defns
 JEq :: '' ::=
 
 defn
@@ -60,17 +60,17 @@ by
 
 
 ------------------------- :: subst_beta
-G |- subst a by refl = a 
+G |- subst a by refl = a
 
 G |- a = a'
 G |- b = b'
 ------------------------------------ :: subst
-G |- subst a by b = subst a' by b'  
+G |- subst a by b = subst a' by b'
 
 G |- a1 = b1
 G |- a2 = b2
 --------------------------- :: tyeq
-G |- (a1 = a2) = (b1 = b2) 
+G |- (a1 = a2) = (b1 = b2)
 
 G |- a = a'
 ---------------------------- :: contra
@@ -78,9 +78,9 @@ G |- contra a = contra a'
 
 
 defns
-JTyping :: '' ::= 
+JTyping :: '' ::=
 
-defn 
+defn
 
 G |- a : A   ::   :: typing :: 't_'
 {{ com Typing }}
@@ -89,7 +89,7 @@ by
 %% equality
 
 
-G |- a : A    
+G |- a : A
 G |- b : A
 ------------------------- :: eq
 G |- a = b : Type
@@ -103,7 +103,7 @@ G |- refl : a = b
 G |- refl : a = a
 
 
-G |- a : A [ a1 / x ]  
+G |- a : A [ a1 / x ]
 G |- b : a1 = a2
 --------------------------------- :: subst_simple
 G |- subst a by b : A [ a2 / x ]
@@ -115,31 +115,31 @@ G |- b : a1 = a2
 G |- subst a by b : A [a2/x][b/y]
 
 G |- a : True = False
---------------------- :: contra 
+--------------------- :: contra
 G |- contra a : A
 
 defns
-JBidirectional :: '' ::= 
+JBidirectional :: '' ::=
 
-defn 
+defn
 G |- a => A ::    :: inferType :: 'i_'
 {{ com type synthesis (algorithmic) }}
 by
 
-G |- a => A    
+G |- a => A
 G |- b => B
 G |- A <=> B
 ---------------------- :: eq
 G |- (a = b) => Type
 
 % a trivial rule that does little
-G |- b => B 
+G |- b => B
 whnf B ~> (a1 = a2)
-G |- a => A 
+G |- a => A
 ----------------------------------- :: subst
 G |- subst a by b => A
 
-defn 
+defn
 G |- a <= B ::    :: checkType :: 'c_'
 {{ com type checking (algorithmic) }}
 by
@@ -149,26 +149,26 @@ G |- a <=> b
 G |- refl <= a = b
 
 
-G |- b => B 
+G |- b => B
 whnf B ~> (x = a2)
 G |- a <= A [a2/x]
 ----------------------------------- :: subst_left_simple
 G |- subst a by b <= A
 
-G |- b => B 
+G |- b => B
 whnf B ~> (a1 = x)
 G |- a <= A [a1/x]
 ----------------------------------- :: subst_right_simple
 G |- subst a by b <= A
 
 
-G |- y => B 
+G |- y => B
 whnf B ~> (x = a2)
 G |- a <= A [a2/x][refl/y]
 ----------------------------------- :: subst_left
 G |- subst a by y <= A
 
-G |- y => B 
+G |- y => B
 whnf B ~> (a1 = x)
 G |- a <= A [a1/x][refl/y]
 ----------------------------------- :: subst_right
@@ -179,5 +179,5 @@ G |- a : A
 whnf A ~> (a1 = a2)
 whnf a1 ~> True
 whnf a2 ~> False
------------------------- :: contra 
+------------------------ :: contra
 G |- contra a <= B

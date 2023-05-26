@@ -1,11 +1,11 @@
 # Datatypes and Indexed Datatypes
 
-Today we'd like to add datatypes and erasable arguments to pi-forall. The code to 
+Today we'd like to add datatypes and erasable arguments to pi-forall. The code to
 look at is the "complete" implementation in [soln](soln/).
 
 Unfortunately, datatypes are both:
 
-* Really important (you see them *everywhere* when working 
+* Really important (you see them *everywhere* when working
   with languages like Coq, Agda, Idris, etc.)
 * Really complicated (there are a *lot* of details.)
 
@@ -13,7 +13,7 @@ Unlike the prior two lectures, where we could walk through all of the details
 of the specification of the type system, not to mention its implementation, we
 won't be able to do that here. There is just too much! My goal is to give you
 enough information so that you can pick up the Haskell code and understand
-what is going on. 
+what is going on.
 
 Even then, realize that the implementation that I'm giving you is not the
 complete story! Recall that we're not considering termination. That means that
@@ -27,7 +27,7 @@ generalizing from features that we already know to more difficult cases.
 We'll start with "simple" datatypes, and then extend them with both parameters
 and indices.
 
-## "Dirt simple" datatypes 
+## "Dirt simple" datatypes
 
 Our first goal is simple. What do we need to get the simplest examples of
 non-recursive and recursive datatypes working? By this I mean datatypes that
@@ -35,44 +35,44 @@ you might see in Haskell or ML, such as `Bool`, `Void` and `Nat`.
 
 ### Booleans
 
-For example, one homework assignment was to implement 
-booleans. Once we have booleans then we can 
+For example, one homework assignment was to implement
+booleans. Once we have booleans then we can
 
       data Bool : Type where
-         True 
+         True
          False
-        
-In the homework assignment, we used `if` as the elimination form 
+
+In the homework assignment, we used `if` as the elimination form
 for boolean values.
-        
+
      not : Bool -> Bool
      not = \ b . if b then False else True
-        
+
 For uniformity, we'll have a common elimination form for all datatypes, called
 `case` that has branches for all cases. (We'll steal Haskell syntax for case
 expressions, including layout.) For example, we might rewrite `not` with case
 like this:
-        
+
      not : Bool -> Bool
-     not = \ b . 
-        case b of 
+     not = \ b .
+        case b of
            True -> False
            False -> True
 
 ### Void
 
-The simplest datatype of all is one that has no constructors! 
+The simplest datatype of all is one that has no constructors!
 
     data Void : Type where {}
-     
+
 Because there are no constructors, the elimination form for values of this
 type doesn't need any cases!
-     
+
     false_elim : (A:Type) -> Void -> A
-    false_elim = \ A v . case v of {} 
-	 
+    false_elim = \ A v . case v of {}
+	
 Void brings up the issue of *exhaustiveness* in case analysis. Can we tell
-whether there are enough patterns so that all of the cases are covered? 
+whether there are enough patterns so that all of the cases are covered?
 
 ### Nat
 
@@ -86,10 +86,10 @@ the parser, those parens must be there.
 In case analysis, we can give a name to that argument in the pattern.
 
     is_zero : Nat -> Bool
-    is_zero = \ x . case x of 
+    is_zero = \ x . case x of
        Zero -> True
        Succ n -> False
-       
+
 ### Dependently-typed data constructor args
 
 Now, I lied. Even in our "dirt simple" system, we'll be able to encode some
@@ -99,10 +99,10 @@ add parameters and indices to our datatypes, they will be. For example, here's
 an example of a datatype declaration where the data constructors have
 dependent types.
 
-    data SillyBool : Type where      
+    data SillyBool : Type where
        ImTrue  of (b : Bool) (_ : b = True)
        ImFalse of (b: Bool)  (_ : b = False)
-       
+
 ## Specifying the type system with basic datatypes
 
 Datatype declarations, such as `data Bool`, `data Void` or `data Nat` extend
@@ -115,10 +115,10 @@ system, such as:
 
        ----------------
        G |- Void : Type
-       
+
       -----------------
        G |- Zero : Nat
-       
+
          G |- n : Nat
        -----------------
        G |- Succ n : Nat
@@ -126,7 +126,7 @@ system, such as:
        G |- a1 : Bool    G |- a2 : a1 = True
       ---------------------------------------
        G |- ImTrue a1 a2 : SillyBool
-       
+
 In the general form, a *simple* data type declaration includes a name and a
 list of data constructors.
 
@@ -162,11 +162,11 @@ building up to that version.)
      data Telescope = Empty
                     | Cons TName Term Telescope
                          deriving (Show)
-								 
-For example, a declaration for the `Bool` type would be 
-   
-	  boolDecl :: Decl 
-      boolDecl = Data "Bool" [ConstructorDef "False" Empty, 
+								
+For example, a declaration for the `Bool` type would be
+
+	  boolDecl :: Decl
+      boolDecl = Data "Bool" [ConstructorDef "False" Empty,
 		                        ConstructorDef "True" Empty]
 										
 ## Checking (simple) data constructor applications
@@ -178,7 +178,7 @@ written `Di` for that data constructor.  This information will be used to
 check terms that are the applications of data constructors. For simplicity,
 we'll assume that data constructors must be applied to all of their arguments.
 
-So our typing rule looks a little like this. We have `as` as representing the 
+So our typing rule looks a little like this. We have `as` as representing the
 list of arguments for the data constructor `Ki`.
 
       Ki : Di -> T  in G
@@ -194,23 +194,23 @@ substitute that argument for the variable in the rest of the telescope.
 		--------------------------------------- tele-arg
 		G |- a as : (x:A) D
 		
-When we get to the end of the list (i.e. there are no more arguments) we should 
+When we get to the end of the list (i.e. there are no more arguments) we should
 also get to the end of the telescope.		
 		
 		----------- tele-empty
-		G |-  : 
+		G |-  :
 
 In `TypeCheck.hs`, the function `tcArgTele` essentially implements this
 judgement.  (For reasons that we explain below, we have a special type `Arg`
 for the arguments to the data constructor.)
 
      tcArgTele :: [Arg] -> Telescope -> TcMonad [Arg]
-	  
+	
 This function relies on the following substitution function for telescopes:
 
      doSubst :: [(TName,Term)] -> Telescope -> TcMonad Telescope
 
-      
+
 ## Eliminating dirt simple datatypes
 
 In your homework assignment, we used if to eliminate boolean types. Here, we'd
@@ -221,7 +221,7 @@ corresponding data constructor.
 
 
      G |- a : T
-	  Ki : Di -> T  in G       
+	  Ki : Di -> T  in G
 	  G, Di |- ai : A
 	  G |- A : Type
 	  branches exhaustive
@@ -229,7 +229,7 @@ corresponding data constructor.
      G |- case a of { Ki xsi -> ai } : A
 
 Note that this version of case doesn't witness the equality between the
-scrutinee `a` and each of the patterns in the branches. To allow that, we 
+scrutinee `a` and each of the patterns in the branches. To allow that, we
 can add a substiution to the result type of the case:
 
      G |- a : T
@@ -245,29 +245,29 @@ case expression `Case scrut alts` of type `ty` is as follows:
 
 1. Infer type of the scrutinee `scrut`
 2. Make sure that the inferred type is some type constructor (`ensureTCon`)
-3. Make sure that the patterns in the case alts are 
+3. Make sure that the patterns in the case alts are
    exhaustive (`exhausivityCheck`)
 3. For each case alternative:
-  - Create the declarations for the variables in 
+  - Create the declarations for the variables in
    the pattern (`declarePat`)
-  - Create defs that follow from equating the scrutinee `a` with the 
+  - Create defs that follow from equating the scrutinee `a` with the
    pattern (`equateWithPat`)
-  - Check the body of the case in the extended context against 
+  - Check the body of the case in the extended context against
    the expected type
 	
-## Datatypes with parameters 
+## Datatypes with parameters
 
-The first extension of the above scheme is for *parameterized datatypes*. 
+The first extension of the above scheme is for *parameterized datatypes*.
 For example, in pi-forall we can define the `Maybe` type with the following
-declaration. The type parameter for this datatype  `A` can be referred to in 
+declaration. The type parameter for this datatype  `A` can be referred to in
 any of the telescopes for the data constructors.
 
     data Maybe (A : Type) : Type where
-	    Nothing 
+	    Nothing
 		 Just of (A)
-		 
+		
 Because this is a dependently-typed language, the variables in the telescope
-can be referred to later in the telescope. For example, with parameters, we can 
+can be referred to later in the telescope. For example, with parameters, we can
 implement Sigma types as a datatype, instead of making them primitive:
 
     data Sigma (A: Type) (B : A -> Type) : Type
@@ -278,7 +278,7 @@ for the type constructor, as well as a telescope for each of the data
 constructors.
 
     data T D : Type where
-       Ki of Di 
+       Ki of Di
 
 That means that when we check an occurrence of a type constructor, we need to
 make sure that its actual arguments match up the parameters in the
@@ -304,16 +304,16 @@ telescope `(A : Type)`.  That means we need to substitute `Bool` for `A` in
 `(_ : A)`, the telescope for `Just`. That produces the telescope `(_ : Bool)`,
 which we'll use to check the argument `True`.
 
-In `TypeCheck.hs`, the function  
+In `TypeCheck.hs`, the function
 
     substTele :: Telescope -> [ Term ] -> Telescope -> TcMonad Telescope
-	 
+	
 implements this operation of substituting the actual data type arguments for
 the parameters.
 
 Note that by checking the type of data constructor applications (instead of
 inferring them) we don't need to explicitly provide the parameters to the data
-constructor. The type system can figure them out from the provided type. 
+constructor. The type system can figure them out from the provided type.
 
 Also note that checking mode also enables *data constructor overloading*. In
 other words, we can have multiple datatypes that use the same data
@@ -340,7 +340,7 @@ index instead of a parameter because it is determined by each data
 constructor. It is not used uniformly in each case.
 
 In pi-forall, we'll implement indices by explictly *constraining*
-parameters. These constraints will just be expressed as equalities written in 
+parameters. These constraints will just be expressed as equalities written in
 square brackets. In otherwords, we'll define `beautiful` this way:
 
     data Beautiful (n : Nat) : Type where
@@ -348,7 +348,7 @@ square brackets. In otherwords, we'll define `beautiful` this way:
 		 B3 of [n = 3]
 		 B5 of [n = 5]
 		 Bsum of (m1:Nat)(m2:Nat)(Beautiful m1)(Beautiful m2)[m = m1+m2]
-		 
+		
 Constraints can appear anywhere in the telescope of a data
 constructor. However, they are not arbitrary equality constraints---we want to
 consider them as deferred substitutions. So therefore, the term on the left
@@ -371,18 +371,18 @@ These constraints interact with the type checker in a few places:
   case expression, we need to also add the constraints as definitions.
   (see `declarePats`).
 
-For example, if we check an occurrence of `B3`, i.e. 
+For example, if we check an occurrence of `B3`, i.e.
 
     threeIsBeautiful : Beautiful 3
     threeIsBeautiful = B3
-	 
+	
 this requires substituting `3` for `n` in the telescope `[n = 3]`.  That
 produces an empty telescope.
 
 ### Homework: Parameterized datatypes and proofs: logic
 
-Translate the definitions and proofs 
-in [Logic chapter of Software Foundations](http://www.cis.upenn.edu/~bcpierce/sf/current/Logic.html) 
+Translate the definitions and proofs
+in [Logic chapter of Software Foundations](http://www.cis.upenn.edu/~bcpierce/sf/current/Logic.html)
 to pi-forall. See [Logic.pi](soln/test/Logic.pi) for a start.
 
 ### Homework: Indexed datatypes: finite numbers in `Fin1.pi`
@@ -392,9 +392,9 @@ bounded set. For example, the type `Fin 1` only includes 1 number (called
 Zero), `Fin 2` includes 2 numbers, etc.  More generally, `Fin n` is the type
 of all natural numbers smaller than `n`, i.e. of all valid indices for lists
 of size `n`.
-  
-In [Agda](http://www.cse.chalmers.se/~nad/repos/lib/src/Data/Fin.agda), 
-we might declare these numbers as: 
+
+In [Agda](http://www.cse.chalmers.se/~nad/repos/lib/src/Data/Fin.agda),
+we might declare these numbers as:
 
     data Fin : ℕ → Set where
        zero : {n : ℕ} → Fin (suc n)
@@ -403,9 +403,9 @@ we might declare these numbers as:
 In pi-forall, this corresponding definition makes the constraints explicit:
 
     data Fin (n : Nat) : Type where
-       Zero of (m:Nat)[n = Succ m] 
+       Zero of (m:Nat)[n = Succ m]
        Succ of (m:Nat)[n = Succ m] (Fin m)
-		 
+		
 The file [Fin1.pi](soln/test/Fin1.pi) includes a number of definitions
 that use these types. However, there are some `TRUSTME`s. Replace these with
 the actual definitions.
@@ -429,17 +429,17 @@ Functional languages do this all the time: they erase *type annotations* and
 *type* arguments before running the code. This erasure makes sense because of
 parametric polymorphic functions are not allowed to depend on types. The
 behavior of map must be the same no matter whether it is operating on a list
-of integers or a list of booleans. 
+of integers or a list of booleans.
 
 In a dependently-typed language we'd like to erase types too. And proofs that
 are only there to make things type check.  Coq does this by making a
 distinction between `Prop` and `Set`. Everything in `Set` stays around until
-runtime, and is guaranteed not to depend on `Prop`. 
+runtime, and is guaranteed not to depend on `Prop`.
 
 We'll take another approach.
 
 In pi-forall we have new kind of quantification, called "forall" that marks
-erasable arguments.  We mark forall quantified arguments with brackets. For example, 
+erasable arguments.  We mark forall quantified arguments with brackets. For example,
 we can mark the type argument of the polymorphic identity function as erasable.
 
     id : [x:Type] -> (y : x) -> x
@@ -455,10 +455,10 @@ wouldn't want to allow this definition:
 
     id' : [x:Type] -> [y:x] -> x
     id' = \[x][y]. y
-	 
-Here `id'` claims that its second argument is erasable, but it is not.	 
- 
-## How do we rule this out? 
+	
+Here `id'` claims that its second argument is erasable, but it is not.	
+
+## How do we rule this out?
 
 We need to make sure that x is not "used" in the body.
 
@@ -468,26 +468,26 @@ We need to make sure that x is not "used" in the body.
     ---------------------------- erased-lam
     G |- \[x].a : [x:A] -> B
 
-What is a use? Does a type annotation count? Does it change the runtime 
+What is a use? Does a type annotation count? Does it change the runtime
 behavior of the program?
 
     m : [x:Type] -> (y:x) -> x
     m = \[x] y . (y : x)
 
 What about putting it in data structures? We should be able to define
-datatypes with "specificational arguments". For example, 
+datatypes with "specificational arguments". For example,
 see [Vec.pi](soln/test/Vec.pi).
 
 Note: we can only erase *data* constructor arguments, not types that appear as
 arguments to *type* constructors. (Parameters to type constructors must always
 be relevant, they determine the actual type.)  On the other hand, datatype
 parameters are never relevant to data constructors---we don't even represent
-them in the abstract syntax.  
+them in the abstract syntax.
 
 ### Homework: Erasure and Indexed datatypes: finite numbers in `Fin1.pi`
 
 Now take your code in `Fin1.pi` and see if you can mark some of the components
-of the `Fin` datatype as eraseable. 
+of the `Fin` datatype as eraseable.
 
 ## ERASURE and equality
 ------------------------
@@ -498,9 +498,9 @@ themselves.  Note how the definition of equate ignores 'eraseable' elements
 like type annotations, erasable arguments, etc.
 
 Why is this important?
-  - faster comparison: don't have to look at the whole term when comparing for 
+  - faster comparison: don't have to look at the whole term when comparing for
     equality. Coq / Adga look at type annotations
-  - more expressive: don't have to *prove* that those parts are equal 
+  - more expressive: don't have to *prove* that those parts are equal
     (proof irrelevance!)
   - this gets really crazy with heterogeneous equality
   - and it is sound: see Miquel (ICC), Barras

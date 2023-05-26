@@ -11,7 +11,7 @@ data WF (u : U) : Type @ 2 where
 
 -- All U are well-founded
 always_WF : (x : U^0 @ 1) -> WF^0 x @ 2
-always_WF = \u. case u of 
+always_WF = \u. case u of
    (Mk_U X f) -> Mk_WF^0 [X] [f] (\x. always_WF (f x))
 
 liftU : U^0 -> U^1

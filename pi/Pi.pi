@@ -2,16 +2,16 @@ module Pi where
 
 -- Example of eta-expanding the Pi type
 -- If we leave off the level annotations, they will get inferred
-Pi : (A : Type) -> (B : (y : A) -> Type @ 1) -> Type 
-Pi = \A B . (x : A) -> B x 
+Pi : (A : Type) -> (B : (y : A) -> Type @ 1) -> Type
+Pi = \A B . (x : A) -> B x
 
 Arrow : Type -> Type -> Type
 Arrow = \ A B . A -> B
 
 t1 : Type
-t1 = (x: Type) -> x -> x 
+t1 = (x: Type) -> x -> x
 
-t2 : Type 
+t2 : Type
 t2 = Pi Type (\ x . Arrow x x)
 
 t3 : Type

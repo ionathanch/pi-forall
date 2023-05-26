@@ -9,29 +9,29 @@ tm, a , b , A , B :: '' ::= {{ com terms and types }}
   | { x : A | B } ::   :: Sigma
     {{ tex \{ [[x]]\!:\![[A]]\ |\ [[B]] \} }}
     {{ com $\Sigma$-type (i.e. dependent products/dependent sums) }}
-  | ( a , b )              ::   :: Prod 
+  | ( a , b )              ::   :: Prod
     {{ com products }}
-  | let ( x , y ) = a in b ::   :: LetPair 
+  | let ( x , y ) = a in b ::   :: LetPair
     {{ com elimination form for pairs }}
   | A * B      :: M  :: Times
     {{ com syntactic sugar for product types }}
 
-v :: 'v_' ::= 
+v :: 'v_' ::=
   | { x : A | B }    ::   :: Sigma
-  | ( a , b )        ::   :: Prod 
+  | ( a , b )        ::   :: Prod
   | let ( x , y ) = p in a ::  :: LetPair
 
-path, p :: 'p_' ::= 
+path, p :: 'p_' ::=
   | let ( x , y ) = p in a ::  :: LetPair
 
-defns 
-Jwhnf :: '' ::= 
+defns
+Jwhnf :: '' ::=
 
 defn
-whnf a ~> v ::    :: whnf :: 'whnf_' 
+whnf a ~> v ::    :: whnf :: 'whnf_'
 by
 
-whnf a ~> (a1, a2) 
+whnf a ~> (a1, a2)
 whnf (b [a1/x] [a2/y]) ~> v
 ------------------------------- :: letpair
 whnf let (x,y) = a in b ~> v
@@ -58,7 +58,7 @@ a ~> a'
 -------------------------------------------------- :: LetPair
 let (x,y) = a in b ~> let (x,y) = a' in b
 
-defns 
+defns
 JEq :: '' ::=
 
 defn
@@ -67,12 +67,12 @@ G |- A = B ::  :: eq :: 'e_'
 by
 
 ---------------------------------------------------------- :: letpairprod
-G |- let (x,y) = (a1,a2) in b = b [ a1 /x ] [a2 / y] 
+G |- let (x,y) = (a1,a2) in b = b [ a1 /x ] [a2 / y]
 
-G |- A1 = A2       
+G |- A1 = A2
 G,x:A1 |- B1 = B2
 ------------------------------------ :: sigma
-G |- { x:A1 | B1 } = { x:A2 |  B2} 
+G |- { x:A1 | B1 } = { x:A2 |  B2}
 
 
 G |- b1 = b1'
@@ -86,9 +86,9 @@ G |- b = b'
 G |- let (x,y) = a in b = let (x,y) = a' in b'
 
 defns
-JTyping :: '' ::= 
+JTyping :: '' ::=
 
-defn 
+defn
 
 G |- a : A   ::   :: typing :: 't_'
 {{ com Typing }}
@@ -96,12 +96,12 @@ by
 
 %% sigma types
 
-G |- A : Type     
+G |- A : Type
 G, x:A |- B : Type
 ------------------------------------- :: sigma
 G |- { x : A | B } : Type
 
-G |- a : A      
+G |- a : A
 G |- b : B [ a / x ]
 ------------------------------------ :: pair
 G |- (a,b) : { x : A | B }
@@ -115,25 +115,25 @@ G |- let (x,y) = a in b : B
 
 
 defns
-JBidirectional :: '' ::= 
+JBidirectional :: '' ::=
 
-defn 
+defn
 G |- a => A ::    :: inferType :: 'i_'
 {{ com type synthesis (algorithmic) }}
 by
 
-G |- A <= Type     
+G |- A <= Type
 G, x:A |- B <= Type
 ------------------------------------- :: sigma
 G |- { x : A | B } => Type
 
-defn 
+defn
 G |- a <= B ::    :: checkType :: 'c_'
 {{ com type checking (algorithmic) }}
 by
 
 
-G |- a <= A      
+G |- a <= A
 G |- b <= B [ a / x ]
 ------------------------------------ :: pair
 G |- (a,b) <= { x : A | B }

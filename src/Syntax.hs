@@ -83,7 +83,7 @@ data Term
     LitBool Bool
   | -- | `if a then b1 else b2` expression for eliminating booleans
     If Term Term Term
-  | -- | Sigma-type (homework), written `{ x : A | B }`  
+  | -- | Sigma-type (homework), written `{ x : A | B }`
     Sigma Term Level (Unbound.Bind TName Term)
   | -- | introduction form for Sigma-types `( a , b )`
     Prod Term Term
@@ -140,7 +140,7 @@ data LevelConstraint =
   | Eq Level Level
   deriving (Show, Eq, Ord, Generic, Unbound.Alpha, Unbound.Subst Term, Unbound.Subst Level)
 
-data LevelContext = Fixed | Float 
+data LevelContext = Fixed | Float
   deriving (Eq, Show, Generic, Unbound.Alpha, Unbound.Subst Term, Unbound.Subst Level)
 
 -- | Rho annotates the stage of a variable
@@ -197,7 +197,7 @@ newtype ModuleImport = ModuleImport MName
 -- | A type declaration (or type signature)
 -- If this a toplevel signature the level *must* be defined
 -- nondependent local signatures may omit the level
--- we could use a GADT to enforce this invariant, but then the 
+-- we could use a GADT to enforce this invariant, but then the
 -- generic programming would be more awkward
 data Sig where
    Sig :: {sigName :: TName , sigRho :: Rho , sigLevel :: Maybe Level , sigType :: Type} -> Sig
@@ -245,9 +245,9 @@ data ConstructorDef = ConstructorDef SourcePos DCName Telescope Level
 
 -- * Telescopes
 
--- | A telescope is like a first class context. It is a list of 
+-- | A telescope is like a first class context. It is a list of
 -- assumptions, binding each variable in terms that appear
--- later in the list. 
+-- later in the list.
 -- For example
 --     Delta = [ x:Type , y:x, y = w ]
 newtype Telescope = Telescope [Decl]
@@ -348,7 +348,7 @@ preludeDataDecls =
 -- We use the unbound-generics library to mark the binding occurrences of
 -- variables in the syntax. That allows us to automatically derive
 -- functions for alpha-equivalence, free variables and substitution
--- using generic programming. 
+-- using generic programming.
 
 ------------------
 
@@ -363,10 +363,10 @@ preludeDataDecls =
 --    -- Destruct a binding, generating fresh names for the bound variables
 --    unbind :: (Alpha p, Alpha t, Fresh m) => Bind p t -> m (p, t)
 
--- For Terms, we'd like Alpha equivalence to ignore 
+-- For Terms, we'd like Alpha equivalence to ignore
 -- source positions and type annotations.
--- We can add these special cases to the definition of `aeq'` 
--- and then defer all other cases to the generic version of 
+-- We can add these special cases to the definition of `aeq'`
+-- and then defer all other cases to the generic version of
 -- the function (Unbound.gaeq).
 
 instance Unbound.Alpha Term where
@@ -382,7 +382,7 @@ instance Unbound.Alpha Term where
 -- >>> Unbound.aeq (Pos internalPos (Ann TyBool Type)) TyBool
 -- True
 
--- At the same time, the generic operation equates terms that differ only 
+-- At the same time, the generic operation equates terms that differ only
 -- in the names of bound variables.
 
 -- 'x'
@@ -435,7 +435,7 @@ pi2 = Pi (Mode Rel (Just (LConst 0))) TyBool (Unbound.bind yName (Var yName))
 
 -- >>> Unbound.aeq (Unbound.subst xName TyBool pi1) pi2
 -- True
--- 
+--
 
 
 
@@ -459,7 +459,7 @@ instance Unbound.Alpha ConstructorNames where
 
 -- SourcePositions do not have an instance of the Generic class available
 -- so we cannot automatically define their Alpha and Subst instances. Instead
--- we do so by hand here. 
+-- we do so by hand here.
 instance Unbound.Alpha SourcePos where
   aeq' _ _ _ = True
   fvAny' _ _ = pure
@@ -484,9 +484,9 @@ internalPos :: SourcePos
 internalPos = initialPos "internal"
 
 getFreelyDisplaceable :: Decl -> Maybe TName
-getFreelyDisplaceable (Def na te) 
-  | isFreelyDisplaceable te = Just na 
-getFreelyDisplaceable (RecDef na te) 
+getFreelyDisplaceable (Def na te)
+  | isFreelyDisplaceable te = Just na
+getFreelyDisplaceable (RecDef na te)
   | isFreelyDisplaceable te = Just na
 getFreelyDisplaceable _ = Nothing
 
@@ -525,7 +525,7 @@ isFreelyDisplaceable = go where
   go (Displace te le) = False
 
   goMatch :: Match -> Bool
-  goMatch (Match bi) = go a 
-    where 
+  goMatch (Match bi) = go a
+    where
       (_,a) = Unbound.unsafeUnbind bi
 

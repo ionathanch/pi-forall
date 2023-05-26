@@ -1,12 +1,12 @@
-SOURCES=TypeCheck.hs PrettyPrint.hs LayoutToken.hs Parser.hs Syntax.hs Environment.hs Modules.hs Arbitrary.hs Equal.hs 
+SOURCES=TypeCheck.hs PrettyPrint.hs LayoutToken.hs Parser.hs Syntax.hs Environment.hs Modules.hs Arbitrary.hs Equal.hs
 TEST=Makefile Lec1.pi Lec2.pi Lec3.pi Hw1.pi Hw2.pi NatChurch.pi Logic.pi Equality.pi Product.pi Nat.pi Fin.pi FinHw.pi Vec.pi BoolLib.pi List.pi Lambda.pi Lambda0.pi Lambda1.pi Lambda2.pi BoolLib.pi Lec4.pi Product1.pi Fix.pi Lennart.pi Hurkens.pi Equal.pi
 SRCS=$(addprefix src/,$(SOURCES)) app/Main.hs test/Main.hs
 
 EXTRA=LICENSE README.md pi-forall.cabal stack.yaml
 
-SOLNS=$(addprefix ../src/,$(SRCS)) $(addprefix ../src/pi/, $(TEST)) 
+SOLNS=$(addprefix ../src/,$(SRCS)) $(addprefix ../src/pi/, $(TEST))
 
-STUBREGEX='BEGIN { undef $$/; } s/[\{][-]\s*?SOLN.*?STUBWITH(\s*\r?\n|\s)(.*?)\s*[-][\}]/$$2/sg' 
+STUBREGEX='BEGIN { undef $$/; } s/[\{][-]\s*?SOLN.*?STUBWITH(\s*\r?\n|\s)(.*?)\s*[-][\}]/$$2/sg'
 SOLNREGEX='BEGIN { undef $$/; } s/[\{][-]\s*?SOLN\s*?[-][\}](\s*\r?\n|\s)(.*?)[\{][-]\s*STUBWITH(\s*\r?\n|\s)(.*?)\s*[-][\}]/$$2/sg'
 
 FORMAT=ormolu --ghc-opt -XImportQualifiedPost --mode inplace
@@ -18,7 +18,7 @@ all: full
 test : all test_full
 
 # BUILD = cabal new-build --disable-documentation
-# EXEC = cabal new-exec pi-forall -- 
+# EXEC = cabal new-exec pi-forall --
 
 BUILD = stack build
 EXEC = stack exec pi-forall --

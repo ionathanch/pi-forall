@@ -48,7 +48,7 @@ data DispInfo = DI
     dispAvoid :: S.Set Unbound.AnyName,
     -- | current precedence level
     prec :: Int,
-    -- 
+    --
     showLevels :: Bool,
     showLongNames :: Bool
   }
@@ -69,7 +69,7 @@ data D
 
 -------------------------------------------------------------------------
 
--- * Disp Instances for quoting, errors, source positions, 
+-- * Disp Instances for quoting, errors, source positions,
 
 -------------------------------------------------------------------------
 
@@ -95,7 +95,7 @@ instance Disp SourcePos where
 -- * Disp Instances for Term syntax (defaults to Display, see below)
 
 instance Disp (Term, Type) where
-   disp (tm, ty) = 
+   disp (tm, ty) =
       PP.vcat [disp ty, disp tm]
 
 -------------------------------------------------------------------------

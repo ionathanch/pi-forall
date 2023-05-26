@@ -2,7 +2,7 @@ module Hurkens where
 
 data Void : Type where {}
 
-neg : Type -> Type 
+neg : Type -> Type
 neg = \X. X -> Void
 
 P : Type -> Type
@@ -17,10 +17,10 @@ tau = \t. \x. \f. \p. t (\s. p (f (s x f)))
 sigma : U -> P (P U)
 sigma = \s. s U tau
 
-Delta : P U 
+Delta : P U
 Delta = \y. neg ((p : P U) -> sigma y p -> p (tau (sigma y)))
 
-Omega : U 
+Omega : U
 Omega = tau (\p. (x : U) -> sigma x p -> p (\y. x y))
 
 M : (x : U) -> sigma x Delta -> Delta x
@@ -31,7 +31,7 @@ M = \x. \two. \three. three Delta two (\p. three (\y. p (tau (sigma y))))
 {-
 R : (p : P U) -> ((x : U) -> sigma x p -> p x) -> p Omega
 R = \zero. \one. one Omega (\x. one (tau (sigma x)))
- 
+
 L : neg ((p : P U) -> ((x : U) -> sigma x p -> p x) -> p Omega)
 L = \zero. zero Delta M (\p. zero (\y. p (tau (sigma y))))
 false : Void

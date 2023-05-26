@@ -25,7 +25,7 @@ id' = \[x][y]. y
 
 {-
 id2' : [x:Type] -> Type
-id2' = \[x]. id [Type] x 
+id2' = \[x]. id [Type] x
 -}
 
 
@@ -42,10 +42,10 @@ irrelevance = \p . Refl
 
 -----------------------------------------------------
 -- Propositional equality is relevant
--- Cannot ignore/erase proofs that are used for 'subst'. 
+-- Cannot ignore/erase proofs that are used for 'subst'.
 -- Need a termination analysis to do this.
 
 proprel : [a : Type] -> (a = Bool) -> (x : a) -> Bool @ 1
-proprel = \[a] pf x . 
-  subst x by pf 
+proprel = \[a] pf x .
+  subst x by pf
 

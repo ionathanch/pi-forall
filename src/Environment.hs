@@ -288,7 +288,7 @@ extendCtxsGlobal :: (MonadError Err m, MonadReader Env m) => [Decl] -> m a -> m 
 extendCtxsGlobal ds ma = do
   nl <- asks locals
   unless (null nl) $ err [DS "Global extension of nonempty local context"]
-  let newfree = mapMaybe getFreelyDisplaceable ds 
+  let newfree = mapMaybe getFreelyDisplaceable ds
   --when (not (null newfree)) $ do
   --  traceM $ "Freely displaceable: " ++ show newfree
   local
@@ -328,7 +328,7 @@ getCtx = (++) <$> asks locals <*> asks globals
 -- | Get the prefix of the context that corresponds to local variables.
 getLocalCtx :: MonadReader Env m => m [Decl]
 getLocalCtx = asks locals
-  
+
 
 -- | Push a new source position on the location stack.
 extendSourceLocation :: (MonadReader Env m, Disp t) => SourcePos -> t -> m a -> m a
@@ -407,7 +407,7 @@ extendLevelConstraint c = do
   st <- get
   let cs = constraints st
   if any (\lc -> snd lc == c) cs then return () else
-  -- if c `elem` cs then return () else 
+  -- if c `elem` cs then return () else
     put $ TcState { constraints = (head locs,c) : cs }
 
 dumpConstraints :: (MonadState TcState m) => m [(SourceLocation,LevelConstraint)]
@@ -432,11 +432,11 @@ simplify ((p, c@(Eq j k)) : r) =
     (k', LVar x)  -> (p , Eq (LVar x) k') : simplify (map (\(p', c') -> (p', Unbound.subst x k' c')) r)
     (LConst i1, LConst i2) | i1 == i2 -> simplify r
     (j', k') -> (p, Eq j' k') : simplify r
-simplify ((p, Lt j k) : r) = 
+simplify ((p, Lt j k) : r) =
   case (reduce j, reduce k) of
     (LConst i1, LConst i2) | i1 < i2 -> simplify r
     (j', k') -> (p, Lt j' k') : simplify r
-simplify ((p, Le j k) : r) = 
+simplify ((p, Le j k) : r) =
   case (reduce j, reduce k) of
     (LConst i1, LConst i2) | i1 <= i2 -> simplify r
     (j', k') -> (p, Le j' k') : simplify r

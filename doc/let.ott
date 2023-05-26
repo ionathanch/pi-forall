@@ -1,10 +1,10 @@
-% Language additions for 
+% Language additions for
 
 grammar
 
 tm, a , b , A , B , u , v :: '' ::= {{ com terms and types }}
 
-  | let x = a in b  ::   :: Let 
+  | let x = a in b  ::   :: Let
     {{ com name an expression }}
 
 context, G {{ tex \Gamma }} :: 'ctx_' ::= {{ com contexts }}
@@ -15,14 +15,14 @@ context, G {{ tex \Gamma }} :: 'ctx_' ::= {{ com contexts }}
 formula :: 'formula_' ::=
   | x = a elem G      ::   :: Def
 
-defns 
-Jwhnf :: '' ::= 
+defns
+Jwhnf :: '' ::=
 
 defn
-whnf a = v ::    :: whnf :: 'whnf_' 
+whnf a = v ::    :: whnf :: 'whnf_'
 by
 
-x = a elem G 
+x = a elem G
 whnf a ~> v
 ------------- :: def
 whnf x ~> v
@@ -41,10 +41,10 @@ by
 
 
 --------------------------------- :: letbeta
-let x = a in b ~> b [ a / x ] 
+let x = a in b ~> b [ a / x ]
 
 
-defns 
+defns
 JEq :: '' ::=
 
 defn
@@ -54,7 +54,7 @@ by
 
 
 --------------------------------- :: letbeta
-G |- let x = a in b = b [ a / x ] 
+G |- let x = a in b = b [ a / x ]
 
 
 G |- a1 = a2
@@ -64,62 +64,62 @@ G |- let x = a1 in b1 = let x = a2 in b2
 
 
 defns
-JTyping :: '' ::= 
+JTyping :: '' ::=
 
-defn 
+defn
 
 G |- a : A   ::   :: typing :: 't_'
 {{ com Typing }}
 by
 
-G |- a : A 
+G |- a : A
 G , x : A |- b : B
 G |- B : Type
 -------------------------- :: let_simple
-G |- let x = a in b : B 
+G |- let x = a in b : B
 
-G |- a : A 
+G |- a : A
 G , x : A, x = a |- b : B
 G |- B : Type
 -------------------------- :: let_def
-G |- let x = a in b : B 
+G |- let x = a in b : B
 
 
 defns
-JBidirectional :: '' ::= 
+JBidirectional :: '' ::=
 
-defn 
+defn
 G |- a => A ::    :: inferType :: 'i_'
 {{ com type synthesis (algorithmic) }}
 by
 
 
-G |- a => A 
+G |- a => A
 G , x : A |- b => B
 G |- B <= Type
 ----------------------------------- :: let_simple
-G |- let x = a in b => B 
+G |- let x = a in b => B
 
-G |- a => A 
+G |- a => A
 G , x : A, x = a |- b => B
 ----------------------------------- :: let
-G |- let x = a in b => B [ a / x ] 
+G |- let x = a in b => B [ a / x ]
 
 
 
-defn 
+defn
 G |- a <= B ::    :: checkType :: 'c_'
 {{ com type checking (algorithmic) }}
 by
 
-G |- a => A 
+G |- a => A
 G , x : A, x = a |- b <= B
 -------------------------- :: let
-G |- let x = a in b <= B 
+G |- let x = a in b <= B
 
-G |- x <= Bool 
-G, x = True |- b1 <= A 
-G, x = False |- b2 <= A 
+G |- x <= Bool
+G, x = True |- b1 <= A
+G, x = False |- b2 <= A
 ------------------------------ :: if_def
 G |- if x then b1 else b2 <= A
 

@@ -44,7 +44,7 @@ equate t1 t2 = do
   mapM_ Env.extendLevelConstraint cs
 
 -- Shallow: just compares structure
--- Deep: whnf then 
+-- Deep: whnf then
 data Depth = Shallow | Deep deriving (Eq, Show)
 
 
@@ -127,7 +127,7 @@ equate' d t1 t2 = do
       ars <- equateArgs d a1 a2
       return (drs ++ ars)
     (_,_) -> do
-        -- For terms that do not have matching head forms, 
+        -- For terms that do not have matching head forms,
         -- first see if they are "shallowly" equal i.e. alpha-equivalent
         -- if this fails, then try again after calling whnf on both sides
         let handler err =
@@ -209,7 +209,7 @@ equateArgs d [] [] = return success
 equateArgs d a1 a2 = tyErr (length a2) (length a1)
 
 
--- | Ignore irrelevant arguments when comparing 
+-- | Ignore irrelevant arguments when comparing
 equateArg :: Depth -> Arg -> Arg -> TcMonad Result
 equateArg d (Arg Rel t1) (Arg Rel t2) = equate' d t1 t2
 equateArg d (Arg Irr t1) (Arg Irr t2) = return success
@@ -220,7 +220,7 @@ equateArg d a1 a2 = tyErr a2 a1
 -------------------------------------------------------
 
 -- | Ensure that the given type 'ty' is a 'Pi' type
--- (or could be normalized to be such) and return the components of 
+-- (or could be normalized to be such) and return the components of
 -- the type.
 -- Throws an error if this is not the case.
 ensurePi :: Type ->
@@ -233,8 +233,8 @@ ensurePi ty = do
     _ -> Env.err [DS "Expected a function type, instead found", DD nf]
 
 
--- | Ensure that the given 'ty' is an equality type 
--- (or could be normalized to be such) and return     
+-- | Ensure that the given 'ty' is an equality type
+-- (or could be normalized to be such) and return
 -- the LHS and RHS of that equality
 -- Throws an error if this is not the case.
 ensureTyEq :: Term -> TcMonad (Term,Term)
@@ -245,9 +245,9 @@ ensureTyEq ty = do
     _ -> Env.err [DS "Expected an equality type, instead found", DD nf]
 
 
--- | Ensure that the given type 'ty' is some tycon applied to 
+-- | Ensure that the given type 'ty' is some tycon applied to
 --  params (or could be normalized to be such)
--- Throws an error if this is not the case 
+-- Throws an error if this is not the case
 ensureTCon :: Term -> TcMonad (TCName, Level, [Arg])
 ensureTCon aty = do
   nf <- whnf aty
@@ -258,7 +258,7 @@ ensureTCon aty = do
 
 
 -------------------------------------------------------
--- | Convert a term to its weak-head normal form.             
+-- | Convert a term to its weak-head normal form.
 whnf :: Term -> TcMonad Term
 whnf (Var x) = do
   maybeDef <- Env.lookupDef Any x
@@ -284,7 +284,7 @@ whnf t@(Displace (Var x) j) = do
           -- traceM $ "displaced by " ++ pp j ++ ": " ++ pp d'
           whnf d'
          _ -> do
-              -- traceM $ "whnf: no def "   
+              -- traceM $ "whnf: no def "
               return (Displace (Var x) j)
 whnf (App t1 t2) = do
   nf <- whnf t1
@@ -307,7 +307,7 @@ whnf (LetPair a bnd) = do
       whnf (Unbound.instantiate bnd [b1, c])
     _ -> return (LetPair nf bnd)
 
--- ignore/remove type annotations and source positions when normalizing  
+-- ignore/remove type annotations and source positions when normalizing
 whnf (Ann tm _) = whnf tm
 whnf (Pos _ tm) = whnf tm
 
@@ -398,7 +398,7 @@ unify ns tx ty = do
     unifyArgs _ _ = Env.err [DS "internal error (unify)"]
 
 -- | Is a term "ambiguous" when it comes to unification?
--- In general, elimination forms are ambiguous because there are multiple 
+-- In general, elimination forms are ambiguous because there are multiple
 -- solutions.
 amb :: Term -> Bool
 amb (App t1 t2) = True
@@ -418,7 +418,7 @@ displaceTele j (Telescope decls) = do
 
 displaceDecl :: Level -> Decl -> TcMonad Decl
 displaceDecl j (TypeSig (Sig x ep mk ty)) = do
-  let mk' = case mk of 
+  let mk' = case mk of
                 Just j0 -> Just (j <> j0)
                 Nothing -> Nothing
   TypeSig <$> (Sig x ep mk' <$> displace j ty)

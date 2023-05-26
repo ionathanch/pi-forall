@@ -1,12 +1,12 @@
--- | This module is for testing the parser/pretty printer. 
--- We would like to satisfy the following roundtrip property: 
+-- | This module is for testing the parser/pretty printer.
+-- We would like to satisfy the following roundtrip property:
 --     * if we generate a random AST term and print it, then it should parse back to an alpha-equivalent term
 
 module Arbitrary where
 
 import qualified Data.Set as Set
 import Test.QuickCheck
-    ( elements, frequency, sized, Arbitrary(arbitrary), Gen ) 
+    ( elements, frequency, sized, Arbitrary(arbitrary), Gen )
 import qualified Test.QuickCheck as QC
 import qualified Unbound.Generics.LocallyNameless as Unbound
 import Text.Parsec.Error ( ParseError )
@@ -18,30 +18,30 @@ import Parser ( testParser, expr )
 
 -- | Round trip property: a given term prints then parses to the same term.
 prop_roundtrip :: Term -> QC.Property
-prop_roundtrip tm = 
+prop_roundtrip tm =
     let str = render (disp tm) in
     case test_parseExpr str  of
         Left _ -> QC.counterexample ("*** Could not parse:\n" ++ str) False
         Right tm' -> QC.counterexample ("*** Round trip failure! Parsing:\n" ++ str ++ "\n*** results in\n" ++ show tm') (Unbound.aeq tm tm')
-           
+
 test_parseExpr :: String -> Either Text.Parsec.Error.ParseError Term
 test_parseExpr = testParser arbConstructorNames expr
 
 -- View random terms
 sampleTerms :: IO ()
-sampleTerms = QC.sample' (arbitrary :: Gen Term) >>= 
+sampleTerms = QC.sample' (arbitrary :: Gen Term) >>=
     mapM_ (putStrLn . render . disp)
 
 ---------------------------------------------------------------------------------------------------
 -- Generators for the pi-forall expression AST
--- These generation functions and Arbitrary instances are tailored for testing the pretty printer 
+-- These generation functions and Arbitrary instances are tailored for testing the pretty printer
 -- and parser. As a result, they do not generate "unprintable" parts of the AST, such as type annotations
 -- and source code positions.
 
 
 -- * Names
 
--- | variable names 
+-- | variable names
 -- drawn from a small list
 genName :: Gen (Unbound.Name a)
 genName = Unbound.string2Name <$> elements ["x", "y", "z", "x0" , "y0"]
@@ -69,22 +69,22 @@ genDCName = elements dcNames
 -- Terms with no subterms
 base :: Gen Term
 base = elements [Type, TrustMe, PrintMe,
-                tyUnit, litUnit, tyBool, 
+                tyUnit, litUnit, tyBool,
                 litTrue, litFalse, Refl  ]
-    where tyUnit = TCon "Unit" (LConst 0) [] 
-          litUnit = DCon "()" (LConst 0) [] 
-          tyBool = TCon "Bool" (LConst 0) [] 
-          litTrue = DCon "True" (LConst 0) [] 
-          litFalse = DCon "False" (LConst 0) [] 
+    where tyUnit = TCon "Unit" (LConst 0) []
+          litUnit = DCon "()" (LConst 0) []
+          tyBool = TCon "Bool" (LConst 0) []
+          litTrue = DCon "True" (LConst 0) []
+          litFalse = DCon "False" (LConst 0) []
 
 -- Generate a random term
--- In the inner recursion, the bool prevents the generation of TCon/DCon applications 
+-- In the inner recursion, the bool prevents the generation of TCon/DCon applications
 -- inside Apps --- we want these terms to be fully saturated.
 genTerm :: Int -> Gen Term
 genTerm n
     | n <= 1 = base
     | otherwise = go True n where
-        go b n0 = 
+        go b n0 =
             let n' = n0 `div` 2 in
             frequency [
               (1, Var <$> genName),
@@ -95,11 +95,11 @@ genTerm n
                             (1, TyEq <$> go True n' <*> go True n'),
               (1, Subst <$> go True n' <*> go True n'),
               (1, Contra <$> go True n'),
-              
+
                             (if b then 1 else 0, TCon <$> genTCName <*> genLevel <*> genArgs n'),
               (if b then 1 else 0, DCon <$> genDCName <*> genLevel <*> genArgs n'),
               (1, Case <$> go True n' <*> genBoundedList 2 (genMatch n')),
-              
+
               (1, base)
             ]
 
@@ -107,46 +107,46 @@ genLevel :: Gen Level
 genLevel = return (LConst 0)
 
 genLam :: Int -> Gen Term
-genLam n = do 
+genLam n = do
     p <- genName
-    ep <- arbitrary 
+    ep <- arbitrary
     b <- genTerm n
     return $ Lam ep (Unbound.bind p b)
 
 
 genPi :: Int -> Gen Term
-genPi n = do 
+genPi n = do
     p <- genName
-    ep <- arbitrary 
+    ep <- arbitrary
     tyA <- genTerm n
     tyB <- genTerm n
     return $ Pi ep tyA (Unbound.bind p tyB)
 
 genSigma :: Int -> Gen Term
 genSigma n = do
-    p <- genName 
+    p <- genName
     tyA <- genTerm n
     tyB <- genTerm n
     l <- arbitrary
     return $ Sigma tyA l (Unbound.bind p tyB)
 
-genLet :: Int -> Gen Term 
+genLet :: Int -> Gen Term
 genLet n = do
-    p <- genName 
+    p <- genName
     rhs <- genTerm n
     b <- genTerm n
     return $ Let rhs (Unbound.bind p b)
 
-genLetPair :: Int -> Gen Term 
+genLetPair :: Int -> Gen Term
 genLetPair n = do
-    p <- (,) <$> genName <*> genName 
+    p <- (,) <$> genName <*> genName
     a <- genTerm n
     b <- genTerm n
     return $ LetPair a (Unbound.bind p b)
 
 instance Arbitrary Arg where
     arbitrary = sized genArg
-    shrink (Arg ep tm) = 
+    shrink (Arg ep tm) =
         [ Arg ep tm' | tm' <- QC.shrink tm]
 
 genArg :: Int -> Gen Arg
@@ -154,7 +154,7 @@ genArg n = Arg <$> arbitrary <*> genTerm (n `div` 2)
 
 genArgs :: Int -> Gen [Arg]
 genArgs n = genBoundedList 2 (genArg n)
-        
+
 instance Arbitrary Rho where
     arbitrary = elements [ Rel, Irr ]
 instance Arbitrary Level where
@@ -164,10 +164,10 @@ instance Arbitrary Epsilon where
 
 genPattern :: Int -> Gen Pattern
 genPattern n | n == 0 = PatVar <$> genName
-  | otherwise = frequency 
+  | otherwise = frequency
     [(1, PatVar <$> genName),
      (1, PatCon <$> genDCName <*> genPatArgs)]
-     where 
+     where
         n' = n `div` 2
         genPatArgs = genBoundedList 2 ( (,) <$> genPattern n' <*> arbitrary )
 
@@ -175,7 +175,7 @@ genMatch :: Int -> Gen Match
 genMatch n = Match <$> (Unbound.bind <$> genPattern n <*> genTerm n)
 
 instance Arbitrary Pattern where
-    arbitrary = sized genPattern 
+    arbitrary = sized genPattern
     shrink (PatCon n pats) = map fst pats ++ [PatCon n pats' | pats' <- QC.shrink pats]
     shrink _ = []
 
@@ -188,8 +188,8 @@ instance Arbitrary Term where
     arbitrary = sized genTerm
 
     -- when QC finds a counterexample, it tries to shrink it to find a smaller one
-    shrink (App tm arg) = 
-        [tm, unArg arg] ++ [App tm' arg | tm' <- QC.shrink tm] 
+    shrink (App tm arg) =
+        [tm, unArg arg] ++ [App tm' arg | tm' <- QC.shrink tm]
                         ++ [App tm arg' | arg' <- QC.shrink arg]
 
     shrink (Lam ep bnd) = []
@@ -199,13 +199,13 @@ instance Arbitrary Term where
     shrink (TyEq a b) = [a,b] ++ [TyEq a' b | a' <- QC.shrink a] ++ [TyEq a b' | b' <- QC.shrink b]
     shrink (Subst a b) = [a,b] ++ [Subst a' b | a' <- QC.shrink a] ++ [Subst a b' | b' <- QC.shrink b]
     shrink (Contra a) = [a] ++ [Contra a' | a' <- QC.shrink a]
-    
+
     shrink (TCon n k as) = map unArg as ++ [TCon n k as' | as' <- QC.shrink as]
     shrink (DCon n k as) = map unArg as ++ [DCon n k as' | as' <- QC.shrink as]
     shrink (Case a ms) = [a] ++ [Case a' ms | a' <- QC.shrink a] ++ [Case a ms' | ms' <- QC.shrink ms]
-    
+
     shrink _ = []
-       
+
 -------------------------------------------------------
 -- * General quickcheck utilities
 

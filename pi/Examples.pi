@@ -36,6 +36,6 @@ loop = loop
 
 map : [A : Type] -> [B : Type] -> [n:Nat] -> (f : A -> B) -> Vec A n -> Vec B n
 map = \[A][B][n] f vec .
-          case vec of 
+          case vec of
             Nil -> Nil
             Cons [m] x xs -> Cons [m] (f x) (map [A][B][m] f xs)

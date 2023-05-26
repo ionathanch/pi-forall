@@ -15,13 +15,13 @@ and : Bool -> Bool -> Bool
 and = \b1 b2. if b1 then b2 else False
 
 eq_bool : Bool -> Bool -> Bool
-eq_bool = \ b1 b2 . 
-  if b1 then b2 else (not b2)  
+eq_bool = \ b1 b2 .
+  if b1 then b2 else (not b2)
 
 --- sigma types
 
 double : (A:Type) -> (x : A) -> { x : A | A } @ 1
-double = \A x. (x,x) 
+double = \A x. (x,x)
 
 fst : (A:Type) -> (B : A -> Type) -> { x : A | B x } -> A @ 1
 fst = \A B p. let (x0,y) = p in x0

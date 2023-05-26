@@ -2,7 +2,7 @@ module WFU where
 
 data Void : Type @ 0 where {}
 
-data U : Type where 
+data U : Type where
    Mk_U of (X : Type) (X -> U)
 
 
@@ -14,11 +14,11 @@ data WF (u : U) : Type where
 
 -- All U are well-founded
 always_WF : (x : U) -> WF x
-always_WF = \ u . case u of 
+always_WF = \ u . case u of
    (Mk_U X f) -> Mk_WF [X][f] (\ x . always_WF (f x))
 
 -- But this one is not
-loop : U 
+loop : U
 loop = Mk_U U (\x . x)
 
 not_WF : WF loop -> Void

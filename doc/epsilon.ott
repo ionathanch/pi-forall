@@ -2,7 +2,7 @@
 
 grammar
 
-ep {{ tex \epsilon }} :: '' ::= 
+ep {{ tex \epsilon }} :: '' ::=
    | Rel  ::   :: Rel {{ tex + }}
    | Irr  ::   :: Irr {{ tex - }}
 
@@ -16,20 +16,20 @@ tm, a , b , A , B , u , v :: '' ::= {{ com terms and types }}
    | [ x : A ] -> B  ::    :: EPi
    {{ tex [ [[x]]\!:\![[A]] ] \rightarrow [[B]] }}
 
-% this is a bit of a hack --- we're overloading contexts to 
+% this is a bit of a hack --- we're overloading contexts to
 % include those annotated with epsilons
 
 context, G {{ tex \Gamma }} :: 'ctx_' ::= {{ com contexts }}
 
-   | G , x : ep A   ::    :: ECons   
+   | G , x : ep A   ::    :: ECons
    {{ tex [[G]], [[x]]\! :^[[ep]]\![[A]] }}
 
-   | x : ep A       ::    :: ESingle 
+   | x : ep A       ::    :: ESingle
    {{ tex [[x]]\! :^[[ep]]\! [[A]] }}
 
-   | G ep           ::    :: Demotion 
+   | G ep           ::    :: Demotion
    {{ tex [[G]]^[[ep]] }}
- 
+
 formula :: 'formula_' ::=
 
    | x : ep A elem G   ::   :: inEG
@@ -37,13 +37,13 @@ formula :: 'formula_' ::=
 
    | ep1 <= ep2   ::   :: SubE
      {{ tex [[ep1]] \leq [[ep2]] }}
-     
 
-defns 
-Jwhnf :: '' ::= 
+
+defns
+Jwhnf :: '' ::=
 
 defn
-whnf a ~> v ::    :: whnf :: 'whnf_' 
+whnf a ~> v ::    :: whnf :: 'whnf_'
 by
 
 defns
@@ -54,7 +54,7 @@ a ~> b ::   :: step :: 's_'
 {{ com single-step operational semantics, i. e. head reduction }}
 by
 
-defns 
+defns
 JEq :: '' ::=
 
 defn
@@ -77,15 +77,15 @@ G |- [x:A1] -> B1 = [x:A2] -> B2
 
 
 defns
-JTyping :: '' ::= 
+JTyping :: '' ::=
 
-defn 
+defn
 G |- a : A   ::   :: typing :: 't_'
 {{ com Typing }}
 by
 
 x : Rel A elem G
-------------------------- :: evar 
+------------------------- :: evar
 G |- x : A
 
 G, x:Irr A |- a : B
@@ -94,27 +94,27 @@ G Rel |- A : Type
 G |- \[x].a : [x:A] -> B
 
 
-G |- a : [x:A] -> B 
+G |- a : [x:A] -> B
 G Rel |- b : A
 --------------------------- ::  eapp
 G |- a [b] : B [ b / x ]
 
 
-G |- A : Type     
+G |- A : Type
 G, x:Rel A |- B : Type
 -------------------------------------- :: epi
 G |- [x:A] -> B : Type
 
 
 defns
-JBidirectional :: '' ::= 
+JBidirectional :: '' ::=
 
-defn 
+defn
 G |- a => A ::    :: inferType :: 'i_'
 {{ com type synthesis (algorithmic) }}
 by
 
-defn 
+defn
 G |- a <= B ::    :: checkType :: 'c_'
 {{ com type checking (algorithmic) }}
 by

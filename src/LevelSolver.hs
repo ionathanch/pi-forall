@@ -84,7 +84,6 @@ modelToSubst = concatMap f where
       Nothing -> []
   f (str, cv) = error $ "no integer solution" ++ show cv
 
-
 makeGoal :: [LevelConstraint] -> Predicate
 makeGoal cs = do
   setOption $ ProduceUnsatCores True

@@ -60,7 +60,7 @@ getLevel mk = case mk of
 
 -- | Combined type checking/inference function
 -- The second argument is 'Just expectedType' in checking mode and 'Nothing' in inference mode
--- If the second argument is Nothing`, then the third argument may be `Just k` in order to 
+-- If the second argument is Nothing`, then the third argument may be `Just k` in order to
 -- pass through a known level
 -- In either case, this function returns the type of the term and a lower bound of its level
 tcTerm :: Term -> Maybe Type -> Level -> TcMonad (Type, Term)
@@ -154,7 +154,7 @@ tcTerm If{} mty mk = Env.err [DS "Booleans are datatypes in this version"]
 
 tcTerm (Let rhs bnd) mty mk = do
   (x, body) <- Unbound.unbind bnd
-  -- allow the level of the binding to be lower than 
+  -- allow the level of the binding to be lower than
   -- the level of the expression, if it needs to be
   -- NOTE: check what happens if x escapes in the type?
   lvar <- Unbound.fresh (Unbound.string2Name "l")
@@ -461,8 +461,8 @@ declarePat pat (Mode Rel Nothing) _ty =
 declarePat pat (Mode Irr _) _ty =
   Env.err [DS "Cannot pattern match irrelevant arguments in pattern", DD pat]
 
--- | Given a list of pattern arguments and a telescope, create a binding for 
--- each of the variables in the pattern, 
+-- | Given a list of pattern arguments and a telescope, create a binding for
+-- each of the variables in the pattern,
 declarePats :: DCName -> [(Pattern, Rho)] -> Level -> [Decl] -> TcMonad [Decl]
 declarePats dc pats j (Def x ty : tele) = do
   let ds1 = [Def x ty]
@@ -481,7 +481,7 @@ declarePats dc []  j  _ = Env.err [DS "Not enough patterns in match for data con
 declarePats dc pats j [] = Env.err [DS "Too many patterns in match for data constructor", DD dc]
 declarePats dc _    j _ = Env.err [DS "Invalid telescope", DD dc]
 
--- | Convert a pattern to a term 
+-- | Convert a pattern to a term
 pat2Term :: Pattern -> TcMonad Term
 pat2Term (PatVar x) = return $ Var x
 pat2Term (PatCon dc pats) = do
@@ -653,7 +653,7 @@ tcEntry decl@(Data t (Telescope delta) cs k) =
     -- for each data constructor is wellfomed, and elaborate them
     -- In this case, the telescopes are "types" for the datacons, so named
     -- arguments require explicit levels (and unification variables are generated if they
-    -- are not present). 
+    -- are not present).
     let elabConstructorDef defn@(ConstructorDef pos d (Telescope tele) ck) =
           Env.extendSourceLocation pos defn $
             Env.extendCtx (DataSig t (Telescope delta) k) $

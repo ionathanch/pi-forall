@@ -11,8 +11,8 @@ tm, a , b , A , B  :: '' ::= {{ com terms and types }}
 
   | if a then b1 else b2 [ x . B ]  ::   :: IfM {{ com conditional }}
 
-v :: 'v_' ::= 
-  | Bool                  ::   :: TyBool 
+v :: 'v_' ::=
+  | Bool                  ::   :: TyBool
   | True                  ::   :: LitTrue
   | False                 ::   :: LitFalse
   | if path then a else b ::   :: If
@@ -20,11 +20,11 @@ v :: 'v_' ::=
 path :: 'p_' ::=
   | if path then a else b ::   :: If
 
-defns 
-Jwhnf :: '' ::= 
+defns
+Jwhnf :: '' ::=
 
 defn
-whnf a ~> v ::    :: whnf :: 'whnf_' 
+whnf a ~> v ::    :: whnf :: 'whnf_'
 by
 
 whnf a ~> True
@@ -71,7 +71,7 @@ a ~> a'
 if a then b1 else b2 ~> if a' then b1 else b2
 
 
-defns 
+defns
 JEq :: '' ::=
 
 defn
@@ -97,9 +97,9 @@ G |- if a then b else b = b
 
 
 defns
-JTyping :: '' ::= 
+JTyping :: '' ::=
 
-defn 
+defn
 
 G |- a : A   ::   :: typing :: 't_'
 {{ com Typing }}
@@ -116,13 +116,13 @@ G |- True : Bool
 G |- False : Bool
 
 
-G |- a : Bool 
+G |- a : Bool
 G |- b1 : A
 G |- b2 : A
 ---------------------------- :: if_simple
 G |- if a then b1 else b2 : A
 
-G |- a : Bool 
+G |- a : Bool
 G |- b1 : A [ True / x ]
 G |- b2 : A [ False / x ]
 G, x:Bool |- A : Type
@@ -130,18 +130,18 @@ G, x:Bool |- A : Type
 G |- if a then b1 else b2 : A[a/x]
 
 
-G |- x : Bool 
+G |- x : Bool
 G |- b1 : A [ True / x ]
 G |- b2 : A [ False / x ]
 G |- A : Type
 ---------------------------- :: if
-G |- if x then b1 else b2 : A 
+G |- if x then b1 else b2 : A
 
 
 defns
-JBidirectional :: '' ::= 
+JBidirectional :: '' ::=
 
-defn 
+defn
 G |- a => A ::    :: inferType :: 'i_'
 {{ com type synthesis (algorithmic) }}
 by
@@ -155,13 +155,13 @@ G |- True => Bool
 ---------------- :: false
 G |- False => Bool
 
-G |- a <= Bool 
+G |- a <= Bool
 G |- b1 => A
 G |- b2 => A
 ---------------------------- :: if_simple
 G |- if a then b1 else b2 => A
 
-G |- a <= Bool 
+G |- a <= Bool
 G |- b1 <= A [ True / x ]
 G |- b2 <= A [ False / x ]
 G, x:Bool |- A <= Type
@@ -169,26 +169,26 @@ G, x:Bool |- A <= Type
 G |- if a then b1 else b2 [x.A] => A[a/x]
 
 
-G |- a <= Bool 
+G |- a <= Bool
 G |- b1 => B1
 G |- b2 => B2
 ----------------------------------------------- :: if_alt
 G |- if a then b1 else b2 => if a then B1 else B2
 
 
-defn 
+defn
 G |- a <= B ::    :: checkType :: 'c_'
 {{ com type checking (algorithmic) }}
 by
 
-G |- a <= Bool 
+G |- a <= Bool
 G |- b1 <= A
 G |- b2 <= A
 ---------------------------- :: if_simple
 G |- if a then b1 else b2 <= A
 
 
-G |- x <= Bool 
+G |- x <= Bool
 G |- b1 <= A [ True / x ]
 G |- b2 <= A [ False / x ]
 ------------------------------ :: if

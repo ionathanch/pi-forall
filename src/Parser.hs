@@ -30,9 +30,9 @@ import Data.List ( foldl' )
 import qualified Data.Set as S
 
 
-{- 
+{-
 
-Concrete syntax for the language: 
+Concrete syntax for the language:
 Optional components in this BNF are marked with < >
 
   terms:
@@ -45,7 +45,7 @@ Optional components in this BNF are marked with < >
 
     | (a : A)                  Annotations
     | (a)                      Parens
-    | TRUSTME                  An axiom 'TRUSTME', inhabits all types 
+    | TRUSTME                  An axiom 'TRUSTME', inhabits all types
     | PRINTME                  Show the current goal and context
 
     | let x = a in b           Let expression
@@ -55,7 +55,7 @@ Optional components in this BNF are marked with < >
 
     | Bool                     Boolean type
     | True | False             Boolean values
-    | if a then b else c       If 
+    | if a then b else c       If
 
     | { x : A | B }            Dependent pair type
     | A * B                    Nondependent pair syntactic sugar
@@ -74,7 +74,7 @@ Optional components in this BNF are marked with < >
 
     | \ [x <:A> ] . a          Irr lambda
     | a [b]                    Irr application
-    | [x : A] -> B             Irr pi    
+    | [x : A] -> B             Irr pi
 
     | x ^ i                    Displacement
 
@@ -146,7 +146,7 @@ type LParser a = ParsecT
                     String                      -- The input is a sequence of Char
                     [Column] (                  -- The internal state for Layout tabs
     StateT ConstructorNames
-                    Unbound.FreshM)             -- The internal state for generating fresh names, 
+                    Unbound.FreshM)             -- The internal state for generating fresh names,
                     a                           -- the type of the object being parsed
 
 instance Unbound.Fresh (ParsecT s u (StateT ConstructorNames Unbound.FreshM))  where
@@ -317,8 +317,8 @@ levelP =
 
 optLevel :: LevelContext -> LParser (Maybe Level)
 optLevel Fixed = Just <$> levelP
-optLevel Float = 
-      try (Just . LConst <$> (at *> natural)) 
+optLevel Float =
+      try (Just . LConst <$> (at *> natural))
   <|> try (at *> do x <- Unbound.fresh (Unbound.string2Name "l")
                     return (Just (LVar x)))
   <|> return Nothing
@@ -328,7 +328,7 @@ telebindings :: LevelContext -> LParser [[Decl] -> [Decl]]
 telebindings ctx = many teleBinding
   where
     --  `_ : A`   or `x : A @ l`  or `A`
-    -- if there is a colon and no level defined, we use the context to determine whether to 
+    -- if there is a colon and no level defined, we use the context to determine whether to
     -- generate a level variable. If there is no colon, we don't generate a level variable
     annot rho = do
       (x,ty,lvl) <-    try ((,,) <$> wildcard <*> (colon >> expr) <*> optLevel ctx)
@@ -513,7 +513,7 @@ typen =
 
 
 
-  -- Lambda abstractions have the syntax '\x . e' 
+  -- Lambda abstractions have the syntax '\x . e'
 lambda :: LParser Term
 lambda = do reservedOp "\\"
             binds <- many1                      impOrExpVar
@@ -546,7 +546,7 @@ ifExpr =
 
 
 
--- 
+--
 letExpr :: LParser Term
 letExpr =
   do reserved "let"
@@ -627,13 +627,13 @@ expProdOrAnnotOrParens =
 
          Nope a    -> return a
 
--- patterns are 
+-- patterns are
 -- p :=  x
 --       _
 --       K ap*
 --       (p)
 --       (p, p)
--- ap ::= [p] | p        
+-- ap ::= [p] | p
 
 -- Note that 'dconstructor' and 'variable' overlaps, annoyingly.
 pattern :: LParser Pattern
@@ -679,7 +679,7 @@ caseExpr = do
 
 
 
--- subst e0 by e1 
+-- subst e0 by e1
 substExpr :: LParser Term
 substExpr = do
   reserved "subst"

@@ -1,7 +1,7 @@
 module Lec2 where
 
 
--- "large eliminations" 
+-- "large eliminations"
 
 bool' : Bool -> Type @ 1
 bool' = \b . (B : Bool -> Type) -> B True -> B False -> B b
@@ -22,15 +22,15 @@ z2 : T False
 z2 = True
 
 
--- To get bar and barnot to work 
--- the typing rule for 'if' expressions must be 
--- context-dependent. In otherwords, it should add new 
+-- To get bar and barnot to work
+-- the typing rule for 'if' expressions must be
+-- context-dependent. In otherwords, it should add new
 -- definitions to the context in the true/false branches
 -- when the scrutinee is a variable
 -- (i.e. >= version2)
 
 
-not : Bool -> Bool 
+not : Bool -> Bool
 not = \x. if x then False else True
 
 bar : (b : Bool) -> T b @ 1
@@ -52,5 +52,5 @@ snd = \A B p. let (x1,y) = p in y
 
 sym : (A:Type @ 1) -> (x:A) -> (y:A) -> (x = y) -> y = x @ 2
 sym = \ A x y pf .
-  subst Refl by pf 
+  subst Refl by pf
 

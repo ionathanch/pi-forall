@@ -15,8 +15,8 @@ grammar
 
 tm, a , b , A , B :: '' ::= {{ com terms and types }}
    | K args       ::     :: TCon
-   | T args       ::     :: DCon 
-   | case a of { </ pati -> ai // i /> } ::     :: Case 
+   | T args       ::     :: DCon
+   | case a of { </ pati -> ai // i /> } ::     :: Case
    | a [ pat / x ] ::     :: PatSubst
 
    | Nat          ::     :: TyNat
@@ -24,23 +24,23 @@ tm, a , b , A , B :: '' ::= {{ com terms and types }}
    | Succ a       ::     :: Succ
    | Void         ::     :: TyVoid
    | ImTrue a b   ::     :: ImTrue
-   | SillyBool    ::     :: SillyBool   
+   | SillyBool    ::     :: SillyBool
 
-v :: 'v_' ::= 
+v :: 'v_' ::=
    | K args       ::     :: TCon
-   | T args       ::     :: DCon 
-   | case p of { </ pati -> ai // i /> } ::     :: Case 
+   | T args       ::     :: DCon
+   | case p of { </ pati -> ai // i /> } ::     :: Case
 
 path, p :: 'p_' ::=
-   | case p of { </ pati -> ai // i /> } ::     :: Case 
+   | case p of { </ pati -> ai // i /> } ::     :: Case
 
 
-args {{ tex \overline{a} }} , bs {{ tex \overline{b} }} :: '' ::= 
+args {{ tex \overline{a} }} , bs {{ tex \overline{b} }} :: '' ::=
    |              ::     :: Nil
    | a args       ::     :: Cons
    | [a] args     ::     :: ECons
 
-pat ::'' ::= 
+pat ::'' ::=
    | x      ::     :: PatVar
    | K ps   ::     :: PatCon
 
@@ -53,7 +53,7 @@ ps :: 'p_' ::=  {{ com sequence of patterns }}
    | pat ep ps ::    :: ConsEp
    |         ::    :: Nil
 
-context, G :: 'ctx_' ::=  
+context, G :: 'ctx_' ::=
    | G , D   ::    :: Extend
 
 telescope, D {{ tex \Delta }} :: 'd_' ::=
@@ -74,11 +74,11 @@ formula :: 'formula_' ::=
    | |- a ~ b   => D       ::   :: Unify
    | match a (pati -> ai) ~> b ::  :: patternMatches
 
-defns 
-Jwhnf :: '' ::= 
+defns
+Jwhnf :: '' ::=
 
 defn
-whnf a ~> v ::    :: whnf :: 'whnf_' 
+whnf a ~> v ::    :: whnf :: 'whnf_'
 by
 
 -------------------- :: tcon
@@ -105,7 +105,7 @@ a ~> b ::   :: step :: 's_'
 {{ com single-step operational semantics, i. e. head reduction }}
 by
 
-defns 
+defns
 JEq :: '' ::=
 
 defn
@@ -114,9 +114,9 @@ G |- A = B ::  :: eq :: 'e_'
 by
 
 defns
-JTyping :: '' ::= 
+JTyping :: '' ::=
 
-defn 
+defn
 
 G |- a : A   ::   :: typing :: 't_'
 {{ com Typing }}
@@ -127,19 +127,19 @@ G |- Nat : Type
 
 ---------------- :: Void
 G |- Void : Type
-   
+
 ---------------- :: Zero
 G |- Zero : Nat
-   
+
 G |- n : Nat
 ----------------- :: Succ
 G |- Succ n : Nat
 
-G |- a1 : Bool    
+G |- a1 : Bool
 G |- a2 : a1 = True
 --------------------------------------- :: ImTrue
 G |- ImTrue a1 a2 : SillyBool
-   
+
 G |- a : T
 </ G |- pati : T => Di // i />
 </ G, Di |- ai : A // i />
@@ -151,26 +151,26 @@ G |- case a of { </ pati -> ai // i /> } : A
 
 
 defns
-JBidirectional :: '' ::= 
+JBidirectional :: '' ::=
 
-defn 
+defn
 G |- a => A ::    :: inferType :: 'i_'
 {{ com type synthesis (algorithmic) }}
 by
 
-T : D -> Type elem G 
-G |- args <= D 
+T : D -> Type elem G
+G |- args <= D
 ------------------------- :: tcon
 G |- T args => Type
 
 
 K : D -> T elem G
-G |- args <= D 
+G |- args <= D
 ------------------ :: dcon_simple
 G |- K args => T
 
 
-defn 
+defn
 G |- a <= B ::    :: checkType :: 'c_'
 {{ com type checking (algorithmic) }}
 by
@@ -204,9 +204,9 @@ G |- args <= D ::  :: tcArgTele :: 'tele_'
 by
 
 ----------------- :: nil
-G |-  <=  
+G |-  <=
 
-G |- a : A       
+G |- a : A
 G |- args <= D [ a / x ]
 ----------------------------------------- :: sig
 G |- a args <= x:A , D
@@ -223,13 +223,13 @@ by
 
 
 -------------------------- :: Nil
-G |-  :  =>  
+G |-  :  =>
 
 
 G |- pat : A => D1
 G |- ps : D => D2
 --------------------------------------------- :: Cons
-G |- pat ps : x : A , D => D1 , D2 
+G |- pat ps : x : A , D => D1 , D2
 
 
 defn
@@ -237,7 +237,7 @@ G |- pat : A => D ::   :: declarePat :: 'p_'
 by
 
 ---------------------- :: var
-G |- x : A => x : A , 
+G |- x : A => x : A ,
 
 
 K : D1 -> T elem G

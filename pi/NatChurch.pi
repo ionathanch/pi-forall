@@ -2,23 +2,23 @@ module NatChurch where
 
 -- Church encoding of natural numbers
 
-nat : Type 
+nat : Type
 nat = (x:Type) -> x -> (x -> x) -> x
-	 
-z : nat 
+	
+z : nat
 z = \x zf sf. zf
-	 
+	
 s : nat -> nat
 s = \n. \x zf sf. sf (n x zf sf)
 
-one : nat 
+one : nat
 one = s z
 
-two : nat 
+two : nat
 two = s (s z)
 
-three : nat 
-three = s (s (s z))  
+three : nat
+three = s (s (s z))
 
 plus : nat -> nat -> nat    -- need to lift first nat for the instantiation
 plus = \x. \y. x nat y s
@@ -33,15 +33,15 @@ test1 = Refl
 spec0 : (n : nat) -> plus z n = n
 spec0 = \n . Refl
 
-spec1 : (n : nat) -> (m : nat) -> plus (s n) m  = s (plus n m) 
+spec1 : (n : nat) -> (m : nat) -> plus (s n) m  = s (plus n m)
 spec1 = \n m . Refl
 
--- The predecessor function is *really* tricky! Don't try this 
+-- The predecessor function is *really* tricky! Don't try this
 -- first if you have never seen it before.
 
 
-pred : nat -> nat @ 1 
+pred : nat -> nat @ 1
 pred = TRUSTME
 
-test_pred : pred two = one 
+test_pred : pred two = one
 test_pred = TRUSTME -- replace with Refl
