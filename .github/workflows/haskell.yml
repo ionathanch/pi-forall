@@ -16,6 +16,29 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - uses: actions/cache@v3
+      name: Cache /usr/local/.ghcup/ghc
+      with:
+        path: /usr/local/.ghcup/ghc
+        key: ${{ runner.os }}-ghcup-ghc${{ hashFiles('pi-forall.cabal') }}
+        restore-keys: |
+          ${{ runner.os }}-ghcup-ghc-
+    - uses: actions/cache@v3
+      name: Cache ~/.stack
+      with:
+        path: ~/.stack
+        key: ${{ runner.os }}-stack-global-${{ hashFiles('stack.yaml') }}-${{ hashFiles('package.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-stack-global-
+    - uses: actions/cache@v3
+      name: Cache .stack-work
+      with:
+        path: .stack-work
+        key: ${{ runner.os }}-stack-work-${{ hashFiles('stack.yaml') }}-${{ hashFiles('package.yaml') }}-${{ hashFiles('**/*.hs') }}
+        restore-keys: |
+          ${{ runner.os }}-stack-work-
+
     - name: Setup Haskell
       run: |
         ghcup install ghc 9.2.7
