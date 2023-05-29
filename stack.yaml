@@ -1,11 +1,13 @@
 resolver: lts-20.21
 
+system-ghc: true
+
 # Local packages, usually specified by relative directory name
 packages:
 - '.'
 
 extra-deps:
-- git: git@github.com:lambdageek/unbound-generics.git
+- git: https://github.com/lambdageek/unbound-generics.git
   commit: a2a558058012b09bb313b3eb03cddb734fcf4a98
 
 flags: {}
