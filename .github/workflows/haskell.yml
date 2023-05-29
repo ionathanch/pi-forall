@@ -16,14 +16,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
-    - name: Upgrade GHCup
-      run: ghcup upgrade
-    - uses: actions/setup-haskell@v1
-      with:
-        ghc-version: '9.2.7'
-        enable-stack: true
-        stack-version: 'latest'
-        stack-setup-ghc: true
+    - name: Setup Haskell
+      run: |
+        ghcup install ghc 9.2.7
+        ghcup install stack
     - name: Build
       run: stack build
     - name: Run tests
