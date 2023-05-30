@@ -244,7 +244,7 @@ tcTerm t@(DCon c j0 args) (Just ty) mk = do
           ]
       Telescope delta' <- Equal.displaceTele j0 (Telescope delta)
       Telescope deltai' <- Equal.displaceTele j0 (Telescope deltai)
-      newTele <- substTele delta params deltai'
+      newTele <- substTele delta' params deltai'
       args' <- tcArgTele args newTele mk
       return (ty, DCon c j0 args')
     _ ->
