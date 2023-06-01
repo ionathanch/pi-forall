@@ -71,8 +71,8 @@ tcTerm t@(Var x) Nothing mk = do
   case ms of
     Just sig -> do
       -- global variable, try to displace
-      jx <- Unbound.fresh (Unbound.string2Name ("jV" ++ show x))
-      tcTerm (Displace (Var x) (LVar jx)) Nothing mk
+      d <- freshLevel ("d" ++ show x)
+      tcTerm (Displace (Var x) d) Nothing mk
     Nothing -> do
       sig <- Env.lookupTy x        -- make sure the variable is accessible
       l <- getLevel (sigLevel sig) -- make sure that it is annotated with a level
@@ -157,10 +157,10 @@ tcTerm (Let rhs bnd) mty mk = do
   -- allow the level of the binding to be lower than
   -- the level of the expression, if it needs to be
   -- NOTE: check what happens if x escapes in the type?
-  lvar <- Unbound.fresh (Unbound.string2Name "l")
-  (aty, rhs') <- inferType rhs (LVar lvar)
-  Env.extendLevelConstraint (Le (LVar lvar) mk)
-  (ty, body') <- Env.extendCtxs [mkSig x aty (LVar lvar), Def x rhs] $
+  i <- freshLevel "iL"
+  (aty, rhs') <- inferType rhs i
+  Env.extendLevelConstraint (Le i mk)
+  (ty, body') <- Env.extendCtxs [mkSig x aty i, Def x rhs] $
       tcTerm body mty mk
   let tm' = Let rhs' (Unbound.bind x body')
   case mty of
@@ -254,7 +254,7 @@ tcTerm t@(DCon c j0 args) (Just ty) mk = do
 -- What about the level of the RHS of the case? Doing current level now, but could
 -- restrict to scrutinee level
 tcTerm t@(Case scrut alts) (Just ty) mk = do
-  j <- LVar <$> Unbound.fresh (Unbound.string2Name "jS")
+  j <- freshLevel "iC"
   Env.extendLevelConstraint (Le j mk)
   (sty, scrut') <- inferType scrut j
   scrut'' <- Equal.whnf scrut'
@@ -485,7 +485,7 @@ declarePats dc _    j _ = Env.err [DS "Invalid telescope", DD dc]
 pat2Term :: Pattern -> TcMonad Term
 pat2Term (PatVar x) = return $ Var x
 pat2Term (PatCon dc pats) = do
-  d <- LVar <$> Unbound.fresh (Unbound.string2Name "d")
+  d <- freshLevel "d"
   args <- pats2Terms pats
   return $ DCon dc d args
   where
@@ -598,10 +598,10 @@ tcEntry (Def n term) = do
       lkup <- Env.lookupHint n
       case lkup of
         Nothing -> do
-          kv <- Unbound.fresh (Unbound.string2Name "k")
-          (ty, term') <- inferType term (LVar kv)
+          i <- freshLevel "iD"
+          (ty, term') <- inferType term i
           ss <- dumpAndSolve (ty, term)
-          let decls = Unbound.substs ss [TypeSig (Sig n Rel (Just (LVar kv)) ty), Def n term']
+          let decls = Unbound.substs ss [TypeSig (Sig n Rel (Just i) ty), Def n term']
           return $ AddCtx decls
         Just sig ->
           let handler (Env.Err ps msg) = throwError $ Env.Err ps (msg $$ msg')
@@ -631,8 +631,8 @@ tcEntry (Def n term) = do
           ]
 tcEntry (TypeSig sig) = do
   duplicateTypeBindingCheck sig
-  kv <- Unbound.fresh (Unbound.string2Name "kS")
-  let l = fromMaybe (LVar kv) (sigLevel sig)
+  i <- freshLevel "iS"
+  let l = fromMaybe i (sigLevel sig)
   ty' <- tcType (sigType sig) l
   return $ AddHint (sig { sigType = ty' })
 tcEntry (Demote ep) = return (AddCtx [Demote ep])

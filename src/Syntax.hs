@@ -292,6 +292,14 @@ isTypeSig :: Decl -> Bool
 isTypeSig (TypeSig _) = True
 isTypeSig _ = False
 
+-- | Generate fresh level from given string
+-- | `n` for levels of primitive naturals
+-- | `l` for metalevels during parsing
+-- | `d` for displacement variables
+-- | `i` for levels used during type inference
+freshLevel :: Unbound.Fresh m => String -> m Level
+freshLevel s = LVar<$> Unbound.fresh (Unbound.string2Name s)
+
 -------------------------------------------------------------------
 -- Prelude declarations for datatypes
 

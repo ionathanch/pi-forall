@@ -275,10 +275,10 @@ natural = fromInteger <$> Token.natural tokenizer
 
 natenc :: LParser Term
 natenc = do
-     j <- Unbound.fresh (Unbound.string2Name "j")
+     j <- freshLevel "n"
      encode j <$> natural
-   where encode j 0 = DCon "Zero" (LVar j) []
-         encode j n = DCon "Succ" (LVar j) [Arg Rel (encode j (n-1))]
+   where encode j 0 = DCon "Zero" j []
+         encode j n = DCon "Succ" j [Arg Rel (encode j (n-1))]
 
 
 moduleImports :: LParser Module
@@ -306,21 +306,18 @@ importDef = do reserved "import" >>  (ModuleImport <$> importName)
 telescope :: LevelContext -> LParser Telescope
 telescope ctx = do
   bindings <- telebindings ctx
-  return $ Telescope (foldr id [] bindings) where
+  return $ Telescope (foldr id [] bindings)
 
 -- Omitted levels are unification variables
 levelP :: LParser Level
 levelP =
-  try (LConst <$> (at *> natural)) <|> do
-    x <- Unbound.fresh (Unbound.string2Name "l")
-    return (LVar x)
+  try (LConst <$> (at *> natural)) <|> freshLevel "l"
 
 optLevel :: LevelContext -> LParser (Maybe Level)
 optLevel Fixed = Just <$> levelP
 optLevel Float =
       try (Just . LConst <$> (at *> natural))
-  <|> try (at *> do x <- Unbound.fresh (Unbound.string2Name "l")
-                    return (Just (LVar x)))
+  <|> try (at >> Just <$> freshLevel "l")
   <|> return Nothing
 
 
@@ -711,13 +708,9 @@ displaceTm :: LParser Term
 displaceTm = do
   x <- variable
   reservedOp "^"
-  l <- try (LConst <$> natural) <|> do
-    lv <- Unbound.fresh (Unbound.string2Name "d")
-    return (LVar lv)
+  l <- try (LConst <$> natural) <|> freshLevel "d"
   return $ Displace (Var x) l
 
 displace :: LParser Level
 displace = do
-  try (reservedOp "^" *> (LConst <$> natural)) <|> do
-    lv <- Unbound.fresh (Unbound.string2Name "d")
-    return (LVar lv) 
+  try (reservedOp "^" >> LConst <$> natural) <|> freshLevel "d"
