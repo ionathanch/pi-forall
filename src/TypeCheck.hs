@@ -334,7 +334,7 @@ tcTerm PrintMe (Just ty) mk = do
   cs <- Env.dumpConstraints
   let dcs = displayConstraints (Env.simplify cs)
   Env.warn $ [DS "Unmet obligation.\nContext:", DD gamma,
-        DS "\nGoal:", DD ty,
+        DS "\nGoal:", DD ty, DS " @ ", DD mk,
         DS "\nConstraints:"] ++ dcs
   ty' <- tcType ty mk
   return (ty', PrintMe)

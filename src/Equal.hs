@@ -83,7 +83,8 @@ equate' d t1 t2 = do
       (_, tyB1, _, tyB2) <- Unbound.unbind2Plus bnd1 bnd2
       unless (r1 == r2) $
           tyErr n2 n1
-      cs1 <- equateMaybeLevel l1 l2
+      cs1 <- Env.extendErr (equateMaybeLevel l1 l2) $
+        disp [DS "when equating", DD n1, DS "and", DD n2]
       cs2 <- equate' Shallow tyA1 tyA2
       cs3 <- equate' Shallow tyB1 tyB2
       return (cs1 <> cs2 <> cs3)
