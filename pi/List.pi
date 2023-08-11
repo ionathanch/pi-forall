@@ -59,3 +59,8 @@ zapListId = \fs ps. case fs of
     Nil -> Nil^0
     Cons p ps -> case p of
       Packed [A] a -> Cons^0 (Packed^0 [A] (f [A] a)) (zapListId fs ps)
+
+lookup : [A : Type @ 0] -> List^0 A -> Nat^0 -> A -> A @ 1
+lookup = \[A] l n a. case n of
+  Zero   -> case l of Nil -> a; Cons x xs -> x
+  Succ m -> case l of Nil -> a; Cons x xs -> lookup [A] xs m a

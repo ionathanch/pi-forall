@@ -1,0 +1,16 @@
+module Leibniz where
+
+Eq : (X : Type) -> X -> X -> Type
+Eq = \X x y. (P : X -> Type) -> P x -> P y
+
+refl : (X : Type) -> (x : X) -> Eq X x x
+refl = \X x P px. px
+
+sym : (X : Type) -> (x : X) -> (y : X) -> Eq X x y -> Eq X y x
+sym = \X x y eqxy P. eqxy (\z. P z -> P x) (\px. px)
+
+trans : (X : Type) -> (x : X) -> (y : X) -> (z : X) -> Eq X x y -> Eq X y z -> Eq X x z
+trans = \X x y z eqxy eqyz P px. (eqyz P (eqxy P px))
+
+isProp : (X : Type) -> Type
+isProp = \X. (x : X) -> (y : X) -> Eq X x y

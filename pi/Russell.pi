@@ -1,0 +1,26 @@
+module Russell where
+
+data Void : Type @ 0 where {}
+
+data Pair (A : Type @ 0) (B : A -> Type) : Type @ 1 where
+  pair of (x : A @ 0) (B x) @ 1
+
+data U : Type where
+  Mk_U of (X : Type) (X -> U)
+
+regular : U -> Type
+regular = \u. case u of
+  Mk_U X f -> (x : X) -> f x = Mk_U X f -> Void
+
+R : U^2
+R = Mk_U^2 (Pair U^0 regular) (\p. case p of pair x y -> x)
+
+R-nonreg : regular R -> Void
+R-nonreg reg = reg (Pair R reg) Refl
+
+R-reg : regular R
+R-reg ureg p = case ureg of
+  pair u reg -> (subst reg by p : regular R) ureg p
+
+false : Void
+false = R-nonreg R-reg
