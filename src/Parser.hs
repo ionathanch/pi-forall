@@ -303,7 +303,9 @@ importDef :: LParser ModuleImport
 importDef = do reserved "import" >>  (ModuleImport <$> importName)
   where importName = identifier
 
-telescope :: LevelContext -> LParser Telescope
+data Binding = Param | Argmt
+
+telescope :: Binding -> LParser Telescope
 telescope ctx = do
   bindings <- telebindings ctx
   return $ Telescope (foldr id [] bindings)
@@ -313,25 +315,23 @@ levelP :: LParser Level
 levelP =
   try (LConst <$> (at *> natural)) <|> freshLevel "l"
 
-optLevel :: LevelContext -> LParser (Maybe Level)
-optLevel Fixed = Just <$> levelP
-optLevel Float =
-      try (Just . LConst <$> (at *> natural))
-  <|> try (at >> Just <$> freshLevel "l")
-  <|> return Nothing
-
-
-telebindings :: LevelContext -> LParser [[Decl] -> [Decl]]
+telebindings :: Binding -> LParser [[Decl] -> [Decl]]
 telebindings ctx = many teleBinding
   where
-    --  `_ : A`   or `x : A @ l`  or `A`
-    -- if there is a colon and no level defined, we use the context to determine whether to
-    -- generate a level variable. If there is no colon, we don't generate a level variable
+    -- for parameters:   `x : A @ l` or `x : A` or `x : A @`
+    -- for constructors: `x : A @ l` or `x : A` or `A`
     annot rho = do
-      (x,ty,lvl) <-    try ((,,) <$> wildcard <*> (colon >> expr) <*> optLevel ctx)
-                <|>    try ((,,) <$> variable <*> (colon >> expr) <*> optLevel ctx)
-                <|>        ((,,) <$> Unbound.fresh wildcardName <*> expr <*> optLevel Float)
-      return (TypeSig (Sig x rho lvl ty):)
+      (x, ty, lvl) <-
+        case ctx of
+          Param -> (,,) <$> varOrWildcard <*> (colon >> expr) <*>
+                   (try (at >> Just . LConst <$> natural) <|> -- dependent, explicit
+                    try (at >> Just <$> freshLevel "l")   <|> -- dependent, implicit
+                    pure Nothing)                             -- nondependent
+          Argmt -> try ((,,) <$> varOrWildcard <*> (colon >> expr) <*>
+                        (try (at >> Just . LConst <$> natural) <|> -- dependent, explicit
+                         Just <$> freshLevel "l"))                 -- dependent, implicit
+                   <|> ((,,) <$> Unbound.fresh wildcardName <*> expr <*> pure Nothing) -- nondependent
+      return (TypeSig (Sig x rho lvl ty) :)
 
     equal = do
         v <- variable
@@ -359,7 +359,7 @@ dataDef :: LParser Decl
 dataDef = do
   reserved "data"
   name <- identifier
-  params <- telescope Float
+  params <- telescope Param
   colon
   Type <- typen
   lvl  <- levelP
@@ -377,7 +377,7 @@ constructorDef :: LParser ConstructorDef
 constructorDef = do
   pos <- getPosition
   cname <- identifier
-  args <- option (Telescope []) (reserved "of" >> telescope Fixed)
+  args <- option (Telescope []) (reserved "of" >> telescope Argmt)
   lvl  <- levelP
   return $ ConstructorDef pos cname args lvl
   <?> "Constructor"
@@ -586,7 +586,7 @@ impProd =
 -- with the ambiguity caused because these types, annotations and
 -- regular old parens all start with parens.
 
-data InParens = Colon Term Term Level | Comma Term Term | Nope Term
+data InParens = WildColon Term Level | Colon Term Term Level | Comma Term Term | Nope Term
 
 expProdOrAnnotOrParens :: LParser Term
 expProdOrAnnotOrParens =
@@ -603,15 +603,22 @@ expProdOrAnnotOrParens =
     --    in which case you might be looking at an explicit pi type.
     beforeBinder :: LParser InParens
     beforeBinder = parens $
-      choice [do e1 <- try (term >>= (\e1 -> colon >> return e1))
+      choice [do try (wildcard >> colon)
                  e2 <- expr
-                 Colon e1 e2 <$> levelP
+                 WildColon e2 <$> levelP
+             , do e1 <- try (term >>= (\e1 -> colon >> return e1))
+                  e2 <- expr
+                  Colon e1 e2 <$> levelP
              , do e1 <- try (term >>= (\e1 -> comma >> return e1))
                   Comma e1 <$> expr
              , Nope <$> expr]
   in
     do bd <- beforeBinder
        case bd of
+         WildColon a l -> do
+            x <- Unbound.fresh wildcardName
+            b <- afterBinder
+            return $ Pi (Mode Rel (Just l)) a (Unbound.bind x b)
          Colon (Var x) a l ->
            option (Ann (Var x) a)
                   (do b <- afterBinder
