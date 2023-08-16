@@ -1,21 +1,20 @@
-cabal-Version: 2.2
-name: pi-forall
-version: 0.2
+cabal-version: 2.2
+name: stratt
+version: 0.1
+build-type: Simple
 license: BSD-3-Clause
 license-file: LICENSE
-copyright: (c) 2013-2022 University of Pennsylvania
-description: An implementation of a simple dependently typed language for OPLSS 2022
-author: Stephanie Weirich <sweirich@seas.upenn.edu>, based on code by Trellys Team <trellys@...>
-maintainer: Stephanie Weirich <sweirich@seas.upenn.edu>
-build-type: Simple
-tested-with: GHC == 8.10.7
+copyright: (c) 2013-2023 University of Pennsylvania
+author: Jonathan Chan and Stephanie Weirich, based on code by the Trellys Team
+maintainer: Jonathan Chan <jcxz@seas.upenn.edu>
+synopsis: A prototype implementation of Stratified Type Theory
+description:
 category: Compilers/Interpreters
-homepage: https://github.com/sweirich/pi-forall
-synopsis: Demo implementation of typechecker for dependently-typed language
+tested-with: GHC == 9.2.7
 
 source-repository head
   type: git
-  location: https://github.com/sweirich/pi-forall
+  location: https://github.com/plclub/StraTT
 
 common shared-properties
   default-language:
@@ -64,7 +63,6 @@ common shared-properties
   if !impl(ghc >= 8.0)
     build-depends: semigroups == 0.18.*
 
-
 library
   import: shared-properties
   hs-source-dirs: src
@@ -80,16 +78,8 @@ library
     Arbitrary
     LevelSolver
 
-executable pi-forall
+executable stratt
   import: shared-properties
-  build-depends: pi-forall
+  build-depends: stratt
   hs-source-dirs: app
-  main-is: Main.hs
-
-test-suite test-pi-forall
-  import: shared-properties
-  build-depends: pi-forall
-    , QuickCheck >= 2.13.2
-  type: exitcode-stdio-1.0
-  hs-source-dirs: test
   main-is: Main.hs

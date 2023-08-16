@@ -60,3 +60,7 @@ cabal-dev:
 	@perl -i -pe $(subst SOLN,SOLN EQUAL,$(SOLNREGEX)) $@
 	@perl -i -pe $(subst SOLN,SOLN EP,$(SOLNREGEX)) $@
 #	chmod 440 $@ # prevent inadvertent modification of stub code
+
+zip:
+	rm -f stratt.zip
+	zip stratt -r app/ pi/ src/ README.md stack.yaml stratt.cabal

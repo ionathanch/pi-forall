@@ -29,6 +29,7 @@ module LayoutToken
     , LayoutFun (..)
     ) where
 
+import Data.Kind ( Type )
 import Data.Char ( isAlpha, toLower, toUpper, isSpace, digitToInt )
 import Data.List ( nub, sort )
 import Control.Monad.Identity
@@ -694,7 +695,7 @@ makeTokenParser languageDef open sep close
 
     --whiteSpace
     -- MOD: this function renamed from whiteSpace to ws, and changed to return the matched string.
-    ws :: forall (m :: * -> *). (Monad m) => ParsecT String [Column] m [String]
+    ws :: forall (m :: Type -> Type). (Monad m) => ParsecT String [Column] m [String]
     ws
         | noLine && noMulti  = many (simpleSpace <?> "")
         | noLine             = many (simpleSpace <|> multiLineComment <?> "")
@@ -801,7 +802,7 @@ makeTokenParser languageDef open sep close
                                 in adjust (col2,p:ps,[])
               (cs,p:ps,_,GT) -> return ()
           }
-getInfo :: forall (m :: * -> *) t t1.
+getInfo :: forall (m :: Type -> Type) t t1.
                  Monad m =>
                  ParsecT t1 t m (Column, t, t1)
 getInfo =
@@ -810,7 +811,7 @@ getInfo =
       ; tokens <- getInput
       ; return(sourceColumn pos,tabs,tokens) }
 
-setInfo :: forall (m :: * -> *).
+setInfo :: forall (m :: Type -> Type).
                  Monad m =>
                  (Column, [Column], String) -> ParsecT String [Column] m ()
 setInfo (col,tabs,tokens) =
@@ -819,7 +820,7 @@ setInfo (col,tabs,tokens) =
      ; setState tabs
      ; setInput tokens }
 
-indent :: forall (m :: * -> *).
+indent :: forall (m :: Type -> Type).
                 Monad m =>
                 ParsecT String [Column] m ()
 indent =
@@ -827,13 +828,13 @@ indent =
      ; tabs <- getState
      ; setState (sourceColumn pos : tabs)
      }
-undent :: forall (m :: * -> *) t. Monad m => ParsecT String [t] m ()
+undent :: forall (m :: Type -> Type) t. Monad m => ParsecT String [t] m ()
 undent =
   do { (p:ps) <- getState
      ; setState ps
      }
 
-_eoln :: forall (m :: * -> *) a.
+_eoln :: forall (m :: Type -> Type) a.
                Monad m =>
                ParsecT [Char] [Column] m a -> ParsecT [Char] [Column] m Char
 _eoln whiteSpace =

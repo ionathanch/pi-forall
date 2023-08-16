@@ -1,0 +1,74 @@
+cabal-version: 2.2
+name: stratt
+version: 0.1
+build-type: Simple
+synopsis: A prototype implementation of Stratified Type Theory
+tested-with: GHC == 9.2.7
+
+common shared-properties
+  default-language:
+    Haskell2010
+  ghc-options:
+    -Wall -fno-warn-unused-matches -fno-warn-orphans -fno-warn-unused-top-binds -fno-warn-unused-imports
+  default-extensions:
+    EmptyDataDecls
+    DataKinds
+    DefaultSignatures
+    DeriveAnyClass
+    DeriveDataTypeable
+    DeriveGeneric
+    DerivingStrategies
+    FlexibleContexts
+    FlexibleInstances
+    GADTs
+    GeneralizedNewtypeDeriving
+    ImportQualifiedPost
+    KindSignatures
+    MultiParamTypeClasses
+    NamedFieldPuns
+    ParallelListComp
+    PatternGuards
+    RankNTypes
+    ScopedTypeVariables
+    TupleSections
+    TypeFamilies
+    TypeSynonymInstances
+    UndecidableInstances
+    ViewPatterns
+  build-depends:
+    base >= 4 && < 5,
+    parsec >= 3.1.8 && < 3.2,
+    mtl >= 2.2.1,
+    pretty >= 1.0.1.0,
+    unbound-generics >= 0.2,
+    transformers,
+    array >= 0.3.0.2 && < 0.6,
+    containers,
+    directory,
+    filepath,
+    HUnit,
+    QuickCheck,
+    sbv
+  if !impl(ghc >= 8.0)
+    build-depends: semigroups == 0.18.*
+
+library
+  import: shared-properties
+  hs-source-dirs: src
+  exposed-modules:
+    Environment
+    Equal
+    LayoutToken
+    Modules
+    Parser
+    PrettyPrint
+    Syntax
+    TypeCheck
+    Arbitrary
+    LevelSolver
+
+executable stratt
+  import: shared-properties
+  build-depends: stratt
+  hs-source-dirs: app
+  main-is: Main.hs
