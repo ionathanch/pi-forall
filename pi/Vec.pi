@@ -169,3 +169,10 @@ filter = \ [A][n] f v .
         if f x
            then (Succ m', Cons [m'] x xs')
            else (m', xs')
+
+lookup : [A : Type @ 0] -> [n : Nat @ 0] -> Fin n -> Vec A n -> A @ 1
+lookup = \[A] [n] fn v. case v of
+  Nil -> case fn of {}
+  Cons [n] x xs -> case fn of
+    Zero [m] -> x
+    Succ [m] fm -> lookup [A] [m] fm xs
