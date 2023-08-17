@@ -3,7 +3,7 @@ name: stratt
 version: 0.1
 build-type: Simple
 synopsis: A prototype implementation of Stratified Type Theory
-tested-with: GHC == 9.2.7
+tested-with: GHC == 9.4.5
 
 common shared-properties
   default-language:

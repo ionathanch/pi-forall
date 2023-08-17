@@ -9,7 +9,6 @@ import qualified Text.Read as Read
 
 import Data.SBV as SBV
 import Data.SBV.Internals
-
 import Data.SBV.Control
 import Control.Monad
 import qualified Data.Map as Map
@@ -93,7 +92,7 @@ makeGoal cs = do
                     constrain $ 0 .<= x
                     return (v,x)) vs
   mapM_ (`process` varmap) cs
-  SBV.existential [] sTrue
+  pure sTrue
   -- minimize "goal" (sum (map snd vars))
 
 type Vars = [(LName, SInteger)]
