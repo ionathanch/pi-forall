@@ -1,7 +1,5 @@
 module Ord where
 
-data Void : Type where {}
-
 -- Ordinals and their order
 
 data Ord : Type where
@@ -17,12 +15,12 @@ lt : Ord -> Ord -> Type
 lt = \o1 o2. Leq (Succ o1) o2
 
 zero : Ord
-zero = Lim [Void] (\v. case v of {})
+zero = Lim [Void] (\b. absurd b : Void -> Ord)
 
 -- Properties of the order
 
 zeroLeq : [o : Ord] -> Leq zero o
-zeroLeq = \[o]. Limiting [Void] (\v. case v of {}) (\v. case v of {})
+zeroLeq = \[o]. Limiting [Void] (\b. absurd b : Void -> Ord) (\b. absurd b : (v : Void) -> Leq (absurd v) o)
 
 reflLeq : (o : Ord) -> Leq o o
 reflLeq = \o. case o of

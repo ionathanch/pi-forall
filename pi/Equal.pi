@@ -1,4 +1,4 @@
-module Equality where
+module Equal where
 
 -- Defining propositional equality as an indexed datatype
 

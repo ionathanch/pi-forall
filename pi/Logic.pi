@@ -80,15 +80,6 @@ or_assoc = \[A] [B] [C] abc.
       Inl b -> Inl (Inr b)
       Inr c -> Inr c
 
--- Falsehood
-------------
-
-data Void : Type where {} -- no constructors
-
--- aka ex_falso_quolibet
-false_elim : [P : Type] -> Void -> P
-false_elim = \[P] v. case v of {}
-
 -- Negation
 -----------
 
@@ -101,7 +92,7 @@ not_false = \x. x
 contradiction_implies_anything : [P : Type] -> [Q : Type] -> And P (neg P) -> Q
 contradiction_implies_anything = \[P] [Q] and.
   case and of
-    Conj p notp -> false_elim [Q] (notp p)
+    Conj p notp -> absurd (notp p)
 
 double_neg : [P : Type] -> P -> neg (neg P)
 double_neg = \[P] p. \x. x p
@@ -115,7 +106,7 @@ not_both_true_and_false = \[P] [Q] andpnp.
     Conj p np -> np p
 
 iff_neg_false : [A : Type] -> iff (neg A) (iff A Void)
-iff_neg_false = \[A]. Conj (\x. Conj x (\y. false_elim [A] y)) (proj1 [A -> Void] [Void -> A])
+iff_neg_false = \[A]. Conj (\x. Conj x (\y. absurd y : Void -> A)) (proj1 [A -> Void] [Void -> A])
 
 em_irrefutable : [A : Type] -> neg (neg (Either A (neg A)))
 em_irrefutable = \[A] f. f (Inr (\a. f (Inl a)))

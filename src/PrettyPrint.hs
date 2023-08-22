@@ -390,6 +390,11 @@ instance Display Term where
     return $ PP.text "TRUSTME"
   display PrintMe = do
     return $ PP.text "PRINTME"
+  display Void = return $ PP.text "Void"
+  display (Absurd b) = do
+    p <- ask prec
+    db <- display b
+    return $ parens (levelPi < p) $ PP.text "absurd" <+> db
   display TyUnit = return $ PP.text "Unit"
   display LitUnit = return $ PP.text "()"
   display TyBool = return $ PP.text "Bool"

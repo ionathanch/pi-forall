@@ -143,6 +143,13 @@ tcTerm TrustMe (Just ty) mk = do
   ty' <- tcType ty mk
   return (ty', TrustMe)
 
+-- i-void
+tcTerm Void Nothing k = return (Type, Void)
+tcTerm (Absurd b) (Just ty) k = do
+  ty' <- tcType ty k
+  b' <- checkType b Void k
+  return (ty', Absurd b')
+
 -- i-unit
 tcTerm TyUnit Nothing k = return (Type, TyUnit)
 tcTerm LitUnit Nothing k = return (Type, LitUnit)

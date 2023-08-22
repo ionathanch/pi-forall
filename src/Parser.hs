@@ -50,6 +50,9 @@ Optional components in this BNF are marked with < >
 
     | let x = a in b           Let expression
 
+    | Void                     Empty type
+    | absurd b                 ex falso quodlibet
+
     | Unit                     Unit type
     | ()                       Unit value
 
@@ -185,6 +188,7 @@ piforallStyle = Token.LanguageDef
                   ,"ord"
                   ,"Bool", "True", "False"
                   ,"if","then","else"
+                  ,"Void", "absurd"
                   ,"Unit", "()"
                   ]
                , Token.reservedOpNames =
@@ -477,7 +481,6 @@ funapp = do
 
 factor = choice [ try displaceTm <?> "displaced term"
                 , varOrCon   <?> "a variable or nullary data constructor"
-
                 , typen      <?> "Type"
                 , lambda     <?> "a lambda"
                 , try letPairExp  <?> "a let pair"
@@ -487,13 +490,13 @@ factor = choice [ try displaceTm <?> "displaced term"
                 , substExpr  <?> "a subst"
                 , refl       <?> "Refl"
                 , contra     <?> "a contra"
+                , absurd     <?> "ex falso quodlibet"
                 , trustme    <?> "TRUSTME"
                 , printme    <?> "PRINTME"
                 , impProd    <?> "an implicit function type"
                 , bconst     <?> "a constant"
                 , ifExpr     <?> "an if expression"
                 , sigmaTy    <?> "a sigma type"
-
                 , expProdOrAnnotOrParens
                     <?> "an explicit function type or annotated expression"
                 ]
@@ -525,6 +528,7 @@ bconst  :: LParser Term
 bconst = choice [reserved "Bool"  >> displace >>= \j -> return (TCon boolName j []),
                  reserved "False" >> displace >>= \j -> return (DCon falseName j []),
                  reserved "True"  >> displace >>= \j -> return (DCon trueName j []),
+                 reserved "Void"  >> displace >>= \j -> return Void,
                  reserved "Unit"  >> displace >>= \j -> return (TCon tyUnitName j []),
                  reserved "()"    >> displace >>= \j -> return (DCon litUnitName j [])]
 
@@ -698,6 +702,11 @@ contra = do
   witness <- expr
   return $ Contra witness
 
+absurd :: LParser Term
+absurd = do
+  reserved "absurd"
+  witness <- expr
+  return $ Absurd witness
 
 sigmaTy :: LParser Term
 sigmaTy = do

@@ -1,6 +1,6 @@
 module README where
 
--- Conjuction, disjuction, falsehood, negation
+-- Conjuction, disjuction, negation
 import Logic
 
 -- Properties of _=_ (builtin equality type)

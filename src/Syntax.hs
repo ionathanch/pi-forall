@@ -73,6 +73,10 @@ data Term
   | -- | let expression, introduces a new (non-recursive) definition in the ctx
     -- | `let x = a in b`
     Let Term (Unbound.Bind TName Term)
+  | -- | the empty type
+    Void
+  | -- | ex falso quodlibet
+    Absurd Term
   | -- | the type with a single inhabitant, called `Unit`
     TyUnit
   | -- | the inhabitant of `Unit`, written `()`
@@ -511,6 +515,8 @@ isFreelyDisplaceable = go where
   go TrustMe = True
   go PrintMe = True
   go (Let te bnd) = go te && let (_,a) = Unbound.unsafeUnbind bnd in go a
+  go Void = True
+  go (Absurd b) = go b
   go TyUnit = True
   go LitUnit = True
   go TyBool = True

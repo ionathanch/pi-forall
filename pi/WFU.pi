@@ -1,7 +1,5 @@
 module WFU where
 
-data Void : Type @ 0 where {}
-
 data U : Type where
   Mk_U of (X : Type) (X -> U)
 

@@ -1,7 +1,5 @@
 module Hurkens where
 
-data Void : Type where {}
-
 neg : Type -> Type
 neg = \X. X -> Void
 

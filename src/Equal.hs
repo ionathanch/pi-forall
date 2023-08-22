@@ -99,6 +99,8 @@ equate' d t1 t2 = do
     (TrustMe, TrustMe) ->  return success
     (PrintMe, PrintMe) ->  return success
 
+    (Void, Void) -> return success
+
     (TyUnit, TyUnit)   -> return success
     (LitUnit, LitUnit) -> return success
 
@@ -179,6 +181,9 @@ equate' d t1 t2 = do
 
             (Contra a1, Contra a2) ->
               equate' Shallow a1 a2
+
+            (Absurd b1, Absurd b2) ->
+              equate' Shallow b1 b2
 
             (Case s1 brs1, Case s2 brs2) ->
               if length brs1 == length brs2 then do
@@ -487,6 +492,8 @@ displace j t = case t of
     Type -> return Type
     PrintMe -> return PrintMe
     TrustMe -> return TrustMe
+    Void -> return Void
+    Absurd b -> Absurd <$> displace j b
     TyUnit -> return TyUnit
     LitUnit -> return LitUnit
     (LitBool b) -> return (LitBool b)

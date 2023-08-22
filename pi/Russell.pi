@@ -2,8 +2,6 @@
 
 module Russell where
 
-data Void : Type @ 0 where {}
-
 data Pair (A : Type @ 0) (B : A -> Type) : Type @ 1 where
   pair of (x : A @ 0) (B x) @ 1
 
