@@ -57,4 +57,3 @@ t = \ b .
 
 is_true : Bool -> Type
 is_true = \b. b = True
-

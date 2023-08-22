@@ -55,13 +55,13 @@ subst_app = \[x][y][z] p q . Refl
 
 -- and congruent
 
-f_equal :  [A:Type] -> [B : Type] -> [f : A -> B] -> [x:A] -> [y:A] -> x = y -> f x = f y
-f_equal = \[A][B][f][x][y] pf .
+f_equal : [A : Type] -> [B : Type] -> [f : A -> B] -> [x : A] -> [y : A] -> x = y -> f x = f y
+f_equal = \[A] [B] [f] [x] [y] pf.
   subst Refl by pf
 
-f_equal2 :  [A:Type] -> [B : Type] -> [C:Type] -> [f : A -> B -> C] -> [x1:A] -> [y1:A] -> [x2:B] -> [y2:B] ->
+f_equal2 : [A : Type] -> [B : Type] -> [C : Type] -> [f : A -> B -> C] -> [x1:A] -> [y1:A] -> [x2:B] -> [y2:B] ->
    x1 = y1 -> x2 = y2 -> f x1 x2 = f y1 y2
-f_equal2 = \[A][B][C][f][x1][y1][x2][y2] pf1 pf2.
+f_equal2 = \[A] [B] [C] [f] [x1] [y1] [x2] [y2] pf1 pf2.
   subst (subst Refl by pf1) by pf2
 
 -- dependent form of congruence with respect to function applications

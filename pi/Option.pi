@@ -1,0 +1,40 @@
+module Option where
+
+-- Encoding of Option types
+
+OptionC : Type -> Type @ 1
+OptionC = \X. (Y : Type) -> Y -> (X -> Y) -> Y
+
+NoneC : (X : Type) -> OptionC X
+NoneC = \X Y y f. y
+
+SomeC : (X : Type) -> X -> OptionC X
+SomeC = \X x Y y f. f x
+
+joinC : (X : Type) -> OptionC (OptionC X) -> OptionC X
+joinC = \X optopt. \Y y f. optopt Y y (\opt. opt Y y (\x. f x))
+
+-- Encoding of Option types without nondependent functions
+
+Option' : (X : Type @ 0) -> Type @ 2
+Option' = \X. (Y : Type @ 0) -> (y : Y @ 0) -> (f : (x : X @ 0) -> Y @ 1) -> Y
+
+None' : (X : Type @ 0) -> Option' X @ 2
+None' = \X Y y f. y
+
+Some' : (X : Type @ 0) -> (x : X @ 0) -> Option' X @ 2
+Some' = \X x Y y f. f x
+
+join' : (X : Type @ 0) -> (opt : Option'^2 (Option'^0 X) @ 4) -> Option'^0 X
+join' = \X optopt. \Y y f. optopt Y y (\opt. opt Y y f)
+
+-- Option types as a datatype
+
+data Option (X : Type) : Type @ 0 where
+  None @ 0
+  Some of (X) @ 0
+
+join : (X : Type @ 0) -> Option (Option X) -> Option X @ 1
+join = \X oopt. case oopt of
+  None -> None
+  Some opt -> opt

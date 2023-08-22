@@ -8,6 +8,8 @@ extended with datatypes, recursive global functions, and level inference.
 This project requires Stack and Cabal, and has been tested with GHC 9.2.7.
 To compile the type checker, run `stack build`.
 To check a file `<file>`, run `stack exec -- stratt <file>`.
+If successful, the definitions in that file will be printed out
+explicitly annotated with levels and displacements.
 
 ## Grammar
 
@@ -115,3 +117,8 @@ data Fin (n : Nat) :¹ Type where
   Succ :¹ Π m :⁰ Nat . Fin m → Fin (Succ m)
 
 ```
+
+## Examples
+
+All the example files are found in the `pi/` directory.
+The `pi/README.pi` file imports each file with a short description.

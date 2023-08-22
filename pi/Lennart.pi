@@ -1,6 +1,5 @@
 module Lennart where
 
--- stack exec -- pi-forall Lennart.pi
 -- with unbind / subst
 -- 7.81s user 0.52s system 97% cpu 8.568 total
 -- with substBind

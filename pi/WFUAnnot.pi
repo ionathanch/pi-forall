@@ -22,9 +22,11 @@ liftU = \u. case u of
 loop : U^1 @ 2
 loop = Mk_U^1 U^0 liftU^0
 
+{-
 not_WF : WF^1 loop^0 -> Void^0 @ 3
 not_WF = \y. case y of
   Mk_WF [X] [f] x -> not_WF (x loop^0)
 
 false : Void^0
 false = not_WF^0 (always_WF^0 loop^0)
+-}

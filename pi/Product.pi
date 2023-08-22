@@ -1,149 +1,53 @@
------------------------------------------------------------------------
--- The Pi standard library
---
--- Products  (excerpted and ported from Product.agda)
-------------------------------------------------------------------------
-
 module Product where
 
 import Equality
 
--- Sigma types should behave similarly. BUT: note that B may
--- be named in the types of the constructors, even though it
--- doesn't appear later in the telescope.
-data Sig (A : Type @ 0) (B : A -> Type) : Type @ 1 where
-  Product of (x:A @ 0) (B x)
+data Sigma (A : Type @ 0) (B : A -> Type) : Type @ 1 where
+  Prod of (x : A @ 0) (B x)
 
-proj1 : [A:Type] -> [B:A -> Type] -> Sig A B -> A
-proj1 = \[A][B] x . case x of
-  Product x y -> x
+proj1 : [A : Type] -> [B : A -> Type] -> Sigma A B -> A
+proj1 = \[A] [B] x. case x of
+  Prod x y -> x
 
-proj2 : [A:Type] -> [B:A -> Type] -> (x : Sig A B) -> B (proj1[A][B] x)
-proj2 = \[A][B] x . case x of
-  Product z y -> y
+proj2 : [A : Type] -> [B : A -> Type] -> (x : Sigma A B) -> B (proj1 [A] [B] x)
+proj2 = \[A] [B] x. case x of
+  Prod z y -> y
 
-{-
-injectivity1 : [A:Type] -> [B:A -> Type] -> (x1 : A) -> (y1 : B x1)
-				 -> (x2 : A) -> (y2 : B x2)
-				 -> ((Prod x1 y1 : Sig A B) = Prod x2 y2) -> x1 = x2
-injectivity1 = \[A][B] x1 y1 x2 y2 eq .
-	 let f1 = (Refl : proj1 [A][B] (Prod x1 y1) = x1) in
-	 let f2 = (Refl : proj1 [A][B] (Prod x2 y2) = x2) in
-	 let p1 = (subst Refl by eq : proj1 [A][B] (Prod x1 y1) = proj1 [A][B] h) in
-	 let p2 = (subst p1 by f1  : h = proj1 [A][B] (Prod x2 y2)) in
-	 subst p2 by f2
+injectivity1 : [A : Type] -> [B : A -> Type] -> (x1 : A) -> (y1 : B x1) -> (x2 : A) -> (y2 : B x2) ->
+				       ((Prod x1 y1 : Sigma A B) = Prod x2 y2) -> x1 = x2
+injectivity1 = \[A] [B] x1 y1 x2 y2 eq.
+	f_equal [Sigma A B] [A] [proj1 [A] [B]] [Prod x1 y1] [Prod x2 y2] eq
 
--- because of the dependency between the first and second components of
--- the pair, we can only decompose the equality when the first components are
--- already identical.
-injectivity2 : [A:Type] -> [B:A -> Type] -> (x : A) -> (y1 : B x)
-				 -> (y2 : B x)
-				 -> ((Prod x y1 : Sig A B) = Prod x y2) -> y1 = y2
-injectivity2 = \[A][B] x y1 y2 eq.
-	 let f1 = (Refl : (proj2 [A][B] (Prod x y1) : B x) = y1) in
-	 let f2 = (Refl : proj2 [A][B] (Prod x y2) = y2) in
-	 let p1 = subst Refl by eq at h. proj2 [A][B] (Prod x y1) = proj2 [A][B] h in
-	 let p2 = subst p1 by f1 at h. (h : B x) = proj2 [A][B] (Prod x y2) in
-	 subst p2 by f2 at h. y1 = h
--}
+injectivity2 : [A : Type @ 0] -> [B : A -> Type @ 1] -> (x : A @ 0) -> (y1 : B x @ 1) -> (y2 : B x @ 1) ->
+				       ((Prod^0 x y1 : Sigma^0 A B) = Prod^0 x y2) -> y1 = y2 @ 2
+injectivity2 = \[A] [B] x y1 y2 eq. TRUSTME
 
-curry : [A:Type] -> [B:A -> Type] -> [C : Sig A B -> Type] ->
-        ((p : Sig A B) -> C p) ->
-		  ((x: A)  -> (y : B x) -> C (Product x y))
-curry = \ [A][B][C] f x y . f (Product x y)
+curry : [A : Type] -> [B : A -> Type] -> [C : Sigma A B -> Type] ->
+				((p : Sigma A B) -> C p) -> ((x: A)  -> (y : B x) -> C (Prod x y))
+curry = \[A] [B] [C] f x y. f (Prod x y)
 
-uncurry : [A:Type] -> [B:A -> Type] -> [C : Sig A B -> Type] ->
-        ((x: A)  -> (y : B x) -> C (Product x y)) ->
-        ((p : Sig A B) -> C p)
-uncurry = \ [A][B][C] f p . case p of
-              Product x y -> f x y
+uncurry : [A : Type] -> [B : A -> Type] -> [C : Sigma A B -> Type] ->
+					((x: A)  -> (y : B x) -> C (Prod x y)) -> ((p : Sigma A B) -> C p)
+uncurry = \[A] [B] [C] f p. case p of Prod x y -> f x y
 
 ---------------------------------------------------
--- Irr first component
-
-data Exists (A:Type @ 0) (B: A -> Type) : Type where
-  Product of [x:A] (B x)
-
--- can't define the first projections for this type
-
--- eproj1 : [A:Type] -> [B:A -> Type] -> Exists A B -> A
--- eproj1 = \[A][B] x . case x of
---   Product x y -> x
-
-eproj2 : [A:Type] -> [B:A -> Type] -> (x : Sig A B) ->
-   B (case x of { Product x y -> x })
-eproj2 = \[A][B] x . case x of
-  Product x y -> y
-
-
----------------------------------------------------
--- Irr second component
-
-data Refine (A:Type @ 0) (B : A -> Type) : Type where
-  Product of (x:A)[B x]
-
-rproj1 : [A:Type] -> [B:A -> Type] -> Refine A B -> A
-rproj1 = \[A][B] x . case x of
-  Product x [y] -> x
-
----------------------------------------------------
--- Non-dependent version
-
-
-Times : (A : Type @ 0) -> Type -> Type
-Times = \ A B . Sig A (\x . B)
+-- Weak dependent pairs
 
 {-
-prod : [A:Type @ 0] -> [B:Type] -> A -> B -> Times A B
-prod = \ [A] [B] x y . Product x y
+We have a builtin dependent pair datatype defined as
 
-swap : [A:Type] -> [B:Type] -> Times A B -> Times B A
-swap = \ [A][B] p . case p of
-           Product x y -> Product y x
--}
-{-
--- we don't support the "at" syntaxt
-injectivity2' : [A:Type] -> [B: Type]
-				 -> (x1 : A) -> (y1 : B)
-				 -> (x2 : A) -> (y2 : B)
-				 -> ((Prod x1 y1 : Times A B) = Prod x2 y2) -> (y1 = y2)
-injectivity2' = \[A][B] x1 y1 x2 y2 eq.
-	 let f1 = (Refl : proj2 [A][\x. B] (Prod x1 y1) = y1) in
-	 let f2 = (Refl : proj2 [A][\x. B] (Prod x2 y2) = y2) in
-	 let p1 = subst Refl by eq
-             at h. proj2 [A][\x. B] (Prod x1 y1) = proj2 [A][\x. B] h in
-	 let p2 = subst p1 by f1 at h. (h : B) = proj2 [A][\x. B] (Prod x1 y2) in
-	 subst p2 by f2 at h. y1 = h
--}
-{-
-uncurry' :  [A:Type] -> [B:Type] -> [C : Times A B -> Type] ->
-        ((x: A)  -> (y : B) -> C (Prod x y)) ->
-        ((p : Times A B) -> C p)
-uncurry' = \[A][B]. uncurry [A][\x.B]
+	data _Sigma (A : Type @ 0) (B : (x : A @ 0) -> Type) : Type @ 1 where
+	  _Prod of (x : A @ 0) (B x) @ 1
+
+with syntactic sugar
+
+	{x : A | B}            for    _Sigma A (\x. B : (x : A @ 0) -> Type)
+	(a, b)                 for    _Prod a b
+	let (x, y) = p in b    for    case p of _Prod x y -> b
 -}
 
----------------------------------------------------
--- Extra dependent pairs
+fst : [A : Type @ 0] -> [B : (_ : A @ 0) -> Type @ 1] -> {x : A | B x} -> A @ 2
+fst = \[A] [B] p. let (x, y) = p in x
 
-data Pair (A : Type @ 0) (B : (x : A @ 0) -> Type) : Type @ 1 where
-  MkPair of (x : A @ 0) (B x)
-
-fst : [A : Type @ 0] -> [B : (x : A @ 0) -> Type @ 1] -> Pair A B -> A @ 2
-fst = \[A] [B] p. case p of
-	MkPair a b -> a
-
--- This won't type check because fst is too big, and lifting B doesn't lift its domain level
--- snd : [A : Type @ 0] -> [B : (x : A @ 0) -> Type @ 1] -> (p : Pair A B @ 1) -> B (fst [A] [B] p) @ 2
-
--- However, this allows us to define pairs where B uses the element of A dependently
-Prop : Type @ 1
-Prop = Pair Type (\A. (x : A @ 0) -> (y : A @ 0) -> x = y)
-
--- On the other hand, Prop can't be defined using Sig,
--- since the level of B will always end up being strictly larger than that of A
--- Prop' : Type @ 1
--- Prop' = Sig Type (\A. (x : A @ 0) -> (y : A @ 0) -> x = y)
-
--- These are the tradeoffs between the two different kinds of dependent pairs:
--- * Pair doesn't have second projections, but lets B use the first projection dependently
--- * Sig doesn't allow fixing the level of the first projection, which enables second projections
+-- This won't type check because fst is too big, and raising B doesn't raise its domain level
+-- snd : [A : Type @ 0] -> [B : (_ : A @ 0) -> Type @ 1] -> (p : {x : A | B x} @ 1) -> B (fst [A] [B] p) @ 2

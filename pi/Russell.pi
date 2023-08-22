@@ -1,3 +1,5 @@
+{- Adapted from https://github.com/agda/agda/blob/master/test/Succeed/Russell.agda -}
+
 module Russell where
 
 data Void : Type @ 0 where {}
@@ -12,10 +14,10 @@ regular : U -> Type
 regular = \u. case u of
   Mk_U X f -> (x : X) -> f x = Mk_U X f -> Void
 
+{-
 R : U^2
 R = Mk_U^2 (Pair^1 U^0 regular) (\p. case p of pair x y -> x)
 
-{-
 R_nonreg : regular R -> Void
 R_nonreg = \reg. reg (Pair R reg) Refl
 

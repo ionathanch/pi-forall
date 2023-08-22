@@ -1,7 +1,0 @@
-module IsProp where
-
-isProp : (A : Type @ 0) -> Type @ 1
-isProp = \A. (x : A @ 0) -> (y : A @ 0) -> x = y
-
-isSet : (_ : Type @ 0) -> Type @ 2
-isSet = \A. (x : A @ 0) -> (y : A @ 0) -> isProp (x = y)

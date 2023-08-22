@@ -303,9 +303,9 @@ freshLevel s = LVar<$> Unbound.fresh (Unbound.string2Name s)
 
 -- | prelude names for built-in datatypes
 sigmaName :: TCName
-sigmaName = "Sigma"
+sigmaName = "_Sigma"
 prodName :: DCName
-prodName = "Prod"
+prodName = "_Prod"
 boolName :: TCName
 boolName = "Bool"
 trueName :: DCName
@@ -335,13 +335,12 @@ preludeDataDecls =
         -- unit
         unitConstructorDef = ConstructorDef internalPos litUnitName (Telescope []) (LConst 0)
 
-        -- Sigma-type
-        -- Sigma (A :: Type) (B :: Pi x:A. Type)
-        -- prod :: (x :: A) (y :: B x) -> Sigma A B
+        -- data _Sigma (A : Type @ 0) (B : (x : A @ 0) -> Type) : Type @ 1 where
+        --   _Prod of (x : A @ 0) (B x) @ 1
         sigmaTele = Telescope [TypeSig sigA, TypeSig sigB]
         prodConstructorDef = ConstructorDef internalPos prodName (Telescope [TypeSig sigX, TypeSig sigY]) (LConst 1)
         sigA = Sig aName Rel (Just (LConst 0)) Type
-        sigB = Sig bName Rel Nothing (Pi (Mode Rel Nothing) (Var aName) (Unbound.bind xName Type))
+        sigB = Sig bName Rel Nothing (Pi (Mode Rel (Just (LConst 0))) (Var aName) (Unbound.bind xName Type))
         sigX = Sig xName Rel (Just (LConst 0)) (Var aName)
         sigY = Sig yName Rel Nothing (App (Var bName) (Arg Rel (Var xName)))
 

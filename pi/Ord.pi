@@ -1,8 +1,5 @@
 module Ord where
 
-import Logic
-import List
-
 data Void : Type where {}
 
 -- Ordinals and their order
@@ -50,17 +47,3 @@ succLeq = \o. case o of
       (succLeq (f x))
       (Mono (f x) (Lim [X] f)
         (Cocone [X] f x (reflLeq (f x)))))
-
--- Ordinal addition?
-
-add : Ord -> Ord -> Ord
-add = \o1 o2. case o1 of
-  Succ o -> Succ (add o o2)
-  Lim [X] f -> case o2 of
-    Succ o -> Succ (add o1 o)
-    Lim [Y] g -> Lim [Either X Y] (\xy. case xy of Inl x -> f x; Inr y -> g y)
-
-sumOrds : List Ord -> Ord
-sumOrds = \l. case l of
-  Nil -> zero
-  Cons o os -> add o (sumOrds os)

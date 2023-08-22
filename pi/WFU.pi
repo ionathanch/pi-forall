@@ -14,6 +14,7 @@ always_WF : (x : U) -> WF x
 always_WF = \u. case u of
   Mk_U X f -> Mk_WF [X][f] (\ x . always_WF (f x))
 
+{-
 -- But this one is not
 loop : U
 loop = Mk_U U (\x . x)
@@ -24,3 +25,4 @@ not_WF = \ y.  case y of
 
 false : Void
 false = not_WF (always_WF loop)
+-}
