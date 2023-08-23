@@ -125,3 +125,4 @@ data Fin (n : Nat) :¹ Type where
 
 All the example files are found in the `pi/` directory.
 The `pi/README.pi` file imports each file with a short description.
+The `pi/StraTT.pi` file contains all of the specific examples mentioned in the paper.
