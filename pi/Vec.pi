@@ -151,7 +151,7 @@ filter = \[A] [n] f v.
           then Prod (Succ m') (Cons [m'] x xs')
           else Prod m' xs'
 
-lookup : [A : Type @ 0] -> [n : Nat @ 0] -> Fin n -> Vec A n -> A @ 1
+lookup : [A : Type] -> [n : Nat] -> Fin n -> Vec A n -> A
 lookup = \[A] [n] fn v. case v of
   Nil -> case fn of {}
   Cons [n] x xs -> case fn of

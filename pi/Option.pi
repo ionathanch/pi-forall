@@ -2,7 +2,7 @@ module Option where
 
 -- Encoding of Option types
 
-OptionC : Type -> Type @ 1
+OptionC : Type -> Type
 OptionC = \X. (Y : Type) -> Y -> (X -> Y) -> Y
 
 NoneC : (X : Type) -> OptionC X

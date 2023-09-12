@@ -6,8 +6,7 @@ module Logic where
 data And (A : Type) (B : Type) : Type where
   Conj of (A) (B)
 
-
-proj1 : [A : Type @ 0] -> [B : Type @ 0] -> And A B -> A @ 1
+proj1 : [A : Type] -> [B : Type] -> And A B -> A
 proj1 = \[A] [B] p. case p of
   Conj x y -> x
 
@@ -72,7 +71,7 @@ or_distributes_over_and_1 = \[P] [Q] [R] e.
     Inr qr -> case qr of
                 Conj q r -> Conj (Inr q) (Inr r)
 
-or_assoc : [A : Type] -> [B : Type] -> [C : Type] -> Either A (Either B C) -> Either (Either A B) C @ 1
+or_assoc : [A : Type] -> [B : Type] -> [C : Type] -> Either A (Either B C) -> Either (Either A B) C
 or_assoc = \[A] [B] [C] abc.
   case abc of
     Inl a -> Inl (Inl a)

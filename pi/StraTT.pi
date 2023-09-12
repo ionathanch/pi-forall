@@ -67,6 +67,16 @@ isSet = \X. (x : X @ 0) -> (y : X @ 0) -> isProp^1 (eq^0 X x y)
  SECTION 5: Prototype implementation
  -----------------------------------}
 
+{- Annotation inference -}
+
+idid' : (X : Type) -> X -> X
+idid' = id ((X : Type) -> X -> X) (\X x. id X x)
+
+cps' : (X : Type) -> Type
+cps' = \X. (R : Type @ 1) -> (X -> R) -> R
+
+{- Datatypes -}
+
 data Option (X : Type) : Type @ 0 where
   None @ 0
   Some of (X) @ 0

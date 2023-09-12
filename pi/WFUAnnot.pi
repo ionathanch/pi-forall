@@ -5,7 +5,7 @@ data U : Type @ 1 where
 
 -- A U is well-founded if all its elements are
 data WF (u : U @ 1) : Type @ 2 where
-  Mk_WF of [X : Type @ 0] [f : X -> U @ 1] ((x : X @ 1) -> WF (f x)) [u = Mk_U X f] @ 2
+  Mk_WF of [X : Type @ 0] [f : X -> U^0 @ 1] ((x : X @ 1) -> WF (f x)) [u = Mk_U X f] @ 2
 
 -- All U are well-founded
 always_WF : (x : U^0 @ 1) -> WF^0 x @ 2

@@ -70,11 +70,11 @@ Z_neq_S = \[n] p.
 -------------------------------------------------------
 -- Reasoning about datatypes
 
-minus_same_zero : (n : Nat @0) -> ((minus^0) n n = 0) @ 1
+minus_same_zero : (n : Nat) -> (minus n n = 0)
 minus_same_zero = \ n .
     case n of
       Zero -> Refl
-      Succ p -> (minus_same_zero p : (minus^0) p p = 0)
+      Succ p -> (minus_same_zero p : minus p p = 0)
 
 lemma_minus_zero_id : (n : Nat) -> (minus n 0 = n)
 lemma_minus_zero_id =   \n . case n of
