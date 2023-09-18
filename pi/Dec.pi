@@ -1,0 +1,53 @@
+module Dec where
+
+-- Encoding of decidable types and its irrefutability
+
+neg : Type -> Type @ 0
+neg = \X. X -> Void
+
+Dec : Type -> Type @ 1
+Dec = \A. (Z : Type @ 0) -> (A -> Z) -> (neg A -> Z) -> Z
+
+yes : (A : Type @ 0) -> A -> Dec A @ 1
+yes = \A a Z l r. l a
+
+no : (A : Type @ 0) -> neg A -> Dec A @ 1
+no = \A na Z l r. r na
+
+irrDec_C : (A : Type @ 0) -> neg (neg (Dec A)) @ 1
+irrDec_C = \A nem. nem (no A (\a. nem (yes A a)))
+
+-- Encoding of decidable types without nondependent functions
+
+neg' : (X : Type @ 0) -> Type @ 1
+neg' = \X. (x : X @ 0) -> Void
+
+Dec' : (A : Type @ 0) -> Type @ 3
+Dec' = \A. (Z : Type @ 2) -> (l :  (a :      A @ 0) -> Z @ 2)
+                          -> (r : (na : neg' A @ 1) -> Z @ 2)
+                          -> Z
+
+yes' : (A : Type @ 0) -> (a : A @ 0) -> Dec' A @ 3
+yes' = \A a Z l r. l a
+
+no' : (A : Type @ 0) -> (na : neg' A @ 1) -> Dec' A @ 3
+no' = \A na Z l r. r na
+
+-- Irrefutability is no longer provable
+-- since nem is at level 4 while we need a proof of Void at level 1
+irrDec' : (A : Type @ 0) -> neg'^4 (neg'^3 (Dec'^0 A))
+irrDec' = \A ndec. ndec (no'^0 A (\a. PRINTME)) -- ndec (yes'^0 A a)
+
+-- Decidability as a datatype
+
+data Dec (A : Type) : Type where
+  Yes of (A)
+  No  of (neg A)
+
+irrDec : (A : Type @ 0) -> neg (neg (Dec A))
+irrDec = \A ndec. ndec (No (\a. ndec (Yes a)))
+
+decDNE : (A : Type @ 0) -> Dec A -> neg (neg A) -> A
+decDNE = \A dec dne. case dec of
+  Yes a -> a
+  No na -> absurd (dne na)
