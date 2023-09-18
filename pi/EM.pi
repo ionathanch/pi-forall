@@ -1,0 +1,47 @@
+module EM where
+
+-- Encoding of excluded middle and its irrefutability
+
+EM : Type -> Type @ 1
+EM = \A. (Z : Type @ 0) -> (A -> Z) -> ((A -> Void) -> Z) -> Z
+
+is : (A : Type @ 0) -> A -> EM A @ 1
+is = \A a Z l r. l a
+
+isn't : (A : Type @ 0) -> (A -> Void) -> EM A @ 1
+isn't = \A na Z l r. r na
+
+irrEM_C : (A : Type @ 0) -> (EM A -> Void) -> Void @ 1
+irrEM_C = \A nem. nem (isn't A (\a. nem (is A a)))
+
+-- Encoding of excluded middle without nondependent functions
+
+EM' : (A : Type @ 0) -> Type @ 3
+EM' = \A. (Z : Type @ 2) -> (l :  (a : A                   @ 0) -> Z @ 2)
+                         -> (r : (na : (a : A @ 0) -> Void @ 1) -> Z @ 2)
+                         -> Z
+
+is' : (A : Type @ 0) -> (a : A @ 0) -> EM' A @ 3
+is' = \A a Z l r. l a
+
+isn't' : (A : Type @ 0) -> (na : (a : A @ 0) -> Void @ 1) -> EM' A @ 3
+isn't' = \A na Z l r. r na
+
+-- Irrefutability is no longer provable
+-- since nem is at level 4 while we need a proof of Void at level 1
+irrEM' : (A : Type @ 0) -> (nem : (em : EM'^0 A @ 3) -> Void @ 4) -> Void
+irrEM' = \A nem. nem (isn't'^0 A (\a. PRINTME)) -- nem (is'^0 A a)
+
+-- Excluded middle as a datatype
+
+data EM (A : Type) : Type where
+  Is of (A)
+  Isn't of (A -> Void)
+
+irrEM : (A : Type @ 0) -> (EM A -> Void) -> Void
+irrEM = \A nem. nem (Isn't (\a. nem (Is a)))
+
+EM_DNE : (A : Type @ 0) -> EM A -> ((A -> Void) -> Void) -> A
+EM_DNE = \A em dne. case em of
+  Is a -> a
+  Isn't na -> absurd (dne na)

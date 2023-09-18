@@ -109,3 +109,8 @@ iff_neg_false = \[A]. Conj (\x. Conj x (\y. absurd y : Void -> A)) (proj1 [A -> 
 
 em_irrefutable : [A : Type] -> neg (neg (Either A (neg A)))
 em_irrefutable = \[A] f. f (Inr (\a. f (Inl a)))
+
+em_dne : [A : Type] -> Either A (neg A) -> neg (neg A) -> A
+em_dne = \[A] em nna. case em of
+  Inl a -> a
+  Inr na -> absurd (nna na)
