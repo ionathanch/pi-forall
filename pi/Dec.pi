@@ -36,7 +36,7 @@ no' = \A na Z l r. r na
 -- Irrefutability is no longer provable
 -- since nem is at level 4 while we need a proof of Void at level 1
 irrDec' : (A : Type @ 0) -> neg'^4 (neg'^3 (Dec'^0 A)) @ 5
-irrDec' = \A ndec. ndec (no'^0 A (\a. PRINTME)) -- ndec (yes'^0 A a)
+-- irrDec' = \A ndec. ndec (no'^0 A (\a. ndec (yes'^0 A a)))
 
 -- Decidability as a datatype
 
