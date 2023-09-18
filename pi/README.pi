@@ -18,8 +18,9 @@ import Product
 -- Mere propositions and h-sets
 import PropSet
 
--- Booleans, optionals, naturals, finite sets, ordinals, lists, vectors
+-- Booleans, decidable types, optionals, naturals, finite sets, ordinals, lists, vectors
 import BoolLib
+import Dec
 import Option
 import Nat
 import Fin

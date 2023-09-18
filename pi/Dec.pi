@@ -15,7 +15,7 @@ no : (A : Type @ 0) -> neg A -> Dec A @ 1
 no = \A na Z l r. r na
 
 irrDec_C : (A : Type @ 0) -> neg (neg (Dec A)) @ 1
-irrDec_C = \A nem. nem (no A (\a. nem (yes A a)))
+irrDec_C = \A ndec. ndec (no A (\a. ndec (yes A a)))
 
 -- Encoding of decidable types without nondependent functions
 
@@ -35,7 +35,7 @@ no' = \A na Z l r. r na
 
 -- Irrefutability is no longer provable
 -- since nem is at level 4 while we need a proof of Void at level 1
-irrDec' : (A : Type @ 0) -> neg'^4 (neg'^3 (Dec'^0 A))
+irrDec' : (A : Type @ 0) -> neg'^4 (neg'^3 (Dec'^0 A)) @ 5
 irrDec' = \A ndec. ndec (no'^0 A (\a. PRINTME)) -- ndec (yes'^0 A a)
 
 -- Decidability as a datatype
