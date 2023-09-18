@@ -29,6 +29,7 @@ module Environment
     extendSourceLocation,
     extendLevelConstraint,
     simplify,
+    getConstraints,
     dumpConstraints,
     getSourceLocation,
     err,
@@ -409,6 +410,9 @@ extendLevelConstraint c = do
   if any (\lc -> snd lc == c) cs then return () else
   -- if c `elem` cs then return () else
     put $ TcState { constraints = (head locs,c) : cs }
+
+getConstraints :: (MonadState TcState m) => m [(SourceLocation,LevelConstraint)]
+getConstraints = gets constraints
 
 dumpConstraints :: (MonadState TcState m) => m [(SourceLocation,LevelConstraint)]
 dumpConstraints = do

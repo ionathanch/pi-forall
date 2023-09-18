@@ -338,7 +338,7 @@ tcTerm LetPair{} _ k =  Env.err [DS "The parser for 'full' expands Sigmas into d
 
 tcTerm PrintMe (Just ty) mk = do
   gamma <- Env.getLocalCtx
-  cs <- Env.dumpConstraints
+  cs <- Env.getConstraints
   let dcs = displayConstraints (Env.simplify cs)
   Env.warn $ [DS "Unmet obligation.\nContext:", DD gamma,
         DS "\nGoal:", DD ty, DS " @ ", DD mk,
