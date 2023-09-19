@@ -8,7 +8,17 @@ Tested with:
     coq-metalib pinned to version dev at 
       git+https://github.com/plclub/metalib.git
 
-Generated with:
+To install using OPAM:
+
+    opam repo add coq-released https://coq.inria.fr/opam/released
+    opam pin coq 8.16.1
+    opam pin add coq-metalib https://github.com/plclub/metalib.git
+
+To compile:
+ 
+    make -f CoqSrc.mk
+
+Note: some files have been generated with:
 
     Ott, fork of version 0.31 at
       git+https://github.com:sweirich/ott.git
@@ -16,10 +26,7 @@ Generated with:
     LNgen, version 0.3.2
       git+https://github.com/plclub/lngen.git
 
-To compile:
- 
-    make -f CoqSrc.mk
-
+(These tools are not needed to compile the .v files in this repository.)
 
 ## Axioms
 
