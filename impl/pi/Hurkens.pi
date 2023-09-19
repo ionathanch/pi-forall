@@ -1,8 +1,5 @@
 module Hurkens where
 
-neg : Type -> Type
-neg = \X. X -> Void
-
 P : Type -> Type
 P = \S. S -> Type
 

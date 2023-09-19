@@ -2,8 +2,19 @@ cabal-version: 2.2
 name: stratt
 version: 0.1
 build-type: Simple
+license: BSD-3-Clause
+license-file: LICENSE
+copyright: (c) 2013-2023 University of Pennsylvania
+author: Jonathan Chan and Stephanie Weirich, based on code by the Trellys Team
+maintainer: Jonathan Chan <jcxz@seas.upenn.edu>
 synopsis: A prototype implementation of Stratified Type Theory
+description:
+category: Compilers/Interpreters
 tested-with: GHC == 9.4.5
+
+source-repository head
+  type: git
+  location: https://github.com/plclub/StraTT
 
 common shared-properties
   default-language:
@@ -24,6 +35,7 @@ common shared-properties
     GeneralizedNewtypeDeriving
     ImportQualifiedPost
     KindSignatures
+    LambdaCase
     MultiParamTypeClasses
     NamedFieldPuns
     ParallelListComp

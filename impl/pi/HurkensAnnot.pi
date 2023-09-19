@@ -12,17 +12,6 @@ tau = \t. \x. \f. \p. t (\s. p (f (s x f)))
 sigma : U^1 -> P^0 (P^0 U^0) @ 2
 sigma = \s. s U^0 tau^0
 
-{-
-s : U^1
-s : (x:*1) -> (P1 (P1 x) -> x) -> P1 (P1 x)
-
-s U0 : (P1 (P1 U0) -> U0) -> P1 (P1 U0)
-
-tau  : (P0 (P0 U0) -> U0)
-
-NOTE: P1 (P1 U0) = P0 (P0 U0) but *only* after expanding terms
--}
-
 Delta : Type -> P^0 U^1 @ 2
 Delta = \b. \y. ((p : P^0 U^0 @ 1) -> sigma^0 y p -> p (tau^0 (sigma^0 y))) -> b
 

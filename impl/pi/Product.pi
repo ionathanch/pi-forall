@@ -49,5 +49,5 @@ with syntactic sugar
 fst : [A : Type @ 0] -> [B : (_ : A @ 0) -> Type @ 1] -> {x : A | B x} -> A @ 2
 fst = \[A] [B] p. let (x, y) = p in x
 
--- This won't type check because fst is too big, and raising B doesn't raise its domain level
--- snd : [A : Type @ 0] -> [B : (_ : A @ 0) -> Type @ 1] -> (p : {x : A | B x} @ 1) -> B (fst [A] [B] p) @ 2
+snd : [A : Type @ 0] -> [B : (_ : A @ 0) -> Type @ 1] -> (p : {x : A | B x} @ 1) -> let (x, y) = p in B x @ 2
+snd = \[A] [B] p. let (x, y) = p in y
