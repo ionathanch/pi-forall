@@ -1,0 +1,757 @@
+embed {{ coq-preamble
+  Require Export Metalib.LibLNgen.
+  }}
+
+metavar var, x, y, z, f, g ::=
+  {{ repr-locally-nameless }}
+  {{ com variables }}
+  {{ lex alphanum }}
+  {{ tex \mathit{[[var]]} }}
+
+metavar n ::=
+  {{ coq nat }}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Grammar
+
+grammar
+
+nat ,  i , j , k :: 'l_' ::= {{ coq nat }} {{ com natural numbers }}
+   | 0       :: M :: zero   {{ coq [[0]] }}
+   | 1       :: M :: one    {{ coq [[1]] }}
+   | 2       :: M :: two    {{ coq [[2]] }}
+   | 3       :: M :: three  {{ coq [[3]] }}
+   | 4       :: M :: four   {{ coq [[4]] }}
+   | 5       :: M :: five   {{ coq [[5]] }}
+   | i + j   :: M :: suc    {{ coq ([[i]] + [[j]]) }}
+   | k - j   :: M :: minus  {{ coq ([[k]] - [[j]]) }}
+   | max i j :: M :: max    {{ coq (Nat.max [[i]][[j]]) }}
+   | ( i )   :: M :: paren  {{ coq ([[i]]) }}
+   | (# i #) :: M :: sparen {{ coq ([[i]]) }} {{ tex [[i]] }}
+
+tm, A, B, C, a, b, c, sigma {{ tex \sigma }} :: 'a_' ::= {{ com terms and types }}
+  | type :: :: Type
+    {{ com universe }}
+    {{ tex \star }}
+  | A -> B :: :: Arrow
+    {{ com nondependent function type }}
+    {{ tex [[A]] \mathrel{\rightarrow} [[B]] }}
+  | A @ k -> B :: M :: DArrow
+    {{ com sugar for dependent function type }}
+    {{ tex [[A]] \mathrel{ \rightarrow^{[[k]]} } [[B]] }}
+    {{ coq 0 }}
+  | Pi x : A @ j . B :: :: Pi
+    (+ bind x in B +)
+    {{ tex \Pi \mathit{[[x]]}\!:^{[[j]]}\![[A]] \mathpunct{.} [[B]] }}
+    {{ com dependent function type }}
+  | \ x . a :: :: Abs
+    (+ bind x in a +)
+    {{ tex \lambda \mathit{[[x]]} \mathpunct{.} [[a]] }}
+    {{ com function }}
+  | a b :: :: App
+    {{ tex [[a]] \; [[b]] }}
+    {{ com application }}
+  | _|_ :: :: Bottom
+    {{ tex \bot }}
+    {{ com empty type }}
+  | absurd b :: :: Absurd
+    {{ tex \mathsf{absurd}([[b]]) }}
+    {{ com ex falso quodlibet }}
+  | ( A ) :: M :: Paren
+    {{ coq ([[A]]) }}
+  | x :: :: Var
+    {{ com variable }}
+    {{ tex \mathit{[[x]]} }}
+  | x ^ i :: :: Const
+    {{ tex \mathit{[[x]]}^{[[i]]} }}
+    {{ com displaced constants }}
+  %% standard substitution, using open
+  | a { b / x } :: S :: Subst
+    {{ coq (open_tm_wrt_tm [[x a]] [[b]]) }}
+    {{ tex [[a]] \mathopen{ \{ } [[b]] / \mathit{[[x]]} \mathclose{ \} } }}
+  %% Ott parsing precedence is hard
+  | (# a #) :: S :: SecretParen
+    {{ coq [[a]] }} {{ tex [[a]] }}
+    {{ com parsing precedence is hard }}
+  | a + j :: M :: DisplaceMeta
+    {{ com increment levels }}
+    {{ coq (incr [[j]] [[a]]) }}
+    {{ tex [[a]]^{+[[j]]} }}
+  %% for type setting. Do not use in rules
+  | Pi x : A . B :: M :: UPi
+    {{ tex \Pi \mathit{[[x]]}\!:\![[A]] \mathpunct{.} [[B]] }}
+    {{ com unannotated dependent function type }}
+    {{ coq (a_Pi [[A]] 0 [[B]]) }}
+
+substitutions
+  single a x :: subst
+
+freevars
+  a x :: fv
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% This part is not handled by LNgen
+
+grammar
+
+assn :: '' ::= {{ com context assumptions }}
+  | : A @ k    ::    :: Tm
+  {{ tex :^{[[k]]} [[A]] }}
+
+context, G {{ tex \Gamma }} :: 'ctx_' ::= {{ com contexts }}
+                                          {{ coq list ( atom * assn ) }}
+   | x assn          ::    :: One         {{ coq ([[x]]~[[assn]]) }}
+                                          {{ tex [[x]] [[assn]] }}
+                                          {{ com singleton }}
+   | empty           ::    :: Empty       {{ coq nil }} {{ com empty }}
+   | G , G'          ::    :: Append      {{ coq ([[G']]++[[G]]) }}
+                                          {{ tex [[G]], [[G']] }}
+                                          {{ com append }}
+   | ( G )           :: M  :: Paren       {{ coq ([[G]]) }}
+   | (# G #)         :: M  :: SecretParen {{ coq [[G]] }} {{ tex [[G]] }}
+   | G { a / x }     :: M  :: Subst       {{ coq (subst_ctx [[a]][[x]][[G]]) }}
+   | G + k           :: M  :: IncG        {{ coq (IncG k [[G]]) }}
+                                          {{ tex [[G]]^{+[[k]]} }}
+   | restrict G k    :: M  :: Restrict    {{ coq (restrict [[G]][[k]]) }}
+                                          {{ tex \lceil[[G]]\rceil^{[[k]]} }}
+   | float j k G     :: M  :: Lift        {{ coq (float [[j]][[k]][[G]]) }}
+                                          {{ tex \mathopen{ \uparrow_{[[j]]}^{[[k]]} }[[G]] }}
+
+def :: '' ::= {{ com signature definitions }}
+  | : A @ k := a :: :: Def
+  {{ tex :^{[[k]]} [[A]] \coloneqq [[a]] }}
+
+signature, S {{ tex \Delta }} :: 'sig_' ::= {{ com signatures }}
+                                            {{ coq list ( atom * def ) }}
+    | x def   ::   :: One         {{ coq ([[x]]~[[def]]) }}
+                                  {{ tex [[x]] [[def]] }}
+                                  {{ com singleton }}
+    | empty   ::   :: Empty       {{ coq nil }} {{ com empty }}
+    | S , S'  ::   :: Append      {{ coq ([[S']]++[[S]]) }}
+                                  {{ tex [[S]], [[S']] }}
+                                  {{ com append }}
+    | ( S )   :: M :: Paren       {{ coq ([[S]]) }}
+    | (# S #) :: M :: SecretParen {{ coq [[S]] }} {{ tex [[S]] }}
+
+grammar
+
+value , v :: 'v_' ::=
+  | A ne   ::  :: Lift
+  | \ cl    ::  :: Abs
+  | Pi v cl ::  :: Pi
+  | type   ::  :: Type
+  | ( v )  :: M :: Paren {{ coq ([[v]]) }}
+
+nf ::   'nf_' ::=
+  | A v    ::   :: Lower
+
+ne ::  'ne_' ::=
+  | [ i ]  ::   :: IVar
+  | ne nf  ::   :: App
+  | ( ne ) :: M :: Paren {{ coq ([[ne]]) }}
+
+clos , cl ::  'cl_' ::=
+%   | a <| rho ::    :: Clos
+
+env , rho ::  'e_' ::= {{ coq list value }}
+  | nil         :: M  :: Nil {{ coq nil }}
+  | v           :: M  :: One {{ coq ([[v]]::nil) }}
+  | env1 , env2 :: M  :: App {{ coq [[env1]] ++ [[env2]] }}
+  | ( env )     :: M  :: Paren  {{ coq ([[env]]) }}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Terminals
+
+grammar
+
+terminals :: 'terminals_' ::=
+  | <->               ::   :: iso           {{ tex \leftrightarrow }}
+  | <=>               ::   :: lrarrow       {{ tex \Leftrightarrow }}
+  | -->               ::   :: step          {{ tex \longrightarrow }}
+  | min               ::   :: min           {{ tex \mathsf{min} }}
+  | ==                ::   :: definitional  {{ tex \equiv }}
+  | all               ::   :: forall     {{ tex \forall }}
+  | in                ::   :: in         {{ tex \ottkw{in} }}
+  | let               ::   :: let        {{ tex \ottkw{let} }}
+  | bind              ::   :: bind       {{ tex \ottkw{bind} }}
+  | notin             ::   :: notin      {{ tex \not\in }}
+  | <=                ::   :: check      {{ tex \leq }}
+  | =>                ::   :: infer      {{ tex \Rightarrow }}
+  | =>*               ::   :: minfer      {{ tex \Rightarrow^{\ast} }}
+  | ->                ::   :: arrow      {{ tex \to }}
+  | <-|               ::   :: mapsfrom   {{ tex \mapsfrom }}
+  | []                ::   :: box        {{ tex \Box }}
+  | |-                ::   :: entails    {{ tex \vdash }}
+  | |/-               ::   :: nentails   {{ tex \nvdash }}
+  | ||-               ::   :: eentails   {{ tex \vdash }}
+  | -|                ::   :: produces   {{ tex \dashv }}
+  | |=                ::   :: hs_entails {{ tex \vDash }}
+  | |==               ::   :: hs_entaill {{ tex \vDash }}
+  | /=                ::   :: neq        {{ tex \neq }}
+  | |>                ::   :: cast       {{ tex \triangleright }}
+  | ok                ::   :: ok         {{ tex \ \mathsf{ok} }}
+  | _                 ::   :: blank      {{ tex \_ }}
+  | ~>                ::   :: produce    {{ tex \leadsto }}
+  | ~>*               ::   :: multistep  {{ tex \leadsto^{\ast} }}
+  | ~>h               ::   :: steph      {{ tex \leadsto }}
+  | empty             ::   :: empty      {{ tex \varnothing }}
+  | hole              ::   :: hole       {{ tex \circ }}
+  | fv                ::   :: fv         {{ tex \mathsf{fv}\! }}
+  | dom               ::   :: dom        {{ tex \mathsf{dom} }}
+  | ~                 ::   :: twiddle    {{ tex \sim }}
+  | ~~                ::   :: compatible {{ tex \asymp }}
+  | '|'               ::   :: bar        {{ tex | }}
+  | o                 ::   :: bullet     {{ tex \bullet }}
+  | fst               ::   :: fst        {{ tex \pi_{1} }}
+  | snd               ::   :: snd        {{ tex \pi_{2} }}
+  | |=>|              ::   :: erasesto   {{ tex \mathrel{|\Rightarrow|} }}
+  | |-=               ::   :: turneq     {{ tex \vdash_{=} }}
+  | ++                ::   :: concat     {{ tex \mathop{++} }}
+  | *                 ::   :: times      {{ tex \cdot }}
+  | =beta             ::   :: betaeq     {{ tex =_{\beta} }}
+  | ;                 ::   :: semi       {{ tex \mathsf{;} }}
+  | Pi                ::   :: Pi         {{ tex \Pi }}
+  | inj               ::   :: inj        {{ tex \ottkw{inj} }}
+  | case              ::   :: case       {{ tex \ottkw{case} }}
+  | /\                ::   :: meet       {{ tex \wedge }}
+  | \/                ::   :: join       {{ tex \vee }}
+  | |-->              ::   :: ctyp       {{ tex \Vdash }}
+  | implies           ::   :: implies    {{ tex \ottkw{implies} }}
+  | type              ::   :: star       {{ tex \star }}
+
+formula :: 'formula_' ::=
+  | judgement                ::   :: judgement
+
+  | x : A @ k := a in S   ::   :: inDefS
+    {{ tex [[x]]\! :\!^[[k]][[A]] \coloneqq [[a]] \in [[S]] }}
+    {{ coq binds [[x]] (Def [[A]][[k]][[a]]) [[S]] }}
+
+  | x : A @ k in G        ::   :: inTmG
+    {{ tex [[x]]\! :\!^[[k]][[A]] \in [[ G ]] }}
+    {{ coq binds [[x]] (Tm [[A]][[k]]) [[G]] }}
+
+  | x notin dom S            ::   :: notInSx
+    {{ coq ~ AtomSetImpl.In [[x]] (dom [[S]]) }}
+
+  | x notin dom G            ::   :: notInGx
+    {{ coq ~ AtomSetImpl.In [[x]] (dom [[G]]) }}
+
+  | x notin fv a             ::   :: notInax
+    {{ coq ~ AtomSetImpl.In [[x]] (fv_tm [[a]]) }}
+
+  | uniq S                   ::   :: uniqS
+    {{ coq uniq [[S]] }} {{ tex }}
+
+  | uniq G                   ::   :: uniqG
+    {{ coq uniq [[G]] }} {{ tex }}
+
+  | True                     ::   :: True
+    {{ coq True }}
+  | False                    ::   :: False
+    {{ coq False }}
+  | not formula              ::   :: not
+    {{ coq ([[formula]] -> False) }}
+    {{ tex \neg [[formula]] }}
+  | formula1 /\ formula2     ::   :: and
+    {{ coq [[formula1]] /\ [[formula2]] }}
+  | formula1 \/ formula2     ::   :: or
+    {{ coq [[formula1]] \/ [[formula2]] }}
+  | formula1 implies formula2     ::   :: implies
+    {{ coq [[formula1]] -> [[formula2]] }}
+    {{ tex [[formula1]]\ [[implies]]\ [[formula2]] }}
+  | formula1 iff formula2     ::   :: iff {{ coq [[formula1]] <-> [[formula2]] }}
+
+  | ( formula )              ::   :: Paren
+    {{ coq ([[formula]]) }}
+
+  | i < j                    ::   :: LeNat
+    {{ coq [[i]] < [[j]] }}
+
+  | i < j < k                ::   :: LeNats
+    {{ coq ([[i]] < [[j]]) /\ ([[j]] < [[k]]) }}
+
+  | i <= j                   ::   :: LeqNat
+    {{ coq [[i]] <= [[j]] }}
+
+  | i = j                   ::   :: EqNat
+    {{ coq [[i]] = [[j]] }}
+
+  | A = B                   ::     :: EqTy
+     {{ coq [[A]] = [[B]] }}
+
+  | |- a ~> a'                 ::     :: FakeReduce
+     {{ tex [[a]] [[~>]] [[a']] }}
+  | |- a ~>* a'                 ::    :: FakeWHNF
+     {{ tex [[a]] [[~>*]] [[a']] }}
+
+  | lc b ::     :: lc
+     {{ coq lc_tm [[b]] }} {{ tex }}
+
+%  | G1 <= G2                ::    :: SubG
+%     {{ coq SubG [[G1]] [[G2]] }}
+
+embed
+{{ coq
+
+Fixpoint incr (k:nat) (a_6:tm) {struct a_6}: tm :=
+  match a_6 with
+  | a_Type        => a_Type
+  | (a_Arrow A B) => a_Arrow (incr k A) (incr k B)
+  | (a_Pi A j B)  => a_Pi (incr k A) (k + j) (incr k B)
+  | (a_Abs a)     => a_Abs (incr k a)
+  | (a_App a b)   => a_App (incr k a) (incr k b)
+  | a_Bottom      => a_Bottom
+  | (a_Absurd a)  => a_Absurd (incr k a)
+  | (a_Var_b i)   => a_Var_b i
+  | (a_Var_f x)   => a_Var_f x
+  | (a_Const x i) => a_Const x (k + i)
+end.
+
+}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Rules for Stratified Type Theory
+
+defns
+JEq :: '' ::=
+
+defn
+  a == b ::  :: Equiv :: 'E_'
+  {{ com Equivalence }}
+  {{ tex [[a]] [[==]] [[b]] }}
+by
+
+------ :: Refl
+a == a
+
+b == a
+------ :: Sym
+a == b
+
+a == b
+b == c
+------ :: Trans
+a == c
+
+-------------------------- :: Beta
+(\ x . b) a == b { a / x }
+
+b' = b x
+------------- :: Eta
+\ x . b' == b
+
+A == A'
+B == B'
+------------------ :: Arrow
+A -> B == A' -> B'
+
+A == A'
+B == B'
+-------------------------------------- :: Pi
+Pi x : A @ k . B == Pi x : A' @ k . B'
+
+b == b'
+------------------- :: Abs
+\ x . b == \ x . b'
+
+a == a'
+b == b'
+------------ :: App
+b a == b' a'
+
+b == b'
+--------------------- :: Absurd
+absurd b == absurd b'
+
+defns
+JTyping :: '' ::=
+
+defn
+|- G ::     :: Ctx :: 'G_'
+  {{ com Context formation }}
+by
+
+-------- :: Empty
+|- empty
+
+|- G
+G |- A : type @ k
+x notin dom G
+---------------- :: Cons
+|- G , x : A @ k
+
+defn
+  G |- a : A @ k ::  :: Typing :: 'T_'
+  {{ com Term formation }}
+  {{ tex [[G]] \vdash [[a]] :^{[[k]]} [[A]] }}
+by
+
+|- G
+-------------------- :: Type
+G |- type : type @ k
+
+x : A @ j in G
+|- G
+j <= k
+-------------- :: Var
+G |- x : A @ k
+
+% Note: x not allowed to appear in B
+G |- A : type @ k
+G |- B : type @ k
+---------------------- :: Arrow
+G |- A -> B : type @ k
+
+G |- A : type @ j
+G , x : A @ j |- B : type @ k
+j < k
+-------------------------------- :: Pi
+G |- Pi x : A @ j . B : type @ k
+
+G |- A : type @ k
+G |- B : type @ k
+G , x : A @ k |- b : B @ k
+-------------------------- :: AbsTm
+G |- \ x . b : A -> B @ k
+
+G |- A : type @ j
+G , x : A @ j |- b : B @ k
+j < k
+----------------------------------- :: AbsTy
+G |- \ x . b : Pi x : A @ j . B @ k
+
+G |- b : A -> B @ k
+G |- a : A @ k
+------------------- :: AppTm
+G |- b a : B @ k
+
+G |- b : Pi x : A @ j . B @ k
+G |- a : A @ j
+----------------------------- :: AppTy
+G |- b a : B { a / x } @ k
+
+|- G
+------------------- :: Bottom
+G |- _|_ : type @ k
+
+G |- A : type @ k
+G |- b : _|_ @ k
+--------------------- :: Absurd
+G |- absurd b : A @ k
+
+G |- a : A @ k
+G |- B : type @ k
+A == B
+|- G
+----------------- :: Cumul
+G |- a : B @ k
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Judgement of rules *not* in the type system, for comparison.
+
+defns
+JFakeTyping :: '' ::=
+
+defn
+  G |/- a : A @ k ::  :: FakeTyping :: 'U_'
+  {{ com Term formation }}
+  {{ tex [[G]] \vdash [[a]] :^{[[k]]} [[A]] }}
+by
+
+
+G |- A : type @ j
+G , x : A @ j |- b : B @ k
+j < k
+----------------------------------- :: AbsTy
+G |/- \ x . b : Pi x : A . B @ k
+
+
+G |- A : type @ j
+G , x : A @ j |- B : type @ k
+j < k
+-------------------------------- :: Pi
+G |/- Pi x : A . B : type @ k
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Rules for Stratified Type Theory with Displacement
+
+defns
+JDEq :: '' ::=
+
+defn
+  S |- a == b ::  :: DEquiv :: 'DE_'
+  {{ com Equivalence }}
+  {{ tex [[S]] \vdash [[a]][[==]][[b]] }}
+by
+
+----------- :: Refl
+S |- a == a
+
+S |- b == a
+----------- :: Sym
+S |- a == b
+
+S |- a == b
+S |- b == c
+----------- :: Trans
+S |- a == c
+
+------------------------------- :: Beta
+S |- (\ x . b) a == b { a / x }
+
+b' = b x
+lc b
+------------------ :: Eta
+S |- \ x . b' == b
+
+x : A @ k := a in S
+lc a
+------------------- :: Delta
+S |- x ^ i == a + i
+
+S |- A == A'
+S |- B == B'
+----------------------- :: Arrow
+S |- A -> B == A' -> B'
+
+S |- A == A'
+S |- B == B'
+------------------------------------------- :: Pi
+S |- Pi x : A @ k . B == Pi x : A' @ k . B'
+
+S |- b == b'
+------------------------ :: Abs
+S |- \ x . b == \ x . b'
+
+S |- a == a'
+S |- b == b'
+----------------- :: App
+S |- b a == b' a'
+
+S |- b == b'
+-------------------------- :: Absurd
+S |- absurd b == absurd b'
+
+defns
+JDTyping :: '' ::=
+
+defn
+|- S ::     :: DSig :: 'D_'
+  {{ com Signature well-formedness }}
+by
+
+-------- :: Empty
+|- empty
+
+|- S
+S ; empty |- A : type @ k
+S ; empty |- a : A @ k
+x notin dom S
+------------------------- :: Cons
+|- S , x : A @ k := a
+
+defn
+S |- G  ::     :: DCtx :: 'DG_'
+  {{ com Context formation }}
+by
+
+|- S
+---------- :: Empty
+S |- empty
+
+S |- G
+S ; G |- A : type @ k
+x notin dom G
+x notin dom S
+--------------------- :: Cons
+S |- G , x : A @ k
+
+defn
+  S ; G |- a : A @ k ::  :: DTyping :: 'DT_'
+  {{ com Term formation }}
+  {{ tex [[S]]; [[G]] \vdash [[a]] :^{[[k]]} [[A]] }}
+by
+
+S |- G
+------------------------ :: Type
+S ; G |- type : type @ k
+
+x : A @ j := a in S
+S |- G
+|- S
+i + j <= k
+-------------------------- :: Const
+S ; G |- x ^ i : A + i @ k
+
+x : A @ j in G
+S |- G
+j <= k
+------------------ :: Var
+S ; G |- x : A @ k
+
+% Note: x not allowed to appear in B
+S ; G |- A : type @ k
+S ; G |- B : type @ k
+-------------------------- :: Arrow
+S ; G |- A -> B : type @ k
+
+S ; G |- A : type @ j
+S ; G , x : A @ j |- B : type @ k
+j < k
+------------------------------------ :: Pi
+S ; G |- Pi x : A @ j . B : type @ k
+
+S ; G |- A : type @ k
+S ; G |- B : type @ k
+S ; G , x : A @ k |- b : B @ k
+------------------------------ :: AbsTm
+S ; G |- \ x . b : A -> B @ k
+
+S ; G |- A : type @ j
+S ; G , x : A @ j |- b : B @ k
+j < k
+--------------------------------------- :: AbsTy
+S ; G |- \ x . b : Pi x : A @ j . B @ k
+
+S ; G |- b : A -> B @ k
+S ; G |- a : A @ k
+-------------------- :: AppTm
+S ; G |- b a : B @ k
+
+S ; G |- b : Pi x : A @ j . B @ k
+S ; G |- a : A @ j
+j < k
+------------------------------ :: AppTy
+S ; G |- b a : B { a / x } @ k
+
+S |- G
+----------------------- :: Bottom
+S ; G |- _|_ : type @ k
+
+S ; G |- A : type @ k
+S ; G |- b : _|_ @ k
+------------------------- :: Absurd
+S ; G |- absurd b : A @ k
+
+S ; G |- a : A @ k
+S ; G |- B : type @ k
+S |- A == B
+--------------------- :: Conv
+S ; G |- a : B @ k
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+defns
+
+JSub :: '' ::=
+
+defn
+
+G1 <= G2 ::   :: CtxSub :: 'S_'
+{{ tex  [[G1]] [[<=]] [[G2]] }}
+by
+
+--------------- :: Nil
+empty <= empty
+
+j <= k
+G1 <= G2
+----------------------------------- :: Cons
+G1 , x : A @ j <= G2 , x : A @ k
+
+
+G1 <= G2
+----------------------------------- :: Weak
+G1 , x : A @ k <= G2
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Bidirectional Typing Algorithm
+
+defns
+  AReduce :: '' ::=
+
+defn
+  S |- a ~> b ::  :: Reduce :: 'R_'
+  {{ com Single-step reduction }}
+  {{ tex [[S]] \vdash [[a]] \leadsto [[b]] }}
+by
+
+----------------------------- :: Beta
+S |- (\ x . b) a ~> b {a / x}
+
+x : A @ k := a in S
+------------------- :: Delta
+S |- x ^ i ~> a + i
+
+S |- b ~> b'
+---------------- :: App
+S |- b a ~> b' a
+
+defns
+  AWHNF :: '' ::=
+
+defn
+  S |- a ~>* b ::  :: WHNF :: 'W_'
+  {{ com Weak head normalization }}
+  {{ tex [[S]] \vdash [[a]] \leadsto^{\ast} [[b]] }}
+by
+
+------------ :: Refl
+S |- a ~>* a
+
+S |- a ~> b
+S |- b ~>* c
+------------ :: Trans
+S |- a ~>* c
+
+defns
+  AEq :: '' ::=
+
+defn
+  S |- a <=> b ::  :: Convert :: 'Conv_'
+  {{ com Conversion }}
+  {{ tex [[S]] \vdash [[a]] \Leftrightarrow [[b]] }}
+by
+
+------------ :: Refl
+S |- a <=> a
+
+S |- A <=> A'
+S |- B <=> B'
+------------------------ :: Arrow
+S |- A -> B <=> A' -> B'
+
+S |- A <=> A'
+S |- B <=> B'
+-------------------------------------------- :: Pi
+S |- Pi x : A @ k . B <=> Pi x : A' @ k . B'
+
+S |- b <=> b'
+------------------------- :: Abs
+S |- \ x . b <=> \ x . b'
+
+S |- b <=> b'
+--------------------------- :: Absurd
+S |- absurd b <=> absurd b'
+
+S |- b' <=> b x
+------------------- :: EtaL
+S |- \ x . b' <=> b
+
+S |- b x <=> b'
+------------------- :: EtaR
+S |- b <=> \ x . b'
+
+S |- a ~>* a'
+S |- b ~>* b'
+S |- a' <=> b'
+---------------------- :: Whnf
+S |- a <=> b
+
+S |- a <=> a'
+S |- b <=> b'
+------------------ :: App
+S |- b a <=> b' a'
+
