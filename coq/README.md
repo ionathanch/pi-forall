@@ -1,4 +1,4 @@
-# StratTT syntactic metatheory
+# StraTT syntactic metatheory
 
 Tested with:
 

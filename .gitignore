@@ -48,3 +48,7 @@ nra.cache
 CoqSrc.mk
 CoqSrc.mk.conf
 .#*
+.stack-work/
+dist-newstyle/
+stack.yaml.lock
+stratt.zip
