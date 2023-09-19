@@ -1,7 +1,7 @@
 COQMK = CoqSrc.mk
 
-coq/$(COQMK):
-	cd coq; coq_makefile -arg '-w -variable-collision,-meta-collision,-require-in-module' -f _CoqProject -o $(COQMK)
+coq:
+	cd coq; make -f CoqSrc.mk
 
 impl: impl/src impl/app impl/.stack-work
 	cd impl; stack build

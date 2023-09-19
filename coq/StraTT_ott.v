@@ -586,6 +586,6 @@ Inductive Convert : signature -> tm -> tm -> Prop :=    (* defn Convert *)
 
 
 (** infrastructure *)
-Hint Constructors Equiv Ctx Typing FakeTyping DEquiv DSig DCtx DTyping CtxSub Reduce WHNF Convert lc_tm lc_def lc_assn lc_ne lc_nf lc_value : core.
+#[export] Hint Constructors Equiv Ctx Typing FakeTyping DEquiv DSig DCtx DTyping CtxSub Reduce WHNF Convert lc_tm lc_def lc_assn lc_ne lc_nf lc_value : core.
 
 
