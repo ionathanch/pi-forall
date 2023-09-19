@@ -244,11 +244,11 @@ Proof.
   all: try (match goal with [H : fv_tm (open_tm_wrt_tm _ _) [<=] _ |- _ ] => 
                               rewrite <- fv_tm_open_tm_wrt_tm_lower in H end).
   all: repeat match goal with [ H : empty [<=] _ |- _ ] => clear H end. 
-  fsetdec.
-  fsetdec.
-  fsetdec.
-  fsetdec.
-  all: try rewrite fv_tm_open_tm_wrt_tm_upper; try fsetdec.
+  have: y `notin` fv_tm B; fsetdec; clear Fr; fsetdec.
+  clear H H0 H4. have: y `notin` fv_tm b; fsetdec; clear Fr; fsetdec.
+  clear H H2. have: y `notin` fv_tm b; fsetdec; clear Fr; fsetdec.
+  clear H H0. have: y `notin` fv_tm B; fsetdec; clear Fr; fsetdec.
+  rewrite fv_tm_open_tm_wrt_tm_upper. clear Fr. fsetdec.
 Qed.
 
 Lemma DSig_uniq : forall S, DSig S -> uniq S.

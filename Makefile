@@ -1,6 +1,6 @@
 COQMK = CoqSrc.mk
 
-coq:
+coq: coq/*.v coq/_CoqProject
 	cd coq; make -f CoqSrc.mk
 
 impl: impl/src impl/app impl/.stack-work

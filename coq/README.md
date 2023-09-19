@@ -20,9 +20,6 @@ To compile:
  
     make -f CoqSrc.mk
 
-Some generated files (StraTT_ott.v and StraTT_inf.v) produce warnings when 
-compiled. Those can be safely ignored.
-
 
 ## Axioms
 
