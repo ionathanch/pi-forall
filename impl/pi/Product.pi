@@ -46,8 +46,8 @@ with syntactic sugar
 	let (x, y) = p in b    for    case p of _Prod x y -> b
 -}
 
-fst : [A : Type @ 0] -> [B : (_ : A @ 0) -> Type @ 1] -> {x : A | B x} -> A @ 2
+fst : [A : Type] -> [B : (_ : A) -> Type] -> {x : A | B x} -> A
 fst = \[A] [B] p. let (x, y) = p in x
 
-snd : [A : Type @ 0] -> [B : (_ : A @ 0) -> Type @ 1] -> (p : {x : A | B x} @ 1) -> let (x, y) = p in B x @ 2
+snd : [A : Type] -> [B : (_ : A) -> Type] -> (p : {x : A | B x}) -> let (x, y) = p in B x
 snd = \[A] [B] p. let (x, y) = p in y
