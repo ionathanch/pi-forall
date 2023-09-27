@@ -11,7 +11,7 @@ Import SubstNotations.
 Local Open Scope lc_scope.
 
 Lemma DTyping_a_Pi_inversion1 : forall x S G j A B C k,
-    DTyping S G (a_Pi A j B) C k -> 
+    DTyping S G (a_Pi A j B) C k ->
     x `notin` dom G \u dom S ->
     DEquiv S C a_Type /\ DTyping S G A a_Type j /\
     j < k /\ DTyping S (x ~ Tm A j ++ G) (open_tm_wrt_tm B (a_Var_f x)) a_Type k.
@@ -24,11 +24,11 @@ Proof.
     destruct IHDTyping1; split_hyp.
     repeat split; auto.
     eapply DE_Trans. eapply DE_Sym; eauto. eauto.
-Qed.    
+Qed.
 
 (*
 Lemma DTyping_a_Pi_inversion1 : forall x S G j A B C k,
-    DTyping S G (a_Pi A j B) C k -> 
+    DTyping S G (a_Pi A j B) C k ->
     DEquiv S C a_Type ->
     x `notin` dom G \u dom S ->
     DTyping S G A a_Type j /\
@@ -42,31 +42,31 @@ Proof.
     specialize (IHDTyping1 _ _ _ ltac:(reflexivity) ltac:(auto) ltac:(auto)).
     destruct IHDTyping1; split_hyp.
     repeat split; auto. lia. eapply DT_Conv; eauto using DTyping_DCtx.
-Qed.    
+Qed.
 *)
 
 Lemma DTyping_a_Pi_inversion : forall x S G j A B k,
-    DTyping S G (a_Pi A j B) a_Type k -> 
+    DTyping S G (a_Pi A j B) a_Type k ->
     x `notin` dom G \u dom S ->
     DTyping S G A a_Type j /\
     j < k /\ DTyping S (x ~ Tm A j ++ G) (open_tm_wrt_tm B (a_Var_f x)) a_Type k.
 Proof.
-  intros. 
+  intros.
   eapply DTyping_a_Pi_inversion1; eauto.
 Qed.
 
 Lemma DTyping_a_Arrow_inversion1 : forall S G A B C k,
-    DTyping S G (a_Arrow A B) C k -> DEquiv S C a_Type /\ 
+    DTyping S G (a_Arrow A B) C k -> DEquiv S C a_Type /\
     DTyping S G A a_Type k /\ DTyping S G B a_Type k.
 Proof.
   intros.
   dependent induction H.
-  + repeat split; eauto. 
+  + repeat split; eauto.
   + edestruct IHDTyping1; eauto.
 Qed.
 
 Lemma DTyping_a_Arrow_inversion : forall S G A B k,
-    DTyping S G (a_Arrow A B) a_Type k -> 
+    DTyping S G (a_Arrow A B) a_Type k ->
     DTyping S G A a_Type k /\ DTyping S G B a_Type k.
 Proof.
   intros.
@@ -93,7 +93,7 @@ Proof.
     eapply DCtx_regularity in H0; eauto.
   - eapply DT_Type; eauto. eapply DTyping_DCtx; eauto.
   - apply DTyping_a_Arrow_inversion in IHDTyping1. split_hyp. eauto.
-  - pick fresh x. 
+  - pick fresh x.
     move: (@DTyping_a_Pi_inversion x _ _ _ _ _ _ IHDTyping1 ltac:(auto)) => h0.
     destruct h0; split_hyp.
     + rewrite (subst_tm_intro x). auto.
@@ -118,29 +118,29 @@ pick fresh y.
 eapply DTyping_a_Pi_inversion in h0. split_hyp. auto. eauto.
 Qed.
 
-Lemma DTyping_a_Abs_inversion : 
-  forall x S G b B k, DTyping S G (a_Abs b) B k -> 
-       x `notin` dom G \u dom S -> 
-       exists j1 j2 A1 A2, 
+Lemma DTyping_a_Abs_inversion :
+  forall x S G b B k, DTyping S G (a_Abs b) B k ->
+       x `notin` dom G \u dom S ->
+       exists j1 j2 A1 A2,
        DTyping S (x ~ Tm A1 j1 ++ G) (b ^ x) A2 j2 /\
-         ((DEquiv S B (a_Arrow A1 A2) /\ j1 = j2 /\ j2 <= k) \/ 
+         ((DEquiv S B (a_Arrow A1 A2) /\ j1 = j2 /\ j2 <= k) \/
          (exists A3, (DEquiv S B (a_Pi A1 j1 A3)) /\ A2 = (A3 ^ x)
-                     /\ j1 < j2 /\ j1 < k /\ j2 <= k 
-                     /\ x `notin` fv_tm A3)).                        
+                     /\ j1 < j2 /\ j1 < k /\ j2 <= k
+                     /\ x `notin` fv_tm A3)).
 Proof.
   intros.
   dependent induction H.
-  + exists k. exists k. exists A. exists B. 
+  + exists k. exists k. exists A. exists B.
     split.
     pick fresh y. spec y.
     eapply DTyping_rename1; eauto.
-    left. split; eauto with lc.     
-  + exists j. exists k. exists A. exists (B ^ x). 
+    left. split; eauto with lc.
+  + exists j. exists k. exists A. exists (B ^ x).
     pick fresh y. spec y.
     split.
     eapply DTyping_rename2; eauto.
-    right. 
-    exists B. split; auto with lc. 
+    right.
+    exists B. split; auto with lc.
     eapply DE_Refl; eauto.
     eapply (lc_a_Pi_exists y); eauto with lc.
     repeat split; eauto.
@@ -165,20 +165,20 @@ Proof.
        split.
        auto.
        right.
-       exists A4. 
-       repeat split. 
+       exists A4.
+       repeat split.
        eapply DE_Trans. eapply DE_Sym. eauto. eauto.
-       all: try lia. 
+       all: try lia.
     move: DTyping_fv => [_ [_ h]].
     move: (h _ _ _ _ _ H3) => [f1 f2].
     simpl in f2.
-    rewrite <- fv_tm_open_tm_wrt_tm_lower in f2. fsetdec.       
+    rewrite <- fv_tm_open_tm_wrt_tm_lower in f2. fsetdec.
 Unshelve.
 all: exact nil.
 Qed.
 
-Lemma DTyping_a_App_inversion : 
-  forall S G b0 b1 B k, DTyping S G (a_App b0 b1) B k -> 
+Lemma DTyping_a_App_inversion :
+  forall S G b0 b1 B k, DTyping S G (a_App b0 b1) B k ->
     (exists A, DTyping S G b0 (a_Arrow A B) k /\ DTyping S G b1 A k) \/
     (exists j A B0, DTyping S G b0 (a_Pi A j B0) k /\ DTyping S G b1 A j
                     /\ DEquiv S B (open B0 b1)).
@@ -188,15 +188,15 @@ Proof.
   + left. clear IHDTyping1 IHDTyping2.
     eexists. eauto.
   + right. repeat eexists. eauto. eauto.
-    eapply DE_Refl. 
-    have LC: lc_tm (a_Pi A j B). eauto with lc. 
-    inversion LC. 
+    eapply DE_Refl.
+    have LC: lc_tm (a_Pi A j B). eauto with lc.
+    inversion LC.
     pick fresh x.
     rewrite (subst_tm_intro x); auto.
     eapply subst_tm_lc_tm; eauto with lc.
   + edestruct IHDTyping1; eauto.
     ++ left. move: H2 => [A0 [TA1 TA2]].
-       move: (DTyping_regularity TA1) => h. 
+       move: (DTyping_regularity TA1) => h.
        apply DTyping_a_Arrow_inversion in h. split_hyp.
        eexists. split.
        eapply DT_Conv. eauto.
@@ -212,10 +212,10 @@ Unshelve.
 all: exact nil.
 Qed.
 
-Lemma DTyping_a_Const_inversion : 
-  forall S G x i B k, 
-    DTyping S G (a_Const x i) B k -> 
-    exists a A j, 
+Lemma DTyping_a_Const_inversion :
+  forall S G x i B k,
+    DTyping S G (a_Const x i) B k ->
+    exists a A j,
       j + i <= k /\ binds x (Def A j a) S /\ DEquiv S B (incr i A).
 Proof.
   intros.
@@ -236,7 +236,6 @@ Proof.
   eauto.
   eapply DE_Trans; eauto.
 Qed.
-
 
 Lemma DTyping_a_Bottom_inversion : forall S G A0 j,
     DTyping S G a_Bottom A0 j -> DEquiv S a_Type A0.

@@ -1,4 +1,4 @@
-(* This file lists all axioms in the development. 
+(* This file lists all axioms in the development.
    These are related to the definition of equivalence and are needed
    in the proof of type soundness. *)
 
@@ -7,29 +7,27 @@ Require Export Metalib.Metatheory.
 
 Set Implicit Arguments.
 
-
 (* Axioms needed for preservation lemma *)
 
-(* These results require long proofs, but the system is extremely similar to 
+(* These results require long proofs, but the system is extremely similar to
    existing definitions of beta-eta-equivalence so there is nothing to be learned
-   from mechanizing them here. 
+   from mechanizing them here.
 *)
 
-Axiom DEquiv_Arrow_inj1 : forall S A1 B1 A2 B2, 
+Axiom DEquiv_Arrow_inj1 : forall S A1 B1 A2 B2,
     DEquiv S (a_Arrow A1 B1) (a_Arrow A2 B2) -> DEquiv S A1 A2.
-Axiom DEquiv_Arrow_inj2 : forall S A1 B1 A2 B2, 
+Axiom DEquiv_Arrow_inj2 : forall S A1 B1 A2 B2,
     DEquiv S (a_Arrow A1 B1) (a_Arrow A2 B2) -> DEquiv S B1 B2.
-Axiom DEquiv_Pi_inj1 : forall S A1 B1 j1 j2 A2 B2, 
+Axiom DEquiv_Pi_inj1 : forall S A1 B1 j1 j2 A2 B2,
     DEquiv S (a_Pi A1 j1 B1) (a_Pi A2 j2 B2) -> DEquiv S A1 A2.
-Axiom DEquiv_Pi_inj2 : forall S A1 B1 j1 j2 A2 B2, 
+Axiom DEquiv_Pi_inj2 : forall S A1 B1 j1 j2 A2 B2,
     DEquiv S (a_Pi A1 j1 B1) (a_Pi A2 j2 B2) -> j1 = j2.
-Axiom DEquiv_Pi_inj3 : forall S A1 B1 j1 j2 A2 B2 a, 
+Axiom DEquiv_Pi_inj3 : forall S A1 B1 j1 j2 A2 B2 a,
     lc_tm a
     -> DEquiv S (a_Pi A1 j1 B1) (a_Pi A2 j2 B2)
     -> DEquiv S (open_tm_wrt_tm B1 a) (open_tm_wrt_tm B2 a).
 
-
-Axiom ineq_Arrow_Pi : forall S A1 B1 A2 j B2, 
+Axiom ineq_Arrow_Pi : forall S A1 B1 A2 j B2,
     DEquiv S (a_Arrow A1 A2) (a_Pi B1 j B2) -> False.
 
 (* Axioms needed for progress lemma *)
@@ -53,6 +51,6 @@ Axiom ineq_Pi_Bottom:
   forall S B1 j B2,
   DEquiv S (a_Pi B1 j B2) a_Bottom -> False.
 
-Axiom empty_Bottom : 
+Axiom empty_Bottom :
   forall S b k, DTyping S nil b a_Bottom k -> False.
 

@@ -13,7 +13,7 @@ Qed.
 (* successive increments can be combined *)
 Lemma incr_incr : forall a j k, incr j (incr k a) = incr (j + k) a.
   intros a.
-  dependent induction a. 
+  dependent induction a.
   all: intros j0 k0.
   all: simpl.
   all: try solve [f_equal; auto; try lia].
@@ -24,28 +24,27 @@ Lemma size_incr : forall a j, size_tm (incr j a) <= size_tm a.
 Proof. induction a; intros j0;  simpl.
        all: try lia.
        all: try specialize (IHa1 j0).
-       all: try specialize (IHa2 j0). 
-       all: try specialize (IHa j0). 
-       all: try unfold size_nat. 
+       all: try specialize (IHa2 j0).
+       all: try specialize (IHa j0).
+       all: try unfold size_nat.
        all: try lia.
 Qed.
-       
+
 (* incr commutes with substitution *)
-Lemma subst_tm_incr : forall A k B x, 
+Lemma subst_tm_incr : forall A k B x,
     subst_tm (incr k B) x (incr k A) = incr k (subst_tm B x A).
-Proof. 
+Proof.
   induction A; intros; simpl; f_equal; auto.
   destruct (x == x0); simpl; auto.
 Qed.
 
-
 (* ------------------------------ Judgements stable under increment  --------------------- *)
 
-Definition inc_assn k := fun s => 
-                           match s with 
-                           | Tm A j => Tm (incr k A) (k + j) 
+Definition inc_assn k := fun s =>
+                           match s with
+                           | Tm A j => Tm (incr k A) (k + j)
                            end.
-  
+
 Definition IncG k (G : context) := map (inc_assn k) G.
 
 Lemma DEquiv_incr : forall S A B j,  DEquiv S A B ->
@@ -94,11 +93,11 @@ Proof.
   subst; auto.
 Qed.
 
-Lemma DTyping_DCtx_incr : 
+Lemma DTyping_DCtx_incr :
   (forall S, DSig S -> True) /\
   (forall S G, DCtx S G -> forall j, DCtx S (IncG j G)) /\
   (forall S G a A k, DTyping S G a A k -> forall j, DTyping S (IncG j G) (incr j a) (incr j A) (j + k)).
-Proof.                                              
+Proof.
   eapply DSig_DCtx_DTyping_ind.
   all: intros; simpl; simpl_env; eauto.
   all: repeat match goal with [ H : forall j:Datatypes.nat, _ , j : Datatypes.nat |- _ ] => specialize (H j) end.
@@ -114,7 +113,7 @@ Proof.
     eapply incr_binds; eauto.
     lia.
   - (* pi case *)
-    pick fresh x and apply DT_Pi. 
+    pick fresh x and apply DT_Pi.
     eauto.
     replace (a_Var_f x) with (incr j0 (a_Var_f x)); auto.
     rewrite <- incr_open.
@@ -126,13 +125,13 @@ Proof.
     + replace (a_Var_f x) with (incr j (a_Var_f x)); auto.
     repeat rewrite <- incr_open.
     repeat spec x.
-    simpl; eauto. 
+    simpl; eauto.
   - (* abs *)
     pick fresh x and apply DT_AbsTy; eauto.
     + replace (a_Var_f x) with (incr j0 (a_Var_f x)); auto.
     repeat rewrite <- incr_open.
     repeat spec x.
-    simpl; eauto. 
+    simpl; eauto.
     + lia.
   - (* app *)
     rewrite incr_open.
@@ -148,5 +147,3 @@ Proof. eapply DTyping_DCtx_incr; eauto. Qed.
 
 Lemma DTyping_incr : forall S G a A k, DTyping S G a A k -> forall j, DTyping S (IncG j G) (incr j a) (incr j A) (j + k).
 Proof. eapply DTyping_DCtx_incr; eauto. Qed.
-
-

@@ -8,21 +8,18 @@ Set Implicit Arguments.
 Import SubstNotations.
 Local Open Scope lc_scope.
 
-
-(* -------------------------------------------------------------------------- *)
-
 (* Move everything at level j to level k *)
 Definition refocus (j k i : nat) :=
   match (i == j) with left _ => k | right _ => i end.
 
 (* float index j in the context to k *)
-Definition float j k (G : context) := 
-  map (fun '(Tm A i) => Tm A (refocus j k i)) G.                            
+Definition float j k (G : context) :=
+  map (fun '(Tm A i) => Tm A (refocus j k i)) G.
 
-Lemma binds_float : forall G x A k k0, 
+Lemma binds_float : forall G x A k k0,
  binds x (Tm A k) G ->
  binds x (Tm A k0) (float k k0 (restrict G k)).
-Proof. 
+Proof.
   intros. unfold float.
   remember (fun '(Tm A0 i) => Tm A0 (refocus k k0 i)) as f.
   replace (Tm A k0) with (f (Tm A k)).
@@ -52,13 +49,13 @@ intros. induction G; simpl; auto.
 destruct a. destruct a0.
 destruct (k <=? j) eqn:E1; destruct (k <=? i) eqn:E2.
 all: fix_bools.
-all: eauto. 
+all: eauto.
 econstructor; eauto.
 econstructor; eauto.
 lia.
-Qed. 
+Qed.
 
-Lemma SubG_float_lt : forall i j k1 k2 G, 
+Lemma SubG_float_lt : forall i j k1 k2 G,
     i < j -> i <= k2 ->
     SubG (float j k1 (restrict G j)) (float i k2 (restrict G i)).
 Proof.
@@ -75,10 +72,10 @@ Proof.
 Qed.
 
 (* This is really more of a weakening than a narrowing. *)
-Lemma SubG_float_leq : forall i j k G, 
-    i <= j -> j <= k -> 
+Lemma SubG_float_leq : forall i j k G,
+    i <= j -> j <= k ->
     SubG (float j k (restrict G j)) (float i k (restrict G i)).
-Proof. intros j k k0 G. 
+Proof. intros j k k0 G.
        alist induction G; intros; try destruct a; simpl; auto.
        destruct (k1 <=? k) eqn:E1; destruct (k1 <=? j) eqn:E2.
        all: fix_bools.
@@ -107,24 +104,24 @@ Proof.
   all: lia.
 Qed.
 
-Lemma DCtx_DTyping_float_restrict : 
-  (forall S, 
+Lemma DCtx_DTyping_float_restrict :
+  (forall S,
       DSig S -> True) /\
-  (forall S G, 
-      DCtx S G -> 
-      forall j k, 
-        j <= k 
+  (forall S G,
+      DCtx S G ->
+      forall j k,
+        j <= k
         -> DCtx S (float j k (restrict G j))) /\
   (forall S G a A j,
       DTyping S G a A j ->
-      (forall k, 
-          j <= k 
+      (forall k,
+          j <= k
           -> DTyping S (float j k (restrict G j)) a A k)).
 Proof.
   eapply DSig_DCtx_DTyping_ind; intros; eauto.
   (* cons *)
-  - rename k into i. 
-    rename k0 into k. 
+  - rename k into i.
+    rename k0 into k.
     simpl.
     (* only care about bindings kept by j restriction *)
     destruct (i <=? j) eqn:E; simpl; auto.
@@ -132,7 +129,7 @@ Proof.
     unfold refocus.
     destruct (i == j) eqn:F; fix_bools.
     + (* raise index. *)
-      move: (H0 k ltac:(lia)) => h0. 
+      move: (H0 k ltac:(lia)) => h0.
       subst.
       auto.
     + (* leave alone, but raise context *)
@@ -147,26 +144,26 @@ Proof.
     eapply DT_Const; eauto. lia.
   - (* var *)
     destruct (j == k).
-    + subst. 
+    + subst.
       eapply DT_Var with (j := k0); eauto.
       eapply binds_float; eauto.
     + have * : j < k by lia.
       eapply DT_Var with (j := j); auto.
       eapply binds_floatn't with (k := k) (k0 := k0); auto. lia.
-  - (* Pi *) 
+  - (* Pi *)
     pick fresh x and apply DT_Pi; try lia.
     -- eapply DTyping_SubG with (G:= (float j j (restrict G j))); eauto.
        pick fresh y. spec y. move: (H0 k0 ltac:(auto)) => h0.
        simpl in h0. rewrite leb_correct in h0. lia.
        move: (DTyping_DCtx h0) => DC. inversion DC. subst. auto.
-       eapply SubG_float_lt; eauto. 
+       eapply SubG_float_lt; eauto.
     -- spec x.
        specialize (H0 k0 ltac:(lia)).
        simpl in H0.
        rewrite leb_correct in H0. lia.
        simpl in H0.
        unfold refocus in H0.
-       destruct (j == k) eqn:E. subst. lia. 
+       destruct (j == k) eqn:E. subst. lia.
        simpl_env in H0. auto.
   - (* AbsTm *)
     pick fresh x and apply DT_AbsTm; eauto.
@@ -181,14 +178,14 @@ Proof.
        pick fresh y. spec y. move: (H0 k0 ltac:(auto)) => h0.
        simpl in h0. rewrite leb_correct in h0. lia.
        move: (DTyping_DCtx h0) => DC. inversion DC. subst. auto.
-       eapply SubG_float_lt; eauto. 
+       eapply SubG_float_lt; eauto.
     -- spec x.
        specialize (H0 k0 ltac:(lia)).
        simpl in H0.
        rewrite leb_correct in H0. lia.
        simpl in H0.
        unfold refocus in H0.
-       destruct (j == k) eqn:E. subst. lia. 
+       destruct (j == k) eqn:E. subst. lia.
        simpl_env in H0. auto.
   - eapply DT_AppTy; eauto; try lia.
     eapply DTyping_SubG with (G := (float j j (restrict G j))); eauto.
@@ -197,11 +194,11 @@ Proof.
     eapply SubG_float_lt; auto.
 Qed.
 
-Lemma DTyping_float_restrict : 
+Lemma DTyping_float_restrict :
   (forall S G a A j,
       DTyping S G a A j ->
-      (forall k, 
-          j <= k 
+      (forall k,
+          j <= k
           -> DTyping S (float j k (restrict G j)) a A k)).
 Proof.
   intros.
@@ -226,7 +223,6 @@ Proof.
       apply SubG_float_eq; lia.
     - contradiction.
 Qed.
-
 
 Lemma DTyping_cumul : forall S G a A j k, j <= k ->
   DTyping S G a A j -> DTyping S G a A k.

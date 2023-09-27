@@ -16,19 +16,19 @@ Local Open Scope lc_scope.
 
 Inductive Ctx_DEquiv S : context -> context -> Prop :=
  | ctx_equiv_nil : Ctx_DEquiv S nil nil
- | ctx_equiv_cons : forall x i A1 A2 G1 G2, 
-     DEquiv S A1 A2 -> 
-     Ctx_DEquiv S G1 G2 -> 
+ | ctx_equiv_cons : forall x i A1 A2 G1 G2,
+     DEquiv S A1 A2 ->
+     Ctx_DEquiv S G1 G2 ->
      DTyping S G2 A2 a_Type i ->
-     x `notin` dom G1 \u dom G2 -> 
+     x `notin` dom G1 \u dom G2 ->
      Ctx_DEquiv S (x ~ (Tm A1 i) ++ G1) (x ~ Tm A2 i ++ G2).
 
 #[global] Hint Constructors Ctx_DEquiv : core.
 
 Lemma binds_Ctx_DEquiv : forall S G1 G2,
-    Ctx_DEquiv S G1 G2 -> forall x A1 i, binds x (Tm A1 i) G1 -> 
+    Ctx_DEquiv S G1 G2 -> forall x A1 i, binds x (Tm A1 i) G1 ->
     exists A2, binds x (Tm A2 i) G2 /\ DEquiv S A1 A2.
-Proof. 
+Proof.
   induction 1; intros; eauto. inversion H.
   edestruct (binds_cons_1 _ _ _ _ _ _ H3); eauto; split_hyp.
   - subst. inversion H5. subst.
@@ -42,25 +42,25 @@ Lemma Ctx_DEquiv_refl : forall S G, DCtx S G ->
 Proof.
   induction 1.
   auto.
-  econstructor; eauto with lc. 
+  econstructor; eauto with lc.
 Qed.
 
-Lemma DCtx_DTyping_conversion : 
+Lemma DCtx_DTyping_conversion :
   (forall S, DSig S -> True) /\
-  (forall S G1, 
-    DCtx S G1 -> 
+  (forall S G1,
+    DCtx S G1 ->
     forall G2, Ctx_DEquiv S G1 G2 -> DCtx S G2 /\
-    forall x A j, binds x (Tm A j) G1  
+    forall x A j, binds x (Tm A j) G1
            -> DTyping S G2 A a_Type j) /\
-  (forall S G1 a A k, 
-    DTyping S G1 a A k -> 
+  (forall S G1 a A k,
+    DTyping S G1 a A k ->
     forall G2, Ctx_DEquiv S G1 G2 -> DTyping S G2 a A k).
 Proof.
   eapply DSig_DCtx_DTyping_ind; intros; eauto.
   - split; inversion H0; subst; auto.
     intros. inversion H1.
   - split.
-    inversion H1; subst; eauto with ctx. 
+    inversion H1; subst; eauto with ctx.
     inversion H1; subst. clear H1.
     intros.
     specialize (H _ ltac:(eauto)). split_hyp.
@@ -71,7 +71,7 @@ Proof.
       econstructor; eauto.
     + eapply DTyping_weakening1.
       eauto.
-      econstructor; eauto.      
+      econstructor; eauto.
   - specialize (H _ H0).
     move: H => [h0 _].
     eauto.
@@ -101,16 +101,15 @@ Unshelve.
 exact 0.
 Qed.
 
-
-Lemma DCtx_conversion : 
-  (forall S G1 a A k, 
+Lemma DCtx_conversion :
+  (forall S G1 a A k,
     DTyping S G1 a A k -> forall G2, Ctx_DEquiv S G1 G2 -> DTyping S G2 a A k).
 Proof.
   intros.
   eapply DCtx_DTyping_conversion; eauto.
 Qed.
 
-Lemma SubG_float_restrict : 
+Lemma SubG_float_restrict :
     forall G j k, j <= k -> SubG G (float j k (restrict G j)).
 Proof.
   intros. alist induction G. simpl; auto.
@@ -124,14 +123,14 @@ Qed.
 
 #[local] Hint Resolve SubG_float_restrict Ctx_DEquiv_refl : core.
 
-Lemma Reduce_Preservation : forall S G a b, 
+Lemma Reduce_Preservation : forall S G a b,
     Reduce S a b
     -> forall A k, DTyping S G a A k ->  DTyping S G b A k.
-Proof.  
-  induction 1; intros B k0 DT. 
+Proof.
+  induction 1; intros B k0 DT.
   - (* beta *)
     move: (DTyping_a_App_inversion DT) => [ARR|PI].
-    -- (* arrow *) 
+    -- (* arrow *)
       move: ARR => [A [DABS Da]].
       pick fresh x.
       move: (DTyping_regularity DABS) => h.
@@ -145,7 +144,7 @@ Proof.
          (* strategy: use substitution lemma. But first need to float b to k0 *)
          rewrite (subst_tm_intro x); auto.
          apply DTyping_float_restrict with (k := k0) in h; auto.
-         simpl_env in h. simpl in h.  
+         simpl_env in h. simpl in h.
          rewrite Nat.leb_refl in h. simpl in h.
          unfold refocus in h. destruct (j2 == j2). 2: done. simpl_env in h.
          (* Now use narrowing to go back to G in typing of b *)
@@ -175,17 +174,17 @@ Proof.
       ++ move: Y => [A3 Z]. split_hyp. subst.
       (* Consistency of DEquiv *)
       have E1: (DEquiv S A1 A0).  eapply DEquiv_Pi_inj1; eauto.
-      have E2: (DEquiv S (open B0 a) (open A3 a)). 
+      have E2: (DEquiv S (open B0 a) (open A3 a)).
                eapply DEquiv_Pi_inj3; eauto with lc.
       have E3: (j = j1). eapply DEquiv_Pi_inj2; eauto.
       subst.
       eapply DT_Conv with (A:= open A3 a); auto.
       rewrite (subst_tm_intro x b); auto.
-      rewrite (subst_tm_intro x A3); auto. 
+      rewrite (subst_tm_intro x A3); auto.
       simpl_env in h.
       eapply DTyping_subst1; eauto.
       eapply DTyping_cumul; eauto.
-      eapply DCtx_conversion; eauto with ctx. 
+      eapply DCtx_conversion; eauto with ctx.
       eapply DTyping_regularity; eauto.
       eapply DE_Sym. eapply DE_Trans; eauto.
       ++ auto.
@@ -207,12 +206,12 @@ Proof.
   - (* app cong *)
     move: (DTyping_a_App_inversion DT) => [ARR|PI].
     ++ move: ARR => [A [Tb Ta]].
-       apply IHReduce in Tb.  
+       apply IHReduce in Tb.
        eapply DT_AppTm; eauto.
     ++ move: PI => [j [A0 [B0 [Tb [Ta E]]]]].
        apply IHReduce in Tb.
        eapply DT_Conv with (A:= open B0 a).
-       eapply DT_AppTy; eauto. 
+       eapply DT_AppTy; eauto.
        pick fresh x.
        move: (DTyping_regularity Tb) => TPi.
        move: (@DTyping_a_Pi_inversion x _ _ _ _ _ _ TPi ltac:(auto)) => h. split_hyp. auto.
@@ -229,7 +228,7 @@ Proof.
   apply (Reduce_Preservation H); auto.
 Qed.
 
-Inductive Value : tm -> Prop := 
+Inductive Value : tm -> Prop :=
  | V_Abs  : forall b, Value (a_Abs b)
  | V_Type : Value a_Type
  | V_Pi   : forall A k B, Value (a_Pi A k B)
@@ -238,49 +237,46 @@ Inductive Value : tm -> Prop :=
 
 #[global] Hint Constructors Value : core.
 
-
-
-Lemma canonical_Arrow : forall S A B b k, 
+Lemma canonical_Arrow : forall S A B b k,
     DTyping S nil b (a_Arrow A B) k -> Value b -> exists a, b = a_Abs a.
 Proof.
   intros.
-  dependent induction H; subst. 
+  dependent induction H; subst.
   all: match goal with [ H2 : Value _ |- _ ] => inversion H2 ; subst end.
   all: try solve [eexists; eauto].
   - apply DTyping_a_Type_inversion in H.
     assert False. eapply ineq_Arrow_Type. eapply DE_Sym. eapply DE_Trans; eauto.
     contradiction.
-  - pick fresh x.  
+  - pick fresh x.
     eapply (@DTyping_a_Pi_inversion1 x) in H; eauto. split_hyp.
     assert False. eapply ineq_Arrow_Type. eapply DE_Trans. eapply DE_Sym; eauto. eauto.
     contradiction.
   - eapply DTyping_a_Arrow_inversion1 in H; eauto. split_hyp.
     assert False. eapply ineq_Arrow_Type. eapply DE_Trans. eapply DE_Sym; eauto. eauto.
     contradiction.
-  - eapply DTyping_a_Bottom_inversion in H; eauto. 
+  - eapply DTyping_a_Bottom_inversion in H; eauto.
     assert False. eapply ineq_Arrow_Type. eapply DE_Sym. eapply DE_Trans; eauto.
     contradiction.
 Qed.
 
-
-Lemma canonical_Pi : forall S A j B b k, 
+Lemma canonical_Pi : forall S A j B b k,
     DTyping S nil b (a_Pi A j B) k -> Value b -> exists a, b = a_Abs a.
 Proof.
   intros.
-  dependent induction H; subst. 
+  dependent induction H; subst.
   all: match goal with [ H2 : Value _ |- _ ] => inversion H2 ; subst end.
   all: try solve [eexists; eauto].
   - apply DTyping_a_Type_inversion in H.
     assert False. eapply ineq_Pi_Type. eapply DE_Sym. eapply DE_Trans; eauto.
     contradiction.
-  - pick fresh x.  
+  - pick fresh x.
     eapply (@DTyping_a_Pi_inversion1 x) in H; eauto. split_hyp.
     assert False. eapply ineq_Pi_Type. eapply DE_Trans. eapply DE_Sym; eauto. eauto.
     contradiction.
   - eapply DTyping_a_Arrow_inversion1 in H; eauto. split_hyp.
     assert False. eapply ineq_Pi_Type. eapply DE_Trans. eapply DE_Sym; eauto. eauto.
     contradiction.
-  - eapply DTyping_a_Bottom_inversion in H; eauto. 
+  - eapply DTyping_a_Bottom_inversion in H; eauto.
     assert False. eapply ineq_Pi_Type. eapply DE_Sym. eapply DE_Trans; eauto.
     contradiction.
 Qed.
@@ -298,17 +294,17 @@ Proof.
   (* beta arrow *)
   - destruct IHDTyping1 as [|[b' Hb]]; eauto.
     + move: (canonical_Arrow H H1) => [ b' EQ].
-      subst. 
+      subst.
       right.
-      exists (open b' a). 
+      exists (open b' a).
       econstructor; eauto with lc.
     + right. eexists. eauto with lc.
-  (* beta pi *) 
+  (* beta pi *)
   - destruct IHDTyping1 as [|[b' Hb]]; eauto.
     + move: (canonical_Pi ltac:(eauto) ltac:(eauto)) => [ b' EQ].
-      subst. 
+      subst.
       right.
-      exists (open b' a). 
+      exists (open b' a).
       econstructor; eauto with lc.
     + right. eexists. eauto with lc.
   - (* absurd *)
