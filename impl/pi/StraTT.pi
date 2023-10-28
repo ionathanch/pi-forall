@@ -95,22 +95,23 @@ map = \X Y f box. case box of
 
 {- Dependent pairs -}
 
-data SPair (X : Type @ 0) (P : X -> Type) : Type @ 1 where
+data NPair (X : Type @ 0) (P : X -> Type) : Type @ 1 where
   MkPair of (x : X @ 0) (P x) @ 1
 
-sfst : (X : Type @ 0) -> (P : X -> Type @ 1) -> SPair^0 X P -> X @ 2
+sfst : (X : Type @ 0) -> (P : X -> Type @ 0) -> NPair^0 X P -> X @ 1
 sfst = \X P p. case p of MkPair x y -> x
 
-ssnd : (X : Type @ 0) -> (P : X -> Type @ 1) -> (p : SPair^0 X P) -> P (sfst^0 X P p) @ 2
+ssnd : (X : Type @ 0) -> (P : X -> Type @ 0) -> (p : NPair^0 X P @ 1) -> P (sfst^0 X P p) @ 2
 ssnd = \X P p. case p of MkPair x y -> y
 
-data WPair (X : Type @ 0) (P : (_ : X @ 0) -> Type) : Type @ 1 where
+data DPair (X : Type @ 0) (P : (_ : X @ 0) -> Type) : Type @ 1 where
   MkPair of (x : X @ 0) (P x) @ 1
 
-wfst : (X : Type @ 0) -> (P : (_ : X @ 0) -> Type @ 1) -> WPair^0 X P -> X @ 2
+wfst : (X : Type @ 0) -> (P : (_ : X @ 0) -> Type @ 1) -> DPair^0 X P -> X @ 2
 wfst = \X P p. case p of MkPair x y -> x
 
-wsnd : (X : Type @ 0) -> (P : (_ : X @ 0) -> Type @ 1) -> (p : WPair^0 X P) -> P TRUSTME -- (wfst^0 X P p) @ 2
+wsnd : (X : Type @ 0) -> (P : (_ : X @ 0) -> Type @ 1) -> (p : DPair^0 X P @ 1) -> (case p of MkPair x y -> P x) @ 2
+wsnd = \X P p. case p of MkPair x y -> y
 
 {-------------------------
  SECTION 6: On consistency
@@ -144,9 +145,9 @@ regular = \u. case u of
   MkU X f -> (x : X @ 0) -> f x = MkU^0 X f -> Void
 
 R : U^2 @ 3
-R = MkU^2 (SPair^1 U^0 regular) (\ureg. TRUSTME) -- (sfst^1 U^0 regular^0)
+R = MkU^2 (NPair^1 U^0 regular) (\ureg. TRUSTME) -- (sfst^1 U^0 regular^0)
 
--- regular R = (x : SPair U regular) -> sfst U regular x = MkU X f -> Void
+-- regular R = (x : NPair U regular) -> sfst U regular x = MkU X f -> Void
 
 R_nonreg : regular^2 R^0 -> Void @ 3
 R_nonreg = TRUSTME -- \reg. reg (MkPair^1 R^0 reg) Refl
