@@ -2,7 +2,6 @@ Require Export StraTT.StraTT_inf.
 Require Export StraTT.tactics.
 Require Export StraTT.basics.
 Require Export StraTT.ctx.
-Require Export StraTT.restrict.
 
 Set Implicit Arguments.
 
@@ -39,7 +38,7 @@ Proof.
     eapply subst_tm_lc_tm; eauto.
   - (* const *)
     have DT: DTyping S nil a0 A k.
-    eapply DSig_regularity; eauto.
+    eapply DSig_regularity_term; eauto.
     move: (DTyping_fv) => [_ [_ FV]].
     edestruct FV; eauto.
     have NI: (x `notin` fv_tm a0).
@@ -72,7 +71,7 @@ Proof.
   - (* const *)
     simpl.
     have DT: DTyping S nil a A j0.
-    eapply DSig_regularity; eauto.
+    eapply DSig_regularity_term; eauto.
     + (* eapply DT_Const; eauto.
          eapply DCtx_DSig; eauto. *)
       move: (DTyping_fv) => [_ [_ FV]].
@@ -106,11 +105,11 @@ Proof.
         eapply binds_map with (f:= f j bb x0) in H1.
         simpl in H1. eauto.
      ++ (* x0 before type substutution *)
-       have h1: (DTyping S F A a_Type j0).
+       have [k' [_ HA]] : (exists k, j0 <= k /\ DTyping S F A a_Type k).
        * eapply DCtx_regularity with (x := x); eauto.
          eapply DCtx_app.
          eapply DCtx_app. eauto.
-       * apply DTyping_fv in h1. split_hyp.
+       * apply DTyping_fv in HA. split_hyp.
          move: (DCtx_uniq d) => u.
          move: (DCtx_disjoint d) => uu.
          destruct_uniq.
@@ -123,7 +122,7 @@ Proof.
     pick fresh y and apply DT_Pi; eauto.
     repeat spec y.
     rename H1 into IH.
-    specialize (IH (y ~ Tm A j0 ++ E) x ltac:(subst G; auto)).
+    specialize (IH (y ~ Tm A i ++ E) x ltac:(subst G; auto)).
     rewrite_subst_open_hyp.
     eauto with lc.
   - (* abstm *)
@@ -142,12 +141,15 @@ Proof.
     pick fresh y and apply DT_AbsTy; eauto.
     repeat spec y.
     rename H1 into IH.
-    specialize (IH (y ~ (Tm A j0) ++ E) x).
+    specialize (IH (y ~ (Tm A i) ++ E) x).
     specialize (IH ltac:(reflexivity)).
     simpl in IH.
     simpl_env in IH.
     rewrite_subst_open_hyp;
     eauto with lc.
+    rename H2 into IH.
+    specialize (IH y ltac:(fsetdec) (y ~ Tm A i ++ E) x ltac:(reflexivity) ltac:(reflexivity)).
+    rewrite_subst_open_hyp; eauto with lc.
   - (* apptm *)
     subst; simpl.
     eauto.
@@ -198,7 +200,7 @@ Proof.
   move: (DTyping_DCtx H) => h. inversion h. subst.
   replace B with (subst_tm (a_Var_f x) y B); auto.
   rewrite (subst_tm_intro y). auto.
-  eapply DTyping_subst1; eauto.
+  eapply DTyping_subst1 with (j := j); eauto.
   eapply DTyping_weakening; eauto using DTyping_DCtx.
   econstructor; eauto.
   eapply DTyping_weakening1; eauto using DTyping_DCtx.
@@ -220,7 +222,7 @@ Proof.
   move: (DTyping_DCtx H) => h. inversion h. subst.
   rewrite (subst_tm_intro y b). auto.
   rewrite (subst_tm_intro y B). auto.
-  eapply DTyping_subst1; eauto.
+  eapply DTyping_subst1 with (j := j); eauto.
   eapply DTyping_weakening; eauto using DTyping_DCtx.
   econstructor; eauto.
   eapply DTyping_weakening1; eauto using DTyping_DCtx.

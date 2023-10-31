@@ -104,7 +104,7 @@ Proof.
   all: unfold IncG in *.
   all: simpl in *. simpl_env in *.
   - (* ctx cons *)
-    econstructor; eauto.
+    econstructor; eauto. lia.
   - (* const *)
     rewrite incr_incr.
     econstructor; eauto. lia.
@@ -115,7 +115,7 @@ Proof.
   - (* pi case *)
     pick fresh x and apply DT_Pi.
     eauto.
-    replace (a_Var_f x) with (incr j0 (a_Var_f x)); auto.
+    replace (a_Var_f x) with (incr j (a_Var_f x)); auto.
     rewrite <- incr_open.
     repeat spec x.
     simpl; eauto.
@@ -132,14 +132,20 @@ Proof.
     repeat rewrite <- incr_open.
     repeat spec x.
     simpl; eauto.
+    + replace (a_Var_f x) with (incr j0 (a_Var_f x)); auto.
+    repeat rewrite <- incr_open.
+    repeat spec x.
+    simpl; eauto.
+    + lia.
     + lia.
   - (* app *)
     rewrite incr_open.
     eapply DT_AppTy; eauto.
-    lia.
+  - (* absurd *)
+    eapply DT_Absurd; eauto. lia.
   - (* conv *)
     eapply DT_Conv; eauto.
-    eapply DEquiv_incr; eauto.
+    eapply DEquiv_incr; eauto. lia.
 Qed.
 
 Lemma DCtx_incr : forall S G, DCtx S G -> forall j, DCtx S (IncG j G).

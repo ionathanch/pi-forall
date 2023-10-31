@@ -4,7 +4,6 @@ Require Export StraTT.basics.
 Require Export StraTT.ctx.
 Require Export StraTT.subst.
 Require Export StraTT.inversion.
-Require Export StraTT.restrict.
 
 Set Implicit Arguments.
 
@@ -16,12 +15,13 @@ Local Open Scope lc_scope.
 
 Inductive Ctx_DEquiv S : context -> context -> Prop :=
  | ctx_equiv_nil : Ctx_DEquiv S nil nil
- | ctx_equiv_cons : forall x i A1 A2 G1 G2,
+ | ctx_equiv_cons : forall x j k A1 A2 G1 G2,
+     j <= k ->
      DEquiv S A1 A2 ->
      Ctx_DEquiv S G1 G2 ->
-     DTyping S G2 A2 a_Type i ->
+     DTyping S G2 A2 a_Type k ->
      x `notin` dom G1 \u dom G2 ->
-     Ctx_DEquiv S (x ~ (Tm A1 i) ++ G1) (x ~ Tm A2 i ++ G2).
+     Ctx_DEquiv S (x ~ (Tm A1 j) ++ G1) (x ~ Tm A2 j ++ G2).
 
 #[global] Hint Constructors Ctx_DEquiv : core.
 
@@ -30,8 +30,8 @@ Lemma binds_Ctx_DEquiv : forall S G1 G2,
     exists A2, binds x (Tm A2 i) G2 /\ DEquiv S A1 A2.
 Proof.
   induction 1; intros; eauto. inversion H.
-  edestruct (binds_cons_1 _ _ _ _ _ _ H3); eauto; split_hyp.
-  - subst. inversion H5. subst.
+  edestruct (binds_cons_1 _ _ _ _ _ _ H4); eauto; split_hyp.
+  - subst. inversion H6. subst.
     exists A2. split; eauto.
   - edestruct IHCtx_DEquiv; eauto. split_hyp.
     exists x1. split; eauto.
@@ -51,7 +51,7 @@ Lemma DCtx_DTyping_conversion :
     DCtx S G1 ->
     forall G2, Ctx_DEquiv S G1 G2 -> DCtx S G2 /\
     forall x A j, binds x (Tm A j) G1
-           -> DTyping S G2 A a_Type j) /\
+           -> exists k, j <= k /\ DTyping S G2 A a_Type k) /\
   (forall S G1 a A k,
     DTyping S G1 a A k ->
     forall G2, Ctx_DEquiv S G1 G2 -> DTyping S G2 a A k).
@@ -66,10 +66,13 @@ Proof.
     specialize (H _ ltac:(eauto)). split_hyp.
     destruct (binds_cons_1 _ _ _ _ _ _ H1).
     + split_hyp. inversion H4. subst.
+      exists k; split. lia.
       eapply DTyping_weakening1.
       eauto.
       econstructor; eauto.
-    + eapply DTyping_weakening1.
+    + destruct (H2 _ _ _ H3) as [k1 [j0k1 HA0]].
+      exists k1; split. lia.
+      eapply DTyping_weakening1.
       eauto.
       econstructor; eauto.
   - specialize (H _ H0).
@@ -82,18 +85,23 @@ Proof.
     move: H => [h0 bb].
     move: (binds_Ctx_DEquiv ltac:(eauto) _ _ _ b)=> b1; eauto.
     destruct b1 as [A2 [b2 Eq]].
-    apply bb in b.
+    destruct (bb _ _ _ b) as [k0 [jk0 HA]].
+    apply DTyping_cumul with (j := j). lia.
     eapply DT_Conv with (A := A2); eauto.
-    apply DTyping_cumul with (j := j); auto.
   - pick fresh x and apply DT_Pi; eauto.
     spec x.
-    eapply H0. eauto with lc.
+    eapply H0.
+    eapply ctx_equiv_cons with (k := k); eauto with lc. lia.
   - pick fresh x and apply DT_AbsTm; eauto.
     spec x.
     eapply H1. eauto with lc.
-  - pick fresh x and apply DT_AbsTy; eauto.
-    spec x.
-    eapply H0. eauto with lc.
+  - pick fresh x and apply DT_AbsTy; spec x; eauto.
+    + eapply H0.
+      eapply ctx_equiv_cons with (k := k); eauto. lia.
+      eauto with lc.
+    + eapply H1.
+      eapply ctx_equiv_cons with (k := k); eauto. lia.
+      eauto with lc.
   - specialize (H _ H0).
     move: H => [h0 _].
     eauto.
@@ -109,6 +117,7 @@ Proof.
   eapply DCtx_DTyping_conversion; eauto.
 Qed.
 
+(*
 Lemma SubG_float_restrict :
     forall G j k, j <= k -> SubG G (float j k (restrict G j)).
 Proof.
@@ -120,8 +129,9 @@ Proof.
   econstructor; eauto.
   econstructor; eauto.
 Qed.
+*)
 
-#[local] Hint Resolve SubG_float_restrict Ctx_DEquiv_refl : core.
+#[local] Hint Resolve (* SubG_float_restrict *) Ctx_DEquiv_refl : core.
 
 Lemma Reduce_Preservation : forall S G a b,
     Reduce S a b
@@ -129,8 +139,8 @@ Lemma Reduce_Preservation : forall S G a b,
 Proof.
   induction 1; intros B k0 DT.
   - (* beta *)
-    move: (DTyping_a_App_inversion DT) => [ARR|PI].
-    -- (* arrow *)
+    move: (DTyping_a_App_inversion DT) => PI.
+    (* -- (* arrow *)
       move: ARR => [A [DABS Da]].
       pick fresh x.
       move: (DTyping_regularity DABS) => h.
@@ -160,63 +170,56 @@ Proof.
          eapply DCtx_cumul; eauto.
       ++ move: Y => [A3 Z]. split_hyp. subst.
          (* impossible. by consistency of DEquiv *)
-         eapply ineq_Arrow_Pi in H3. contradiction.
+         eapply ineq_Arrow_Pi in H3. contradiction. *)
     -- (* pi *)
       move: PI => [j [A0 [B0 [TABS [Ta EQ]]]]].
-      move: (DTyping_regularity TABS) => h.
+      move: (DTyping_regularity TABS) => [k [k0k h]].
       pick fresh x.
       eapply (@DTyping_a_Pi_inversion x) in h. split_hyp.
       eapply (@DTyping_a_Abs_inversion x) in TABS; eauto.
-      move: TABS => [j1 [j2 [A1 [A2 [h [X | Y]]]]]]. split_hyp.
-      ++ (* impossible. by consistency of DEquiv *)
-        apply DE_Sym in H4.
-        eapply ineq_Arrow_Pi in H4. contradiction.
-      ++ move: Y => [A3 Z]. split_hyp. subst.
+      move: TABS => [j1 [A1 [A2 [h [A3 Z]]]]]. split_hyp.
       (* Consistency of DEquiv *)
       have E1: (DEquiv S A1 A0).  eapply DEquiv_Pi_inj1; eauto.
       have E2: (DEquiv S (open B0 a) (open A3 a)).
                eapply DEquiv_Pi_inj3; eauto with lc.
       have E3: (j = j1). eapply DEquiv_Pi_inj2; eauto.
       subst.
-      eapply DT_Conv with (A:= open A3 a); auto.
+      apply DTyping_regularity in DT as [k1 [k0k1 TB]].
+      eapply DT_Conv with (A := open A3 a) (k := k1); auto.
       rewrite (subst_tm_intro x b); auto.
       rewrite (subst_tm_intro x A3); auto.
       simpl_env in h.
       eapply DTyping_subst1; eauto.
       eapply DTyping_cumul; eauto.
       eapply DCtx_conversion; eauto with ctx.
-      eapply DTyping_regularity; eauto.
+      eapply ctx_equiv_cons with (k := k); eauto with ctx. lia.
       eapply DE_Sym. eapply DE_Trans; eauto.
       ++ auto.
-  - have DS: DSig S. eauto with ctx.
+  - (* delta *)
+    have DS: DSig S. eauto with ctx.
     move: (DTyping_a_Const_inversion DT) => [a0 [A0 [j h]]].
     split_hyp.
     have U :uniq S. eauto using DSig_uniq.
-    eapply DT_Conv with (A := (incr i A0)); auto.
-    2: { eapply DTyping_regularity; eauto. }
+    apply DTyping_regularity in DT as [k1 [k0k1 TB]].
+    eapply DT_Conv with (A := incr i A0) (k := k1); auto.
     replace G with (G ++ nil). 2: simpl_env; auto.
     eapply DTyping_weakening1 with (E:=nil)(F:=G).
     2: {  simpl_env; eauto with ctx. }
-
     move: (binds_unique _ _ _ _ _ H H1 U) => u. inversion u. subst.
-    apply DSig_regularity in H1; auto. split_hyp.
+    apply DSig_regularity in H1 as [k [jk [Ta0 TA0]]]; auto.
     replace nil with (IncG i nil). 2: { auto. }
     apply DTyping_cumul with (j := i + j); auto. lia.
     eapply DTyping_incr; eauto.
   - (* app cong *)
-    move: (DTyping_a_App_inversion DT) => [ARR|PI].
-    ++ move: ARR => [A [Tb Ta]].
+    move: (DTyping_a_App_inversion DT) => PI.
+    (* ++ move: ARR => [A [Tb Ta]].
        apply IHReduce in Tb.
-       eapply DT_AppTm; eauto.
+       eapply DT_AppTm; eauto. *)
     ++ move: PI => [j [A0 [B0 [Tb [Ta E]]]]].
        apply IHReduce in Tb.
-       eapply DT_Conv with (A:= open B0 a).
+       apply DTyping_regularity in DT as [k [k0k TB]].
+       eapply DT_Conv with (A := open B0 a) (k := k); auto.
        eapply DT_AppTy; eauto.
-       pick fresh x.
-       move: (DTyping_regularity Tb) => TPi.
-       move: (@DTyping_a_Pi_inversion x _ _ _ _ _ _ TPi ltac:(auto)) => h. split_hyp. auto.
-       eapply DTyping_regularity; eauto.
-       eapply DE_Sym; auto.
 Qed.
 
 Lemma WHNF_Preservation : forall S a b, WHNF S a b ->

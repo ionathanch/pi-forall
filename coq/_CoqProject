@@ -6,7 +6,6 @@ basics.v
 ctx.v
 incr.v
 inversion.v
-restrict.v
 subst.v
 tactics.v
 typesafety.v

@@ -113,10 +113,10 @@ Proof.
     edestruct H1; eauto.
     eapply lc_a_Abs_exists with (x1 := x); eauto.
   - pick fresh x.
-    edestruct H0; eauto.
+    edestruct H1; eauto.
     eapply lc_a_Abs_exists with (x1 := x); eauto.
   - pick fresh x.
-    edestruct H0; eauto.
+    edestruct H1; eauto.
     eapply lc_a_Pi_exists with (x1 := x); eauto.
   - inversion H2.
     eapply lc_body_tm_wrt_tm; eauto.
@@ -241,9 +241,9 @@ Proof.
   all: repeat match goal with [ H : empty [<=] _ |- _ ] => clear H end.
   have: y `notin` fv_tm B; fsetdec; clear Fr; fsetdec.
   clear H H0 H4. have: y `notin` fv_tm b; fsetdec; clear Fr; fsetdec.
-  clear H H2. have: y `notin` fv_tm b; fsetdec; clear Fr; fsetdec.
-  clear H H0. have: y `notin` fv_tm B; fsetdec; clear Fr; fsetdec.
-  rewrite fv_tm_open_tm_wrt_tm_upper. clear Fr. fsetdec.
+  clear H H0 H3. have: y `notin` fv_tm b; fsetdec; clear Fr; fsetdec.
+  clear H H0 H1. have: y `notin` fv_tm b; fsetdec; clear Fr; fsetdec.
+  rewrite fv_tm_open_tm_wrt_tm_upper. clear Fr H H1. fsetdec.
 Qed.
 
 Lemma DSig_uniq : forall S, DSig S -> uniq S.
@@ -251,3 +251,36 @@ Proof. induction 1; eauto. Qed.
 
 Lemma DCtx_uniq : forall S G, DCtx S G -> uniq G.
 Proof. induction 1; eauto. Qed.
+
+Lemma DTyping_cumul : forall S G a A j k, j <= k ->
+  DTyping S G a A j -> DTyping S G a A k.
+Proof.
+  move => S G a A j k jk DT.
+  move : k jk.
+  induction DT; eauto; intros.
+  - eapply DT_Const; eauto. lia.
+  - eapply DT_Var; eauto. lia.
+  - eapply DT_Pi; eauto. lia.
+  - eapply DT_AbsTm; eauto. intros.
+    (* arrow *) admit.
+  - eapply DT_AbsTy with (L := L) (k := k + k0); eauto.
+    eapply IHDT. lia.
+    intros; eapply H0; auto.
+    all: lia.
+  - eapply DT_Absurd with (k := k + k0); eauto.
+    eapply IHDT1. all: lia.
+Admitted.
+
+Lemma DCtx_cumul : forall S G x A j k, j <= k ->
+  DCtx S (x ~ Tm A j ++ G) ->
+  DCtx S (x ~ Tm A k ++ G).
+Proof.
+  intros.
+  inversion H0; subst.
+  have : k <= k0 \/ k >= k0 by lia.
+  move => kk0.
+  destruct kk0.
+  - eapply DG_Cons; eauto.
+  - apply DG_Cons with (k := k); auto.
+    eapply DTyping_cumul; eauto.
+Qed.

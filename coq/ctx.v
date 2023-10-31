@@ -89,6 +89,7 @@ Qed.
 
 (* --------------- restrict ---------------- *)
 
+(*
 Fixpoint restrict (G:context) k :=
   match G with
   | nil => nil
@@ -161,6 +162,7 @@ Lemma DCtx_restrict :
   (forall S G, DCtx S G -> forall k, DCtx S (restrict G k)).
 eapply DSig_DCtx_DTyping_restriction.
 Qed.
+*)
 
 (* ----------------------- inversion for DCtx ---------------------- *)
 
@@ -200,6 +202,7 @@ Proof.
   spec x. eapply H1; auto.
   pick fresh x and apply DT_AbsTy; eauto.
   spec x. eapply H0; auto.
+  eapply H1; auto.
 Qed.
 
 Lemma DSig_DCtx_weakening :
@@ -233,7 +236,7 @@ Proof.
     match goal with [ |- DTyping S (x ~ ?a ++ ?F ++ ?G ++ ?E) _ _ _ ] =>
        specialize (H1 ((x ~ a) ++ F) E);  apply H1 end.
     reflexivity.
-    eapply DG_Cons; eauto.
+    eapply DG_Cons; eauto. lia.
   - pick fresh x and apply DT_AbsTm; auto.
     repeat spec x.
     match goal with [ H2 : forall F E : list (atom * assn), _ |- DTyping S (x ~ ?a ++ ?F ++ ?G ++ ?E) _ _ _ ] =>
@@ -250,6 +253,10 @@ Proof.
     reflexivity.
     simpl_env.
     eapply DG_Cons; auto.
+    lia.
+    eapply H3 with (F := x ~ Tm A i ++ F) (G := G) (E := E); auto.
+    eapply DG_Cons; eauto.
+    lia.
 Qed.
 
 Lemma DTyping_weakening1 :
@@ -264,27 +271,43 @@ Qed.
 
 (* ------------------------------ Ctx regularity --------------------- *)
 
-Lemma DSig_regularity : forall S, DSig S -> forall x a k A,
-      binds x (Def A k a) S ->
-      DTyping S nil a A k /\ DTyping S nil A a_Type k.
+Lemma DSig_regularity : forall S, DSig S -> forall x a j A,
+      binds x (Def A j a) S ->
+      exists k, j <= k /\ DTyping S nil a A j /\ DTyping S nil A a_Type k.
 Proof.
   induction 1; intros.
   inversion H.
   match goal with [ H2 : binds ?x ?a1 (?y ~ ?a2 ++ ?G) |- _ ] =>
                     apply binds_cons_1 in H2;
                     destruct H2 as [[e1 e2]|b0]; first inversion e2; subst end.
-  all: try split.
-  eapply DSig_DTyping_weakening; eauto.
-  eapply DSig_DTyping_weakening; eauto.
-  edestruct IHDSig; eauto.
-  eapply DSig_DTyping_weakening; eauto.
-  edestruct IHDSig; eauto.
-  eapply DSig_DTyping_weakening; eauto.
+  - exists k; split; auto; split.
+    eapply DSig_DTyping_weakening; eauto.
+    eapply DSig_DTyping_weakening; eauto.
+  - destruct (IHDSig x0 a0 j0 A0 b0) as [k0 [j0k0 [Ha0 HA0]]].
+    exists k0; split; auto; split.
+    + eapply DSig_DTyping_weakening; eauto.
+    + eapply DSig_DTyping_weakening; eauto.
 Qed.
 
-Lemma DCtx_regularity : forall S G, DCtx S G -> forall x A k,
-  binds x (Tm A k) G ->
-  DTyping S G A a_Type k.
+Lemma DSig_regularity_term : forall S, DSig S -> forall x a j A,
+      binds x (Def A j a) S -> DTyping S nil a A j.
+Proof.
+  intros.
+  destruct (DSig_regularity H x a j A H0) as [_ [_ [Ha _]]].
+  auto.
+Qed.
+
+Lemma DSig_regularity_type : forall S, DSig S -> forall x a j A,
+      binds x (Def A j a) S -> exists k, j <= k /\ DTyping S nil A a_Type k.
+Proof.
+  intros.
+  destruct (DSig_regularity H x a j A H0) as [k [jk [_ HA]]].
+  exists k; auto.
+Qed.
+
+Lemma DCtx_regularity : forall S G, DCtx S G -> forall x A j,
+  binds x (Tm A j) G ->
+  exists k, j <= k /\ DTyping S G A a_Type k.
 Proof. induction 1; intros.
        all: try match goal with [ H : binds ?x ?a ?nil |- _ ] => inversion H end.
        all: try match goal with [ H2 : binds ?x ?a1 (?y ~ ?a2 ++ ?G) |- _ ] =>
@@ -292,6 +315,8 @@ Proof. induction 1; intros.
                            destruct H2 as [[e1 e2]|b0]; first inversion e2; subst end.
        all: try match goal with [ H : (_,_) = (_,_) |- _ ] => inversion H ; subst; clear H end.
        all: eauto using DTyping_weakening1.
+       destruct (IHDCtx x0 A0 j0 b0) as [k0 [j0k0 HA]].
+       exists k0. eauto using DTyping_weakening1.
 Qed.
 
 Lemma DCtx_DSig : forall S G, DCtx S G -> DSig S.
@@ -377,7 +402,8 @@ Proof.
   - (* Pi case *)
     pick fresh x and apply DT_Pi; eauto with ctx.
     repeat spec x.
-    eapply H1. eauto using DTyping_DCtx. econstructor; eauto using SubA_refl.
+    eapply H1. eauto using DTyping_DCtx. econstructor; eauto using SubA_refl. lia.
+    econstructor; eauto.
   - (* absTm case *)
     pick fresh x and apply DT_AbsTm; eauto with ctx.
     repeat spec x.
@@ -386,8 +412,10 @@ Proof.
   - (* absTy case *)
     pick fresh x and apply DT_AbsTy; eauto with ctx.
     repeat spec x.
-    eapply H1. econstructor; eauto using DTyping_DCtx.
+    eapply H1. econstructor; eauto using DTyping_DCtx. lia.
     econstructor; eauto using SubA_refl.
+    eapply H3; eauto.
+    eapply DG_Cons; auto.
+    lia.
 Unshelve.
-exact 0.
 Qed.

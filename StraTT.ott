@@ -547,10 +547,11 @@ by
 
 |- S
 S ; empty |- A : type @ k
-S ; empty |- a : A @ k
+S ; empty |- a : A @ j
 x notin dom S
+j <= k
 ------------------------- :: Cons
-|- S , x : A @ k := a
+|- S , x : A @ j := a
 
 defn
 S |- G  ::     :: DCtx :: 'DG_'
@@ -565,8 +566,9 @@ S |- G
 S ; G |- A : type @ k
 x notin dom G
 x notin dom S
+j <= k
 --------------------- :: Cons
-S |- G , x : A @ k
+S |- G , x : A @ j
 
 defn
   S ; G |- a : A @ k ::  :: DTyping :: 'DT_'
@@ -597,11 +599,11 @@ S ; G |- B : type @ k
 -------------------------- :: Arrow
 S ; G |- A -> B : type @ k
 
-S ; G |- A : type @ j
-S ; G , x : A @ j |- B : type @ k
-j < k
+S ; G |- A : type @ k
+S ; G , x : A @ i |- B : type @ k
+i < k
 ------------------------------------ :: Pi
-S ; G |- Pi x : A @ j . B : type @ k
+S ; G |- Pi x : A @ i . B : type @ k
 
 S ; G |- A : type @ k
 S ; G |- B : type @ k
@@ -609,37 +611,40 @@ S ; G , x : A @ k |- b : B @ k
 ------------------------------ :: AbsTm
 S ; G |- \ x . b : A -> B @ k
 
-S ; G |- A : type @ j
-S ; G , x : A @ j |- b : B @ k
-j < k
+S ; G |- A : type @ k
+S ; G , x : A @ i |- B : type @ k
+S ; G , x : A @ i |- b : B @ j
+i < k
+j <= k
 --------------------------------------- :: AbsTy
-S ; G |- \ x . b : Pi x : A @ j . B @ k
+S ; G |- \ x . b : Pi x : A @ i . B @ j
 
 S ; G |- b : A -> B @ k
 S ; G |- a : A @ k
 -------------------- :: AppTm
 S ; G |- b a : B @ k
 
-S ; G |- b : Pi x : A @ j . B @ k
-S ; G |- a : A @ j
-j < k
+S ; G |- b : Pi x : A @ i . B @ j
+S ; G |- a : A @ i
 ------------------------------ :: AppTy
-S ; G |- b a : B { a / x } @ k
+S ; G |- b a : B { a / x } @ j
 
 S |- G
 ----------------------- :: Bottom
 S ; G |- _|_ : type @ k
 
 S ; G |- A : type @ k
-S ; G |- b : _|_ @ k
+S ; G |- b : _|_ @ j
+j <= k
 ------------------------- :: Absurd
-S ; G |- absurd b : A @ k
+S ; G |- absurd b : A @ j
 
-S ; G |- a : A @ k
+S ; G |- a : A @ j
 S ; G |- B : type @ k
 S |- A == B
+j <= k
 --------------------- :: Conv
-S ; G |- a : B @ k
+S ; G |- a : B @ j
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 defns
