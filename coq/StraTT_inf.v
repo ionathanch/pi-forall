@@ -7,7 +7,7 @@ Require Export Metalib.LibLNgen.
 
 Require Export StraTT_ott.
 
-Local Set Warnings "-non-recursive". 
+Local Set Warnings "-non-recursive".
 
 (** NOTE: Auxiliary theorems are hidden in generated documentation.
     In general, there is a [_rec] version of every lemma involving
