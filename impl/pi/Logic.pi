@@ -99,7 +99,7 @@ double_neg = \[P] p. \x. x p
 contrapositive : [P:Type] -> [Q:Type] -> (P -> Q) -> neg Q -> neg P
 contrapositive = \[P] [Q] pq nq p. nq (pq p)
 
-not_both_true_and_false : [P : Type] -> [Q : Type] -> neg (And P (neg P)) 
+not_both_true_and_false : [P : Type] -> [Q : Type] -> neg (And P (neg P))
 not_both_true_and_false = \[P] [Q] andpnp.
   case andpnp of
     Conj p np -> np p

@@ -1,4 +1,4 @@
--R . StraTT 
+-R . StraTT
 StraTT_inf.v
 StraTT_ott.v
 axioms.v

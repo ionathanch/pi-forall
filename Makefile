@@ -5,6 +5,12 @@ FORCE:
 coq: coq/*.v coq/_CoqProject
 	cd coq; make -f $(COQMK)
 
+coq/StraTT_ott.v: StraTT.ott
+	ott -i StraTT.ott -o coq/StraTT_ott.v -coq_lngen true -coq_expand_list_types true
+
+coq/StraTT_inf.v: StraTT.ott
+	lngen --coq coq/StraTT_inf.v --coq-ott StraTT_ott StraTT.ott
+
 impl: FORCE
 	cd impl; stack build
 
