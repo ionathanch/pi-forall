@@ -141,14 +141,13 @@ instance Disp Rho where
   disp Rel = PP.text "relevant"
 
 instance Display Epsilon where
-  display (Mode rho (Just lvl)) = do
+  display (Mode rho lvl) = do
     sl <- asks showLevels
     dl <- display lvl
     if sl then
       pure $ disp rho <+> dl
     else
       pure $ disp rho
-  display (Mode rho Nothing) = pure $ disp rho
 
 instance Display Level where
   display (LVar x) = display x
@@ -185,7 +184,7 @@ instance Display ModuleImport where
   display (ModuleImport i) = pure $ PP.text "import" <+> disp i
 
 instance Display Sig where
-  display (Sig n r (Just l) ty) = do
+  display (Sig n r l ty) = do
     dn <- display n
     b <- asks showLevels
     dt <- display ty
@@ -194,10 +193,6 @@ instance Display Sig where
       pure $ dn <+> PP.text ":" <+> dt <+> PP.text "@" <+> dl
     else
       pure $ dn <+> PP.text ":" <+> dt
-  display (Sig n r Nothing ty) = do
-    dn <- display n
-    dt <- display ty
-    pure $ dn <+> PP.text ":" <+> dt
 
 instance Display Decl where
   display (Def n term) = do
@@ -363,19 +358,13 @@ instance Display Term where
     df <- withPrec levelApp (display f)
     dx <- withPrec (levelApp+1) (display x)
     return $ parens (levelApp < n) $ df <+> dx
-  display (Pi (Mode ep mk) a bnd) = do
+  display (Pi (Mode ep k) a bnd) = do
     Unbound.lunbind bnd $ \(n, b) -> do
       p <- ask prec
-      lhs <- case mk of
-              Just k -> do
-                dn <- display n
-                da <- withPrec 0 (display a)
-                dk <- display k
-                return $ mandatoryBindParens ep  (dn <+> PP.colon <+> da <+> dk)
-              Nothing ->
-                case ep of
-                  Rel -> withPrec (levelArrow+1) (display a)
-                  Irr -> PP.brackets <$> withPrec 0 (display a)
+      dn <- display n
+      da <- withPrec 0 (display a)
+      dk <- display k
+      let lhs = mandatoryBindParens ep (dn <+> PP.colon <+> da <+> dk)
       db <- withPrec levelPi (display b)
       return $ parens (levelArrow < p) $ lhs <+> PP.text "->" <+> db
   display (Ann a b) = do
@@ -479,7 +468,7 @@ instance Display Term where
     p <- ask prec
     da <- withPrec (levelApp+1) $ display a
     db <- withPrec (levelApp+1) $ display b
-    return $ PP.parens $ (da <+> PP.text "=" <+> db)
+    return $ PP.parens (da <+> PP.text "=" <+> db)
   display Refl = do
     return $ PP.text "Refl"
   display (Contra ty) = do

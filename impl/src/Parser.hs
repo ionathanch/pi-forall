@@ -307,11 +307,9 @@ importDef :: LParser ModuleImport
 importDef = do reserved "import" >>  (ModuleImport <$> importName)
   where importName = identifier
 
-data Binding = Param | Argmt
-
-telescope :: Binding -> LParser Telescope
-telescope ctx = do
-  bindings <- telebindings ctx
+telescope :: LParser Telescope
+telescope = do
+  bindings <- telebindings
   return $ Telescope (foldr id [] bindings)
 
 -- Omitted levels are unification variables
@@ -319,22 +317,14 @@ levelP :: LParser Level
 levelP =
   try (LConst <$> (at *> natural)) <|> freshLevel "l"
 
-telebindings :: Binding -> LParser [[Decl] -> [Decl]]
-telebindings ctx = many teleBinding
+telebindings :: LParser [[Decl] -> [Decl]]
+telebindings = many teleBinding
   where
-    -- for parameters:   `x : A @ l` or `x : A` or `x : A @`
-    -- for constructors: `x : A @ l` or `x : A` or `A`
+    -- `x : A @ l` or `x : A` or `A @ l` or `A`
     annot rho = do
       (x, ty, lvl) <-
-        case ctx of
-          Param -> (,,) <$> varOrWildcard <*> (colon >> expr) <*>
-                   (try (at >> Just . LConst <$> natural) <|> -- dependent, explicit
-                    try (at >> Just <$> freshLevel "l")   <|> -- dependent, implicit
-                    pure Nothing)                             -- nondependent
-          Argmt -> try ((,,) <$> varOrWildcard <*> (colon >> expr) <*>
-                        (try (at >> Just . LConst <$> natural) <|> -- dependent, explicit
-                         Just <$> freshLevel "l"))                 -- dependent, implicit
-                   <|> ((,,) <$> Unbound.fresh wildcardName <*> expr <*> pure Nothing) -- nondependent
+        try ((,,) <$> varOrWildcard <*> (colon *> expr) <*> levelP) <|>
+        ((,,) <$> Unbound.fresh wildcardName <*> expr <*> levelP)
       return (TypeSig (Sig x rho lvl ty) :)
 
     equal = do
@@ -363,7 +353,7 @@ dataDef :: LParser Decl
 dataDef = do
   reserved "data"
   name <- identifier
-  params <- telescope Param
+  params <- telescope
   colon
   Type <- typen
   lvl  <- levelP
@@ -381,7 +371,7 @@ constructorDef :: LParser ConstructorDef
 constructorDef = do
   pos <- getPosition
   cname <- identifier
-  args <- option (Telescope []) (reserved "of" >> telescope Argmt)
+  args <- option (Telescope []) (reserved "of" *> telescope)
   lvl  <- levelP
   return $ ConstructorDef pos cname args lvl
   <?> "Constructor"
@@ -434,8 +424,9 @@ expr = do
         ifixM assoc op f = Infix (reservedOp op >> f) assoc
         mkArrowType  =
           do n <- Unbound.fresh wildcardName
+             lvl <- freshLevel "l"
              return $ \tyA tyB ->
-               Pi (Mode Rel Nothing) tyA (Unbound.bind n tyB)
+               Pi (Mode Rel lvl) tyA (Unbound.bind n tyB)
         mkTupleType =
           do n <- Unbound.fresh wildcardName
              j <- displace
@@ -580,8 +571,8 @@ letPairExp = do
 impProd :: LParser Term
 impProd =
   do (x,tyA,lvl) <- brackets
-       (try ((,,) <$> variable <*> (colon >> expr) <*> (Just <$> levelP))
-        <|> ((,,) <$> Unbound.fresh wildcardName <*> expr <*> pure Nothing))
+       (try ((,,) <$> variable <*> (colon *> expr) <*> levelP)
+        <|> ((,,) <$> Unbound.fresh wildcardName <*> expr <*> levelP))
      reservedOp "->"
      Pi (Mode Irr lvl) tyA . Unbound.bind x <$> expr
 
@@ -597,9 +588,7 @@ expProdOrAnnotOrParens =
   let
     -- afterBinder picks up the return type of a pi
     afterBinder :: LParser Term
-    afterBinder = do reservedOp "->"
-                     rest <- expr
-                     return rest
+    afterBinder = reservedOp "->" >> expr
 
     -- before binder parses an expression in parens
     -- If it doesn't involve a colon, you get (Right tm)
@@ -622,11 +611,11 @@ expProdOrAnnotOrParens =
          WildColon a l -> do
             x <- Unbound.fresh wildcardName
             b <- afterBinder
-            return $ Pi (Mode Rel (Just l)) a (Unbound.bind x b)
+            return $ Pi (Mode Rel l) a (Unbound.bind x b)
          Colon (Var x) a l ->
            option (Ann (Var x) a)
                   (do b <- afterBinder
-                      return $ Pi (Mode Rel (Just l)) a (Unbound.bind x b))
+                      return $ Pi (Mode Rel l) a (Unbound.bind x b))
          Colon a b _ -> return $ Ann a b
 
          Comma a b -> do

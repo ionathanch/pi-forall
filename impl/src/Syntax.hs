@@ -118,7 +118,7 @@ data Arg = Arg {argEp :: Rho, unArg :: Term}
   deriving (Show, Generic, Unbound.Alpha, Unbound.Subst Term, Unbound.Subst Level)
 
 data Epsilon =
-    Mode { rho :: Rho, level :: Maybe Level }
+    Mode { rho :: Rho, level :: Level }
       deriving (Show, Eq, Ord, Generic, Unbound.Alpha, Unbound.Subst Term, Unbound.Subst Level)
 
 data Level =
@@ -201,12 +201,12 @@ newtype ModuleImport = ModuleImport MName
 -- we could use a GADT to enforce this invariant, but then the
 -- generic programming would be more awkward
 data Sig where
-   Sig :: {sigName :: TName , sigRho :: Rho , sigLevel :: Maybe Level , sigType :: Type} -> Sig
+   Sig :: {sigName :: TName , sigRho :: Rho , sigLevel :: Level , sigType :: Type} -> Sig
   deriving (Show, Generic, Typeable, Unbound.Alpha, Unbound.Subst Term, Unbound.Subst Level)
 
 -- | Declare the type of a term
 mkSig :: TName -> Type -> Level -> Decl
-mkSig n ty l = TypeSig (Sig n Rel (Just l) ty)
+mkSig n ty l = TypeSig (Sig n Rel l ty)
 
 
 -- | Declarations are the components of modules
@@ -299,7 +299,7 @@ isTypeSig _ = False
 -- | `d` for displacement variables
 -- | `i` for levels used during type inference
 freshLevel :: Unbound.Fresh m => String -> m Level
-freshLevel s = LVar<$> Unbound.fresh (Unbound.string2Name s)
+freshLevel s = LVar <$> Unbound.fresh (Unbound.string2Name s)
 
 -------------------------------------------------------------------
 -- Prelude declarations for datatypes
@@ -343,10 +343,10 @@ preludeDataDecls =
         --   _Prod of (x : A @ 0) (B x) @ 1
         sigmaTele = Telescope [TypeSig sigA, TypeSig sigB]
         prodConstructorDef = ConstructorDef internalPos prodName (Telescope [TypeSig sigX, TypeSig sigY]) (LConst 1)
-        sigA = Sig aName Rel (Just (LConst 0)) Type
-        sigB = Sig bName Rel Nothing (Pi (Mode Rel (Just (LConst 0))) (Var aName) (Unbound.bind xName Type))
-        sigX = Sig xName Rel (Just (LConst 0)) (Var aName)
-        sigY = Sig yName Rel Nothing (App (Var bName) (Arg Rel (Var xName)))
+        sigA = Sig aName Rel (LConst 0) Type
+        sigB = Sig bName Rel (LConst 0) (Pi (Mode Rel (LConst 0)) (Var aName) (Unbound.bind xName Type))
+        sigX = Sig xName Rel (LConst 0) (Var aName)
+        sigY = Sig yName Rel (LConst 0) (App (Var bName) (Arg Rel (Var xName)))
 
         aName = Unbound.string2Name "a"
         bName = Unbound.string2Name "b"
@@ -435,11 +435,11 @@ instance Unbound.Subst Level Level where
 
 -- '(y : x) -> y'
 pi1 :: Term
-pi1 = Pi (Mode Rel (Just (LConst 0))) (Var xName) (Unbound.bind yName (Var yName))
+pi1 = Pi (Mode Rel (LConst 0)) (Var xName) (Unbound.bind yName (Var yName))
 
 -- '(y : Bool) -> y'
 pi2 :: Term
-pi2 = Pi (Mode Rel (Just (LConst 0))) TyBool (Unbound.bind yName (Var yName))
+pi2 = Pi (Mode Rel (LConst 0)) TyBool (Unbound.bind yName (Var yName))
 
 -- >>> Unbound.aeq (Unbound.subst xName TyBool pi1) pi2
 -- True
@@ -508,8 +508,8 @@ isFreelyDisplaceable = go where
   go (Var na) = True
   go (Lam rho bnd) = let (_,a) = Unbound.unsafeUnbind bnd in go a
   go (App te arg) = go te && goArg arg
-  go (Pi (Mode _ Nothing) te bnd) = go te && let (_,a) = Unbound.unsafeUnbind bnd in go a
-  go (Pi (Mode _ (Just k)) _ _) = False
+  -- go (Pi (Mode _ Nothing) te bnd) = go te && let (_,a) = Unbound.unsafeUnbind bnd in go a
+  go (Pi (Mode _ k) _ _) = False
   go (Ann te te') = go te && go te'
   go (Pos sp te) = go te
   go TrustMe = True

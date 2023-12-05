@@ -83,7 +83,7 @@ equate' d t1 t2 = do
       (_, tyB1, _, tyB2) <- Unbound.unbind2Plus bnd1 bnd2
       unless (r1 == r2) $
           tyErr n2 n1
-      cs1 <- Env.extendErr (equateMaybeLevel l1 l2) $
+      cs1 <- Env.extendErr (equateLevel l1 l2) $
         disp [DS "when equating", DD n1, DS "and", DD n2]
       cs2 <- equate' Shallow tyA1 tyA2
       cs3 <- equate' Shallow tyB1 tyB2
@@ -144,8 +144,8 @@ equate' d t1 t2 = do
               isD <- Env.lookupFreelyDisplaceable x
               -- traceM $ "equating level " ++ pp j ++ " and " ++ pp k
               if isD then return success else equateLevel j k
-            (Displace (Var x) j, Var y) | x == y -> return success
-            (Var x, Displace (Var y) j) | x == y -> return success
+            (Displace (Var x) j, Var y) | x == y -> tyErr (Displace (Var x) j) (Var y)
+            (Var x, Displace (Var y) j) | x == y -> tyErr (Var x) (Displace (Var y) j)
             (App a1 a2, App b1 b2) -> do
               cs1 <- equate' Shallow a1 b1
               cs2 <- equateArg Shallow a2 b2
@@ -384,7 +384,7 @@ unify ns tx ty = do
         unify (x:ns) b1 b2
       (Pi (Mode r1 l1) tyA1 bnd1, Pi (Mode r2 l2) tyA2 bnd2) -> do
         (x, tyB1, _, tyB2) <- Unbound.unbind2Plus bnd1 bnd2
-        cs <- equateMaybeLevel l1 l2
+        cs <- equateLevel l1 l2
         mapM_ Env.extendLevelConstraint cs
         unless (r1 == r2) $ do
           Env.err [DS "Cannot equate", DD txnf, DS "and", DD tynf]
@@ -424,10 +424,7 @@ displaceTele j (Telescope decls) = do
 
 displaceDecl :: Level -> Decl -> TcMonad Decl
 displaceDecl j (TypeSig (Sig x ep mk ty)) = do
-  let mk' = case mk of
-                Just j0 -> Just (j <> j0)
-                Nothing -> Nothing
-  TypeSig <$> (Sig x ep mk' <$> displace j ty)
+  TypeSig <$> (Sig x ep (j <> mk) <$> displace j ty)
 displaceDecl j (Def x tm) = Def x <$> displace j tm
 displaceDecl j decl = Env.err [DS "Cannot displace decl: ", DD decl]
 
@@ -459,18 +456,14 @@ displace j t = case t of
       a' <- displace j a
       return $ Lam r (Unbound.bind x a')
     App f a -> App <$> displace j f <*> displaceArg j a
-    Pi (Mode ep (Just k)) tyA bnd -> do
+    Pi (Mode ep k) tyA bnd -> do
       (y, tyB) <- Unbound.unbind bnd
       -- x' <- Unbound.fresh (Unbound.string2Name $ "jD@" ++ pp lexp)
       -- let lx = LVar x'
       -- cs <- equateLevel lx (j <> lexp)
       -- mapM_ Env.extendLevelConstraint cs
-      Pi (Mode ep (Just (j <> k))) <$> displace j tyA
+      Pi (Mode ep (j <> k)) <$> displace j tyA
                              <*> (Unbound.bind y <$> displace j tyB)
-    Pi (Mode ep Nothing) tyA bnd -> do
-      (y, tyB) <- Unbound.unbind bnd
-      Pi (Mode ep Nothing) <$> displace j tyA
-                               <*> (Unbound.bind y <$> displace j tyB)
     Ann tm ty -> Ann <$> displace j tm <*> displace j ty
     Pos pos tm -> Pos pos <$> displace j tm
     Let rhs bnd -> do

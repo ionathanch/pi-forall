@@ -6,62 +6,95 @@ module StraTT where
 
 {- The identity function -}
 
-id0 : (X : Type @ 0) -> (_ : X @ 0) -> X @ 1
-id0 = \X x. x
+{- In Coq:
+  Universes u0 u1 u2 u3.
+  Constraint u0 < u1, u1 < u2, u2 < u3.
 
-id1 : (X : Type @ 1) -> (_ : X @ 1) -> X @ 2
-id1 = id0^1
+  Definition idid1 (id : forall (X : Type@{u1}), X -> X) : forall (X : Type@{u0}), X -> X :=
+    id (forall (X : Type@{u0}), X -> X) id.
 
-idid1 : (X : Type @ 0) -> (_ : X @ 0) -> X @ 2
-idid1 = id1^0 ((X : Type @ 0) -> (_ : X @ 0) -> X) TRUSTME -- (\X x. id1^0 X x)
+  Definition idid2 (id : forall (X : Type@{u2}), X -> X) : forall (X : Type@{u0}), X -> X :=
+    id ((forall (X : Type@{u1}), X -> X) -> forall (X : Type@{u0}), X -> X) idid1 id.
 
-id : (X : Type @ 0) -> X -> X
-id = \X x. x
+  Definition idid3 (id : forall (X : Type@{u3}), X -> X) : forall (X : Type@{u0}), X -> X :=
+    id ((forall (X : Type@{u2}), X -> X) -> forall (X : Type@{u0}), X -> X) idid2 id.
+-}
 
-idid : (X : Type @ 0) -> X -> X @ 2
-idid = id^1 ((X : Type @ 0) -> X -> X) (\X x. id^1 X x)
+-- id id
+idid1 : (id : (X : Type @ 1) -> (x : X @ 0) -> X @ 0) -> (X : Type @ 0) -> (x : X @ 0) -> X @ 0
+idid1 = \id. id ((X : Type @ 0) -> (x : X @ 0) -> X)
+                (\X x. id X x)
+
+-- id (id id) id
+idid2 : (id : (X : Type @ 2) -> (x : X @ 0) -> X @ 0) -> (X : Type @ 0) -> (x : X @ 0) -> X @ 0
+idid2 = \id. id ((id : (X : Type @ 1) -> (x : X @ 0) -> X @ 0) -> (X : Type @ 0) -> (x : X @ 0) -> X)
+                idid1
+                (\X x. id X x)
+
+-- id (id (id id) id) id
+idid3 : (id : (X : Type @ 3) -> (x : X @ 0) -> X @ 0) -> (X : Type @ 0) -> (x : X @ 0) -> X @ 0
+idid3 = \id. id ((id : (X : Type @ 2) -> (x : X @ 0) -> X @ 0) -> (X : Type @ 0) -> (x : X @ 0) -> X)
+                idid2
+                (\X x. id X x)
 
 {- Church encoding of the Option type -}
 
-OptionC : Type -> Type @ 1
-OptionC = \X. (Y : Type @ 0) -> Y -> (X -> Y) -> Y
+OptionC : (X : Type @ 1) -> Type @ 1
+OptionC = \X. (Y : Type @ 0) -> (y : Y @ 0) -> (f : (x : X @ 0) -> Y @ 0) -> Y
 
-NoneC : (X : Type @ 0) -> OptionC^0 X @ 1
+NoneC : (X : Type @ 0) -> OptionC^0 X @ 0
 NoneC = \X Y y f. y
 
-SomeC : (X : Type @ 0) -> X -> OptionC^0 X @ 1
+SomeC : (X : Type @ 0) -> X -> OptionC^0 X @ 0
 SomeC = \X x Y y f. f x
 
-joinC : (X : Type @ 0) -> OptionC^0 (OptionC^0 X) -> OptionC^0 X @ 1
+joinC : (X : Type @ 0) -> OptionC^0 (OptionC^0 X) -> OptionC^0 X @ 0
 joinC = \X oopt Y y f. oopt Y y (\opt. opt Y y f)
 
 {- Church encoding of the Option type without nondependent functions -}
 
-Option' : (X : Type @ 0) -> Type @ 2
+Option' : (X : Type @ 1) -> Type @ 1
 Option' = \X. (Y : Type @ 0) -> (_ : Y @ 0) -> (_ : (_ : X @ 0) -> Y) -> Y
 
-None' : (X : Type @ 0) -> Option'^0 X @ 2
+None' : (X : Type @ 0) -> Option'^0 X @ 0
 None' = \X Y y f. y
 
-Some' : (X : Type @ 0) -> (_ : X @ 0) -> Option'^0 X @ 2
+Some' : (X : Type @ 0) -> (_ : X @ 0) -> Option'^0 X @ 0
 Some' = \X x Y y f. f x
 
-join' : (X : Type @ 0) -> (_ : Option'^2 (Option'^0 X) @ 4) -> Option'^0 X @ 5
+join' : (X : Type @ 0) -> (_ : Option'^0 (Option'^0 X) @ 0) -> Option'^0 X @ 0
 join' = \X oopt Y y f. oopt Y y (\opt. opt Y y f)
+
+{- Church encoding of decidable types -}
+
+neg : (X : Type @ 1) -> Type @ 1
+neg = \X. X -> Void
+
+DecC : (X : Type @ 1) -> Type @ 1
+DecC = \X. (Z : Type @ 0) -> (X -> Z) -> (neg X -> Z) -> Z
+
+yes : (X : Type @ 0) -> X -> DecC X @ 0
+yes = \X x Z f g. f x
+
+no : (X : Type @ 0) -> neg X -> DecC X @ 0
+no = \X nx Z f g. g nx
+
+irrDecC : (X : Type @ 0) -> neg (neg (DecC X)) @ 0
+irrDecC = \X ndec. ndec (no X (\x. ndec (yes X x)))
 
 {- Leibniz equality -}
 
-eq : (X : Type @ 0) -> X -> X -> Type @ 1
+eq : (X : Type @ 1) -> X -> X -> Type @ 1
 eq = \X x y. (P : X -> Type @ 0) -> P x -> P y
 
-refl : (X : Type @ 0) -> (x : X @ 0) -> eq^0 X x x @ 1
+refl : (X : Type @ 0) -> (x : X @ 0) -> eq^0 X x x @ 0
 refl = \X x P px. px
 
-isProp : (X : Type @ 0) -> Type @ 1
+isProp : (X : Type @ 1) -> Type @ 1
 isProp = \X. (x : X @ 0) -> (y : X @ 0) -> eq^0 X x y
 
-isSet : (X : Type @ 0) -> Type @ 2
-isSet = \X. (x : X @ 0) -> (y : X @ 0) -> isProp^1 (eq^0 X x y)
+isSet : (X : Type @ 1) -> Type @ 1
+isSet = \X. (x : X @ 0) -> (y : X @ 0) -> isProp^0 (eq^0 X x y)
 
 {-----------------------------------
  SECTION 5: Prototype implementation
@@ -69,22 +102,25 @@ isSet = \X. (x : X @ 0) -> (y : X @ 0) -> isProp^1 (eq^0 X x y)
 
 {- Annotation inference -}
 
-idid' : (X : Type) -> X -> X
-idid' = id ((X : Type) -> X -> X) (\X x. id X x)
-
-cps' : (X : Type) -> Type
-cps' = \X. (R : Type @ 1) -> (X -> R) -> R
-
 {- Datatypes -}
 
-data Option (X : Type) : Type @ 0 where
+data Option (X : Type @ 1) : Type @ 1 where
   None @ 0
-  Some of (X) @ 0
+  Some of (X @ 0) @ 0
 
 join : (X : Type @ 0) -> Option^0 (Option^0 X) -> Option^0 X
 join = \X oopt. case oopt of
   None -> None
   Some opt -> opt
+
+data Dec (X : Type @ 1) : Type @ 1 where
+  Yes of (X @ 0)
+  No of (neg X @ 0)
+
+decDNE : (X : Type @ 1) -> Dec X -> neg (neg X) -> X
+decDNE = \X dec nnx. case dec of
+  Yes x -> x
+  No nx -> absurd (nnx nx)
 
 data Box (X : Type @ 0) : Type @ 1 where
   MkBox of (x : X @ 0) @ 1
@@ -95,82 +131,79 @@ map = \X Y f box. case box of
 
 {- Dependent pairs -}
 
-data NPair (X : Type @ 0) (P : X -> Type) : Type @ 1 where
-  MkPair of (x : X @ 0) (P x) @ 1
+data Pair (X : Type @ 1) (P : (x : X @ 0) -> Type @ 1) : Type @ 1 where
+  MkPair of (x : X @ 0) (P x @ 0) @ 0
 
-sfst : (X : Type @ 0) -> (P : X -> Type @ 0) -> NPair^0 X P -> X @ 1
-sfst = \X P p. case p of MkPair x y -> x
+fst : (X : Type @ 1) -> (P : (x : X @ 0) -> Type @ 1) -> (p : Pair^0 X P @ 0) -> X @ 0
+fst = \X P p. case p of MkPair x y -> x
 
-ssnd : (X : Type @ 0) -> (P : X -> Type @ 0) -> (p : NPair^0 X P @ 1) -> P (sfst^0 X P p) @ 2
-ssnd = \X P p. case p of MkPair x y -> y
-
-data DPair (X : Type @ 0) (P : (_ : X @ 0) -> Type) : Type @ 1 where
-  MkPair of (x : X @ 0) (P x) @ 1
-
-wfst : (X : Type @ 0) -> (P : (_ : X @ 0) -> Type @ 1) -> DPair^0 X P -> X @ 2
-wfst = \X P p. case p of MkPair x y -> x
-
-wsnd : (X : Type @ 0) -> (P : (_ : X @ 0) -> Type @ 1) -> (p : DPair^0 X P @ 1) -> (case p of MkPair x y -> P x) @ 2
-wsnd = \X P p. case p of MkPair x y -> y
+snd : (X : Type @ 1) -> (P : (x : X @ 0) -> Type @ 1) -> (p : Pair^0 X P @ 0) -> P (fst X P p) @ 0
+snd = \X P p. case p of MkPair x y -> y
 
 {-------------------------
  SECTION 6: On consistency
  -------------------------}
 
 data U : Type @ 1 where
-  MkU of (X : Type @ 0) (X -> U) @ 1
+  MkU of (X : Type @ 0) (f : (_ : X @ 0) -> U^0 @ 0) @ 0
 
 {- Burali-Forti's paradox -}
 
-data WF (u : U^0 @ 1) : Type @ 2 where
-  MkWF of (X : Type @ 0) (f : X -> U^0 @ 1) ((x : X @ 1) -> WF^0 (f x)) [u = MkU^0 X f] @ 2
+data WF (u : U^0 @ 0) : Type @ 1 where
+  MkWF of (X : Type @ 0)
+          (f : (_ : X @ 0) -> U^0 @ 0)
+          (_ : (x : X @ 0) -> WF^0 (f x) @ 0)
+          [u = MkU^0 X f] @ 0
 
-wf : (u : U @ 1) -> WF^0 u @ 2
+wf : (u : U @ 0) -> WF^0 u @ 0
 wf = \u. case u of
   MkU X f -> MkWF^0 X f (\x. wf (f x))
 
-loop : U @ 1
+loop : U @ 0
 loop = TRUSTME -- MkU^0 U^0 (\u. u)
 
-nwfLoop : WF^0 loop^0 -> Void @ 2
+nwfLoop : WF^0 loop^0 -> Void @ 0
 nwfLoop = \wfLoop. TRUSTME -- case wfLoop of MkWF X f h -> nwfLoop (h loop^0)
 
-falseLoop : Void @ 2
+falseLoop : Void @ 0
 falseLoop = nwfLoop^0 (wf^0 loop^0)
 
 {- Russell's paradox -}
 
-regular : U^0 -> Type @ 1
+regular : (u : U^0 @ 0) -> Type @ 1
 regular = \u. case u of
-  MkU X f -> (x : X @ 0) -> f x = MkU^0 X f -> Void
+  MkU X f -> (x : X @ 0) -> (p : f x = MkU^0 X f @ 0) -> Void
 
-R : U^2 @ 3
-R = MkU^2 (NPair^1 U^0 regular) (\ureg. TRUSTME) -- (sfst^1 U^0 regular^0)
+R : U^1 @ 1
+R = MkU^1 (Pair^0 U^0 regular^0) (\ureg. case ureg of MkPair x y -> TRUSTME) -- x : U^0 but we need U^1
 
--- regular R = (x : NPair U regular) -> sfst U regular x = MkU X f -> Void
+-- regular^1 R = (x : Pair U regular @ 1) -> fst U regular x = R -> Void
 
-R_nonreg : regular^2 R^0 -> Void @ 3
-R_nonreg = TRUSTME -- \reg. reg (MkPair^1 R^0 reg) Refl
+R_nonreg : (reg : regular^1 R^0 @ 2) -> Void @ 2
+R_nonreg = \reg. TRUSTME -- reg (MkPair^0 R^0 reg) Refl
+-- R^0 : U^1 and reg : regular^1 R^0 but we need some X : U^0 and a regular^0 X
 
-R_reg : regular^2 R^0 @ 3
+R_reg : regular^1 R^0 @ 2
 R_reg = \ureg p. case ureg of
-  MkPair u reg -> TRUSTME -- reg ureg p
+  MkPair u reg -> case u of
+    MkU X f -> reg TRUSTME TRUSTME -- ureg p
 
-falseR : Void @ 3
+falseR : Void @ 2
 falseR = R_nonreg R_reg
 
 {- Hurken's paradox -}
 
-P : Type -> Type @ 0
-P = \X. X -> Type
+P : (X : Type @ 1) -> Type @ 1
+P = \X. (_ : X @ 0) -> Type
 
 UU : Type @ 1
 UU = (X : Type @ 0) -> (P (P X) -> X) -> P (P X)
 
-tau : P (P UU^0) -> UU^0 @ 1
+tau : (ppu : P^0 (P^0 UU^0) @ 1) -> UU^0 @ 1
 tau = \t X f p. t (\s. p (f (s X f)))
 
-sig : UU^1 -> P (P UU^0) @ 2
+{-
+sig : (u : UU^1 @ 0) -> P^1 (P^1 UU^0) @ 2
 sig = \s. s UU^0 tau^0
 
 Delta : P UU^1 @ 2
@@ -183,4 +216,5 @@ M : (x : UU^2 @ 3) -> sig^1 x Delta^0 -> Delta^1 x @ 4
 M = \x s d. d Delta^0 s (\p. d (\y. p (tau^0 (sig^0 y))))
 
 D : Type @ 3
-D = (p : P UU^0 @ 1) -> ((x : UU^0 @ 1) -> sig^0 TRUSTME p -> p x) -> p Omega^0
+D = (p : P UU^0 @ 1) -> ((x : UU^0 @ 1) -> sig^0 x p -> p x) -> p Omega^0
+-}
