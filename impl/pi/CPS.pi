@@ -1,0 +1,33 @@
+module CPS where
+
+CPS : Type -> Type @ 1
+CPS = \X. (R : Type @ 0) -> (X -> R) -> R
+
+run : (X : Type @ 0) -> CPS X -> X @ 1
+run = \X cpsx. cpsx X (\x. x)
+
+return : (X : Type @ 0) -> X -> CPS X @ 1
+return = \X x R f. f x
+
+bind : (X : Type @ 0) -> (Y : Type @ 0) -> CPS X -> (X -> CPS Y) -> CPS Y @ 1
+bind = \X Y cpsx f R k. cpsx R (\x. f x R k)
+-- bind = \X Y cpsx f. cpsx (CPS Y) f
+
+idleft : (X : Type @ 0) -> (Y : Type @ 0) -> (x : X @ 0) -> (f : X -> CPS Y @ 1) ->
+         bind X Y (return X x) f = \R k. f x R k @ 2
+idleft = \X Y x f. Refl
+
+idRight : (X : Type @ 0) -> (x : CPS X @ 1) ->
+          bind X X x (return X) = \R k. x R (\x. k x) @ 2
+idRight = \X x. Refl
+
+comp : (X : Type @ 0) -> (Y : Type @ 0) -> (Z : Type @ 0) ->
+       (cpsx : CPS X @ 1) -> (f : X -> CPS Y @ 1) -> (g : Y -> CPS Z @ 1) ->
+       bind Y Z (bind X Y cpsx f) g = bind X Z cpsx (\x. bind Y Z (f x) g) @ 2
+comp = \X Y Z cpsx f g. Refl
+
+idCPS : (X : Type @ 0) -> CPS^1 X -> CPS X @ 2
+idCPS = \X cpsx. cpsx (CPS X) (return X)
+
+runReturn : (X : Type @ 0) -> CPS^1 X -> Type @ 2
+runReturn = \X cpsx. run X (idCPS X cpsx) = run^1 X cpsx

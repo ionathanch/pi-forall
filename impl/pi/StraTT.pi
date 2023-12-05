@@ -6,20 +6,42 @@ module StraTT where
 
 {- The identity function -}
 
-id0 : (X : Type @ 0) -> (_ : X @ 0) -> X @ 1
-id0 = \X x. x
+id' : (X : Type @ 0) -> (x : X @ 0) -> X @ 1
+id' = \X x. x
 
-id1 : (X : Type @ 1) -> (_ : X @ 1) -> X @ 2
-id1 = id0^1
-
-idid1 : (X : Type @ 0) -> (_ : X @ 0) -> X @ 2
-idid1 = id1^0 ((X : Type @ 0) -> (_ : X @ 0) -> X) TRUSTME -- (\X x. id1^0 X x)
-
-id : (X : Type @ 0) -> X -> X
+id : (X : Type @ 0) -> X -> X @ 1
 id = \X x. x
 
-idid : (X : Type @ 0) -> X -> X @ 2
-idid = id^1 ((X : Type @ 0) -> X -> X) (\X x. id^1 X x)
+{- In Coq:
+  Universes u0 u1 u2 u3.
+  Constraint u0 < u1, u1 < u2, u2 < u3.
+
+  Definition idid1 (id : forall (X : Type@{u1}), X -> X) : forall (X : Type@{u0}), X -> X :=
+    id (forall (X : Type@{u0}), X -> X) id.
+
+  Definition idid2 (id : forall (X : Type@{u2}), X -> X) : forall (X : Type@{u0}), X -> X :=
+    id ((forall (X : Type@{u1}), X -> X) -> forall (X : Type@{u0}), X -> X) idid1 id.
+
+  Definition idid3 (id : forall (X : Type@{u3}), X -> X) : forall (X : Type@{u0}), X -> X :=
+    id ((forall (X : Type@{u2}), X -> X) -> forall (X : Type@{u0}), X -> X) idid2 id.
+-}
+
+-- id id
+idid1 : ((X : Type @ 1) -> X -> X) -> (X : Type @ 0) -> X -> X @ 2
+idid1 = \id. id ((X : Type @ 0) -> X -> X)
+                (\X x. id X x)
+
+-- id (id id) id
+idid2 : ((X : Type @ 2) -> X -> X) -> (X : Type @ 0) -> X -> X @ 3
+idid2 = \id. id (((X : Type @ 1) -> X -> X) -> (X : Type @ 0) -> X -> X)
+                idid1
+                (\X x. id X x)
+
+-- id (id (id id) id) id
+idid3 : ((X : Type @ 3) -> X -> X) -> (X : Type @ 0) -> X -> X @ 4
+idid3 = \id. id (((X : Type @ 2) -> X -> X) -> (X : Type @ 0) -> X -> X)
+                idid2
+                (\X x. id X x)
 
 {- Church encoding of the Option type -}
 
@@ -48,6 +70,20 @@ Some' = \X x Y y f. f x
 
 join' : (X : Type @ 0) -> (_ : Option'^2 (Option'^0 X) @ 4) -> Option'^0 X @ 5
 join' = \X oopt Y y f. oopt Y y (\opt. opt Y y f)
+
+{- Church encoding of decidable types -}
+
+neg : Type -> Type @ 0
+neg = \X. X -> Void
+
+DecC : Type -> Type @ 1
+DecC = \X. (Z : Type @ 0) -> (X -> Z) -> (neg X -> Z) -> Z
+
+yes : (X : Type @ 0) -> X -> DecC X @ 1
+yes = \X x Z f g. f x
+
+no : (X : Type @ 0) -> neg X -> DecC X @ 1
+no = \X nx Z f g. g nx
 
 {- Leibniz equality -}
 
@@ -85,6 +121,15 @@ join : (X : Type @ 0) -> Option^0 (Option^0 X) -> Option^0 X
 join = \X oopt. case oopt of
   None -> None
   Some opt -> opt
+
+data Dec (X : Type) : Type @ 0 where
+  Yes of (X) @ 0
+  No of (neg X) @ 0
+
+decDNE : (X : Type @ 0) -> Dec X -> neg (neg X) -> X @ 1
+decDNE = \X dec nnx. case dec of
+  Yes x -> x
+  No nx -> absurd (nnx nx)
 
 data Box (X : Type @ 0) : Type @ 1 where
   MkBox of (x : X @ 0) @ 1
