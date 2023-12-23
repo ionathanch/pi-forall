@@ -2,7 +2,8 @@
 
 open import Relation.Binary.PropositionalEquality.Core
   using (_≡_ ; refl ; trans ; subst ; cong)
-import Acc
+open import funext
+import accessibility
 
 {-----------------------------------------------------------
   This model is modelled after Conor McBride's
@@ -21,11 +22,12 @@ import Acc
   (which requires --with-K).
 -----------------------------------------------------------}
 
-module model (Level : Set)
-             (_<_ : Level → Level → Set)
-             (trans< : ∀ {i j k} → i < j → j < k → i < k)
-             (wf : Acc.WF Level _<_ trans<) where
-open Acc Level _<_ trans<
+module model
+  (Level : Set)
+  (_<_ : Level → Level → Set)
+  (trans< : ∀ {i j k} → i < j → j < k → i < k)
+  (wf : accessibility.WF Level _<_) where
+open accessibility Level _<_
 
 {-----------------------------------------------------------
   Some preliminary definitions to avoid importing
@@ -112,7 +114,7 @@ el'≡ accj acck j<k (→̂  A B)
   rewrite el'≡ accj acck j<k B = refl
 el'≡ {j} {k} (acc< f) (acc< g) j<k (Π̂ i i<j A B) = trans p q where
   p : (∀ a → el' j _ _ (B a)) ≡ (∀ a → el' k _ _ (lift' _ _ j<k (B a)))
-  p = cong (λ f → ∀ a → f a) (funext _ _ (λ a → el'≡ _ _ j<k (B a)))
+  p = cong (λ f → ∀ a → f a) (funext (λ a → el'≡ _ _ j<k (B a)))
   q : (∀ a → el' k _ _ (lift' _ _ j<k (B a))) ≡
       (∀ a → el' k _ _ (lift' _ _ j<k (B (el'→1 A a))))
   q = funeq (el'≡1 A)
