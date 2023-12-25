@@ -1,5 +1,3 @@
-{-# OPTIONS --rewriting --confluence-check #-}
-
 open import Agda.Builtin.Unit
 open import Agda.Builtin.Nat
 open import Data.Empty

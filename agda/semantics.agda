@@ -1,5 +1,3 @@
-{-# OPTIONS --rewriting --confluence-check #-}
-
 open import Data.Empty
 open import Agda.Builtin.Unit
 open import Agda.Builtin.Nat
@@ -68,16 +66,12 @@ el< (acc< f) {j} j<k t = el' j (U< (f j<k)) (el< (f j<k)) t
 
 -- Proofs of accessibility are irrelevant across instantiated U'
 accU' : ∀ {k} (acc₁ acc₂ : Acc k) {T} → U' k (U< acc₁) (el< acc₁) T → U' k (U< acc₂) (el< acc₂) T
-accU' {k} acc₁ acc₂ {T} = transp (λ acc → U' k (U< acc) (el< acc) T) (accProp acc₁ acc₂)
+accU' {k} acc₁ acc₂ {T} u with refl ← accProp acc₁ acc₂ = u
 
 -- Proofs of accessibility are irrelevant across instantiated el'
 accEl' : ∀ {k} (acc₁ acc₂ : Acc k) {t T : Term} (A : U' k (U< acc₁) (el< acc₁) T) →
   el' k (U< acc₂) (el< acc₂) t (accU' acc₁ acc₂ A) → el' k (U< acc₁) (el< acc₁) t A
-accEl' {k} acc₁ acc₂ {t} {T} A =
-  transp (λ x → el' k (U< x) (el< x) t
-                    (transp (λ x → U' k (U< x) (el< x) T)
-                            (accProp acc₁ x) A))
-         (accProp acc₂ acc₁)
+accEl' {k} acc₁ acc₂ {t} {T} A elA with refl ← accProp acc₁ acc₂ = elA
 
 -- U' is cumulative
 cumU' : ∀ {j k} (accj : Acc j) (acck : Acc k) → j < k → {T : Term} →
