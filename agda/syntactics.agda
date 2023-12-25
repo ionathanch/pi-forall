@@ -207,6 +207,28 @@ subst∘ ρ σ τ h ($ᵈ b a) = cong$ᵈ (subst∘ ρ σ τ h b) (subst∘ ρ �
 subst∘ ρ σ τ h mty = refl
 subst∘ ρ σ τ h (abs b) = cong abs (subst∘ ρ σ τ h b)
 
+{------------------------------------------
+  Handy dandy derived substitution lemmas
+------------------------------------------}
+
+substRenameVar : ∀ (σ : ℕ → Term) a n → σ n ≡ subst (a +: var) (rename suc (σ n))
+substRenameVar σ a n = begin
+  σ n ≡⟨ sym (substId var (λ _ → refl) (σ n)) ⟩
+  subst var (σ n) ≡⟨ sym (substRename suc (a +: var) ((a +: var) ∘ suc) (λ _ → refl) (σ n)) ⟩
+  subst (a +: var) (rename suc (σ n)) ∎
+
+substSubstRename : ∀ σ a s → subst (a +: σ) s ≡ subst (a +: var) (subst (var 0 +: rename suc ∘ σ) s)
+substSubstRename σ a s = begin
+  subst (a +: σ) s                                       ≡⟨ substExt _ _ (λ {zero → refl ; (suc n) → substRenameVar σ a n}) s ⟩
+  subst (subst (a +: var) ∘ (var 0 +: rename suc ∘ σ)) s ≡⟨ sym (subst∘ (a +: var) (var 0 +: rename suc ∘ σ) _ (λ _ → refl) s) ⟩
+  (subst (a +: var) ∘ subst (var 0 +: rename suc ∘ σ)) s ∎
+
+substSubstCons : ∀ σ a s → subst (subst σ a +: σ) s ≡ (subst σ ∘ subst (a +: var)) s
+substSubstCons σ a s = begin
+  subst (subst σ a +: σ) s       ≡⟨ substExt _ _ (λ { zero → refl ; (suc n) → refl }) s ⟩
+  subst (subst σ ∘ (a +: var)) s ≡⟨ sym (subst∘ σ (a +: var) _ (λ _ → refl) s) ⟩
+  (subst σ ∘ subst (a +: var)) s ∎
+
 {------------------------------------------------
   Substitution & renaming lemmas, extensionally
 ------------------------------------------------}
@@ -254,4 +276,4 @@ data Ctxt : Set where
 infix 40 _⦂_#_∈_
 data _⦂_#_∈_ : ℕ → Term → Level → Ctxt → Set where
   here  : ∀ {Γ A k} → 0 ⦂ (rename suc A) # k ∈ (Γ ∷ A # k)
-  there : ∀ {Γ x A B k j} → x ⦂ A # k ∈ Γ → suc x ⦂ (rename suc A) # k ∈ (Γ ∷ B # j)
+  there : ∀ {Γ x A B k j} → x ⦂ A # k ∈ Γ → suc x ⦂ (rename suc A) # k ∈ (Γ ∷ B # j) 

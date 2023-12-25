@@ -58,17 +58,6 @@ el< : ∀ {k} (p : Acc k) {j} (j<k : j < k) → Term → ∀ {T} → U< p j<k T 
 U<  (acc< f) {j} j<k T = U'  j (U< (f j<k)) (el< (f j<k)) T
 el< (acc< f) {j} j<k t = el' j (U< (f j<k)) (el< (f j<k)) t
 
--- Backward preservation with respect to ⇒⋆
-
-⇒⋆-U' : ∀ {k} (acc : Acc k) {a b} → a ⇒⋆ b → U' k (U< acc) (el< acc) b → U' k (U< acc) (el< acc) a
-⇒⋆-U' _ (⇒⋆-refl a) u = u
-⇒⋆-U' acc (⇒⋆-trans a⇒b b⇒⋆c) u = ⇒̂ _ _ a⇒b (⇒⋆-U' acc b⇒⋆c u)
-
-⇒⋆-el' : ∀ {k} (acc : Acc k) {a b} (a⇒⋆b : a ⇒⋆ b) (u : U' k (U< acc) (el< acc) b) →
-         ∀ t → el' k (U< acc) (el< acc) t u ≡ el' k (U< acc) (el< acc) t (⇒⋆-U' acc a⇒⋆b u)
-⇒⋆-el' acc (⇒⋆-refl a) u t = refl
-⇒⋆-el' acc (⇒⋆-trans a⇒b b⇒⋆c) u t = ⇒⋆-el' acc b⇒⋆c u t
-
 {------------------------------------------
   U, el, and cumulativity:
   * Given j < k, U j can be lifted to U k
@@ -126,7 +115,36 @@ cumU = cumU' (wf _) (wf _)
 cumEl : ∀ {j k} → (j<k : j < k) → ∀ {t T} (u : U j T) → el j t u → el k t (cumU j<k u)
 cumEl = cumEl' (wf _) (wf _)
 
--- Backward preservation with respect to ⇒⋆
+{-------------------------
+  TODO: Reorganize these
+--------------------------}
+
+-- Invariance across equal semantic types
+el≡ : ∀ {k A A'} → (p : A ≡ A') → (u : U k A) → ∀ t → el k t u ≡ el k t (transp (U k) p u)
+el≡ refl u t = refl
+
+-- Universes are à la Russell
+el-U : ∀ {k A} (u : U k ∗) → el k A u → U k A
+el-U Û elU = elU
+el-U (⇒̂  ∗ ∗ ⇒-∗ u) elU = el-U u elU
+
+-- Nothing lives in the empty type
+empty : ∀ {k t} (u : U k mty) → el k t u → ⊥
+empty ⊥̂  ()
+empty (⇒̂  mty mty ⇒⋆-mty u) = empty u
+
+{-------------------------------------------------------
+  Backward preservation of U and el with respect to ⇒⋆
+-------------------------------------------------------}
+
+⇒⋆-U' : ∀ {k} (acc : Acc k) {a b} → a ⇒⋆ b → U' k (U< acc) (el< acc) b → U' k (U< acc) (el< acc) a
+⇒⋆-U' _ (⇒⋆-refl a) u = u
+⇒⋆-U' acc (⇒⋆-trans a⇒b b⇒⋆c) u = ⇒̂ _ _ a⇒b (⇒⋆-U' acc b⇒⋆c u)
+
+⇒⋆-el' : ∀ {k} (acc : Acc k) {a b} (a⇒⋆b : a ⇒⋆ b) (u : U' k (U< acc) (el< acc) b) →
+         ∀ t → el' k (U< acc) (el< acc) t u ≡ el' k (U< acc) (el< acc) t (⇒⋆-U' acc a⇒⋆b u)
+⇒⋆-el' acc (⇒⋆-refl a) u t = refl
+⇒⋆-el' acc (⇒⋆-trans a⇒b b⇒⋆c) u t = ⇒⋆-el' acc b⇒⋆c u t
 
 ⇒⋆-U : ∀ {k a b} → a ⇒⋆ b → U k b → U k a
 ⇒⋆-U {k} with acc< f ← wf k = ⇒⋆-U' (acc< f)

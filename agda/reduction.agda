@@ -226,6 +226,9 @@ a ≈ b = ∃[ c ] a ⇒⋆ c × b ⇒⋆ c
   let f , d⇒⋆f , e⇒⋆f = confluence b⇒⋆d b⇒⋆e
   in f , ⇒⋆-trans' a⇒⋆d d⇒⋆f , ⇒⋆-trans' c⇒⋆e e⇒⋆f
 
+≈-subst : ∀ {a b} σ → a ≈ b → subst σ a ≈ subst σ b
+≈-subst σ (c , a⇒⋆c , b⇒⋆c) = subst σ c , ⇒⋆-subst σ a⇒⋆c , ⇒⋆-subst σ b⇒⋆c
+
 ≈-Π-inv : ∀ {aₗ aᵣ j bₗ bᵣ} → Π aₗ j bₗ ≈ Π aᵣ j bᵣ → aₗ ≈ aᵣ × bₗ ≈ bᵣ
 ≈-Π-inv {aₗ = aₗ} {bₗ = bₗ} (c , Πajbₗ⇒⋆c , Πajbᵣ⇒⋆c) =
   let aₗ' , bₗ' , pₗ , aₗ⇒⋆aₗ' , bₗ⇒⋆bₗ' = ⇒⋆-Π-inv Πajbₗ⇒⋆c

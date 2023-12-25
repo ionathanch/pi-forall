@@ -1,5 +1,5 @@
 open import Agda.Builtin.Nat
-open import Data.Fin.Base
+open import Data.Fin.Base hiding (_≤_)
 open import Data.Product.Base
 import syntactics
 import reduction
@@ -7,10 +7,13 @@ import reduction
 module typing
   (Level : Set)
   (_<_ : Level → Level → Set)
-  (_≤_ : Level → Level → Set)
   where
 open syntactics Level
 open reduction Level
+
+data _≤_ : Level → Level → Set where
+  eq : ∀ {k} → k ≤ k
+  lt : ∀ {j k} → j < k → j ≤ k
 
 infix 10 ⊢_
 data ⊢_ : Ctxt → Set
