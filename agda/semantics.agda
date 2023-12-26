@@ -8,6 +8,7 @@ open import Relation.Binary.PropositionalEquality.Core
 import accessibility
 import syntactics
 import reduction
+import funext
 
 module semantics
   (Level : Set)
@@ -70,7 +71,7 @@ accU' {k} acc₁ acc₂ {T} u with refl ← accProp acc₁ acc₂ = u
 
 -- Proofs of accessibility are irrelevant across instantiated el'
 accEl' : ∀ {k} (acc₁ acc₂ : Acc k) {t T : Term} (A : U' k (U< acc₁) (el< acc₁) T) →
-  el' k (U< acc₂) (el< acc₂) t (accU' acc₁ acc₂ A) → el' k (U< acc₁) (el< acc₁) t A
+         el' k (U< acc₂) (el< acc₂) t (accU' acc₁ acc₂ A) → el' k (U< acc₁) (el< acc₁) t A
 accEl' {k} acc₁ acc₂ {t} {T} A elA with refl ← accProp acc₁ acc₂ = elA
 
 -- U' is cumulative
@@ -112,6 +113,15 @@ cumEl = cumEl' (wf _) (wf _)
 {-------------------------
   TODO: Reorganize these
 --------------------------}
+
+-- Inversion on semantic function type
+invΠ-U : ∀ {a j b k} (acc : Acc k) → U' k (U< acc) (el< acc) (Π a j b) →
+       Σ[ j<k ∈ j < k ] Σ[ A ∈ U< acc j<k a ]
+       ∀ x → el< acc j<k x A → U' k (U< acc) (el< acc) (subst (x +: var) b)
+invΠ-U acc (Π̂ j j<k a A b B) = j<k , A , B
+invΠ-U acc@(acc< f) (⇒̂  (Π a j b) (Π a' j b') (⇒-Π a⇒a' b⇒b') u) =
+  let j<k , A' , B' = invΠ-U acc u
+  in j<k , ⇒̂  a a' a⇒a' A' , λ x elA → ⇒̂  _ _ (⇒-cong (⇒-refl x) b⇒b') (B' x elA)
 
 -- Invariance across equal semantic types
 el≡ : ∀ {k A A'} → (p : A ≡ A') → (u : U k A) → ∀ t → el k t u ≡ el k t (transp (U k) p u)
@@ -173,7 +183,6 @@ SRU' acc@(acc< f) (⇒-Π {a' = a'} {b' = b'} a⇒a' b⇒b') (Π̂ i i<j a A b B
     b' (λ x elA → SRU' acc (⇒-cong (⇒-refl x) b⇒b')
          (B x (transp (λ x → x) (sym (SRel' (f i<j) a⇒a' A x)) elA)))
 
-import funext
 SRel' (acc< _) ⇒-∗ Û _ = refl
 SRel' (acc< _) ⇒-mty ⊥̂ _ = refl
 SRel' acc@(acc< f) (⇒-Π a⇒a' b⇒b') (Π̂ i i<j a A b B) h =
@@ -206,6 +215,40 @@ SRel* (⇒⋆-trans a⇒b b⇒⋆c) u t = trans (SRel a⇒b u t) (SRel* b⇒⋆c
 
 ≈-el : ∀ {k a b} (a≈b : a ≈ b) (u : U k a) t → el k t u ≡ el k t (≈-U a≈b u)
 ≈-el (c , a⇒⋆c , b⇒⋆c) u t = trans (SRel* a⇒⋆c u t) (⇒⋆-el b⇒⋆c (SRU* a⇒⋆c u) t)
+
+{-----------------------------------------------------
+  Propositional irrelevance across U:
+  two proofs of a ∈ 〚A⟧ₖ are propositionally equal,
+  even given two different sets 〚A⟧ₖ for the same A
+-----------------------------------------------------}
+
+elProp : ∀ {k a A₁ A₂} (acc₁ acc₂ : Acc k)
+         (u₁ : U' k (U< acc₁) (el< acc₁) A₁)
+         (u₂ : U' k (U< acc₂) (el< acc₂) A₂) → A₁ ≈ A₂ →
+         el' k (U< acc₁) (el< acc₁) a u₁ ≡ el' k (U< acc₂) (el< acc₂) a u₂
+elProp acc₁ acc₂ Û Û _ with refl ← accProp acc₁ acc₂ = refl
+elProp acc₁ acc₂ ⊥̂ ⊥̂ _ with refl ← accProp acc₁ acc₂ = refl
+elProp acc₁@(acc< f) acc₂@(acc< g) (Π̂ j₁ j<k₁ a₁ A₁ b₁ B₁) (Π̂ j₂ j<k₂ a₂ A₂ b₂ B₂) Πab₁≈Πab₂ =
+  let a₁≈a₂ , j₁≡j₂ , b₁≈b₂ = ≈-Π-inv Πab₁≈Πab₂ in helper a₁≈a₂ j₁≡j₂ b₁≈b₂ where
+    helper : a₁ ≈ a₂ → j₁ ≡ j₂ → b₁ ≈ b₂ →
+      el' _ _ _ _ (Π̂ j₁ j<k₁ a₁ A₁ b₁ B₁) ≡ el' _ _ _ _ (Π̂ j₂ j<k₂ a₂ A₂ b₂ B₂)
+    helper a₁≈a₂ refl b₁≈b₂ = let open funext in
+      cong-fun' refl (λ x → cong-fun'
+        (elProp (f j<k₁) (g j<k₂) A₁ A₂ a₁≈a₂)
+        (λ elA → elProp acc₁ acc₂ (B₁ x elA) (B₂ x _) (≈-cong (≈-refl x) b₁≈b₂)))
+elProp acc₁ acc₂ (⇒̂  a₁ a₂ a₁⇒a₂ u₁) u₂ a₁≈a₃ =
+  elProp acc₁ acc₂ u₁ u₂ (≈-trans (≈-sym (⇒-≈ a₁⇒a₂)) a₁≈a₃)
+elProp acc₁ acc₂ u₁ (⇒̂  a₂ a₃ a₂⇒a₃ u₂) a₁≈a₂ =
+  elProp acc₁ acc₂ u₁ u₂ (≈-trans a₁≈a₂ (⇒-≈ a₂⇒a₃))
+elProp _ _ Û ⊥̂ ∗≈mty with () ← ≉⋆-∗mty ∗≈mty
+elProp _ _ Û (Π̂ _ _ _ _ _ _) ∗≈Π with () ← ≉⋆-∗Π ∗≈Π
+elProp _ _ ⊥̂ (Π̂ _ _ _ _ _ _) mty≈Π with () ← ≉⋆-mtyΠ mty≈Π
+elProp _ _ ⊥̂ Û mty≈∗ with () ← ≉⋆-∗mty (≈-sym mty≈∗)
+elProp _ _ (Π̂ _ _ _ _ _ _) Û Π≈∗ with () ← ≉⋆-∗Π (≈-sym Π≈∗)
+elProp _ _ (Π̂ _ _ _ _ _ _) ⊥̂ Π≈mty with () ← ≉⋆-mtyΠ (≈-sym Π≈mty)
+
+elProp' : ∀ {k a A} (u₁ u₂ : U k A) → el k a u₁ ≡ el k a u₂
+elProp' {k} {a} {A} u₁ u₂ with acc< f ← wf k = elProp (acc< f) (acc< f) u₁ u₂ (≈-refl A)
 
 {-----------------------------------------
   Semantic well-formedness:

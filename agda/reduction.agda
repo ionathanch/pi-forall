@@ -1,4 +1,5 @@
 open import Agda.Builtin.Nat
+open import Data.Empty
 open import Data.Product.Base
 open import Relation.Binary.PropositionalEquality.Core
   using (_≡_ ; refl ; sym ; trans)
@@ -133,6 +134,14 @@ data _⇒⋆_ : Term → Term → Set where
 ⇒⋆-cong (⇒⋆-trans a⇒b b⇒⋆c) (⇒⋆-refl d) = ⇒⋆-trans (⇒-cong a⇒b (⇒-refl d)) (⇒⋆-cong b⇒⋆c (⇒⋆-refl d))
 ⇒⋆-cong (⇒⋆-trans a⇒b b⇒⋆c) (⇒⋆-trans d⇒e e⇒⋆f) = ⇒⋆-trans (⇒-cong a⇒b d⇒e) (⇒⋆-cong b⇒⋆c e⇒⋆f)
 
+⇒⋆-∗-inv : ∀ {b} → ∗ ⇒⋆ b → b ≡ ∗
+⇒⋆-∗-inv (⇒⋆-refl ∗) = refl
+⇒⋆-∗-inv (⇒⋆-trans ⇒-∗ ∗⇒⋆b) = ⇒⋆-∗-inv ∗⇒⋆b
+
+⇒⋆-mty-inv : ∀ {b} → mty ⇒⋆ b → b ≡ mty
+⇒⋆-mty-inv (⇒⋆-refl mty) = refl
+⇒⋆-mty-inv (⇒⋆-trans ⇒-mty mty⇒⋆b) = ⇒⋆-mty-inv mty⇒⋆b
+
 ⇒⋆-Π-inv : ∀ {a j b c} → Π a j b ⇒⋆ c → ∃[ a' ] ∃[ b' ] c ≡ Π a' j b' × a ⇒⋆ a' × b ⇒⋆ b'
 ⇒⋆-Π-inv (⇒⋆-refl (Π a j b)) = a , b , refl , ⇒⋆-refl a , ⇒⋆-refl b
 ⇒⋆-Π-inv (⇒⋆-trans (⇒-Π a⇒a' b⇒b') r*) =
@@ -218,6 +227,9 @@ a ≈ b = ∃[ c ] a ⇒⋆ c × b ⇒⋆ c
 ⇒-≈ : ∀ {a b} → a ⇒ b → a ≈ b
 ⇒-≈ {a} {b} a⇒b = b , ⇒-⇒⋆ a⇒b , ⇒⋆-refl b
 
+≈-refl : ∀ a → a ≈ a
+≈-refl a = a , ⇒⋆-refl a , ⇒⋆-refl a
+
 ≈-sym : ∀ {a b} → a ≈ b → b ≈ a
 ≈-sym (c , p , q) = c , q , p
 
@@ -229,10 +241,27 @@ a ≈ b = ∃[ c ] a ⇒⋆ c × b ⇒⋆ c
 ≈-subst : ∀ {a b} σ → a ≈ b → subst σ a ≈ subst σ b
 ≈-subst σ (c , a⇒⋆c , b⇒⋆c) = subst σ c , ⇒⋆-subst σ a⇒⋆c , ⇒⋆-subst σ b⇒⋆c
 
-≈-Π-inv : ∀ {aₗ aᵣ j bₗ bᵣ} → Π aₗ j bₗ ≈ Π aᵣ j bᵣ → aₗ ≈ aᵣ × bₗ ≈ bᵣ
+≈-cong : ∀ {a a' b b'} → a ≈ a' → b ≈ b' → subst (a +: var) b ≈ subst (a' +: var) b'
+≈-cong (a'' , a⇒⋆a'' , a'⇒⋆a'') (b'' , b⇒⋆b'' , b'⇒⋆b'') =
+  subst (a'' +: var) b'' , ⇒⋆-cong a⇒⋆a'' b⇒⋆b'' , ⇒⋆-cong a'⇒⋆a'' b'⇒⋆b''
+
+≉⋆-∗mty : ∗ ≈ mty → ⊥
+≉⋆-∗mty (b , ∗⇒⋆b , mty⇒⋆b) with ⇒⋆-∗-inv ∗⇒⋆b | ⇒⋆-mty-inv mty⇒⋆b
+... | refl | ()
+
+≉⋆-∗Π : ∀ {a j b} → ∗ ≈ Π a j b → ⊥
+≉⋆-∗Π (b , ∗⇒⋆b , Π⇒⋆b) with ⇒⋆-∗-inv ∗⇒⋆b | ⇒⋆-Π-inv Π⇒⋆b
+... | refl | ()
+
+≉⋆-mtyΠ : ∀ {a j b} → mty ≈ Π a j b → ⊥
+≉⋆-mtyΠ (b , mty⇒⋆b , Π⇒⋆b) with ⇒⋆-mty-inv mty⇒⋆b | ⇒⋆-Π-inv Π⇒⋆b
+... | refl | ()
+
+≈-Π-inv : ∀ {aₗ aᵣ jₗ jᵣ bₗ bᵣ} → Π aₗ jₗ bₗ ≈ Π aᵣ jᵣ bᵣ → aₗ ≈ aᵣ × jₗ ≡ jᵣ × bₗ ≈ bᵣ
 ≈-Π-inv {aₗ = aₗ} {bₗ = bₗ} (c , Πajbₗ⇒⋆c , Πajbᵣ⇒⋆c) =
   let aₗ' , bₗ' , pₗ , aₗ⇒⋆aₗ' , bₗ⇒⋆bₗ' = ⇒⋆-Π-inv Πajbₗ⇒⋆c
       aᵣ' , bᵣ' , pᵣ , aᵣ⇒⋆aᵣ' , bᵣ⇒⋆bᵣ' = ⇒⋆-Π-inv Πajbᵣ⇒⋆c
-      aₗ'≡aᵣ' , _ , bₗ'≡bᵣ' = invΠ (trans (sym pₗ) pᵣ)
+      aₗ'≡aᵣ' , jₗ≡jᵣ , bₗ'≡bᵣ' = invΠ (trans (sym pₗ) pᵣ)
   in (aᵣ' , transp (aₗ ⇒⋆_) aₗ'≡aᵣ' aₗ⇒⋆aₗ' , aᵣ⇒⋆aᵣ') ,
+     jₗ≡jᵣ ,
      (bᵣ' , transp (bₗ ⇒⋆_) bₗ'≡bᵣ' bₗ⇒⋆bₗ' , bᵣ⇒⋆bᵣ') 
