@@ -150,7 +150,7 @@ data _⇒⋆_ : Term → Term → Set where
 
 ⇒⋆-β : ∀ σ b a → ($ᵈ (λᵈ (subst (var 0 +: (rename suc ∘ σ)) b)) a) ⇒⋆ (subst (a +: σ) b)
 ⇒⋆-β σ b a = ⇒⋆-trans (⇒-β (⇒-refl _) (⇒-refl _))
-                     (transp (_⇒⋆ subst (a +: σ) b) (substSubstRename σ a b) (⇒⋆-refl _))
+                     (transp (_⇒⋆ subst (a +: σ) b) (substUnion σ a b) (⇒⋆-refl _))
 
 {----------------------------------
   Confluence via diamond property

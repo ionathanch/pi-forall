@@ -236,15 +236,15 @@ subst∘' σ τ = subst∘ σ τ (subst σ ∘ τ) (λ _ → refl)
   Handy dandy derived substitution lemmas
 ------------------------------------------}
 
-substRenameVar : ∀ (σ : ℕ → Term) a n → σ n ≡ subst (a +: var) (rename suc (σ n))
-substRenameVar σ a n = begin
+substDrop : ∀ (σ : ℕ → Term) a n → σ n ≡ subst (a +: var) (rename suc (σ n))
+substDrop σ a n = begin
   σ n ≡⟨ sym (substId var (λ _ → refl) (σ n)) ⟩
   subst var (σ n) ≡⟨ sym (substRename suc (a +: var) ((a +: var) ∘ suc) (λ _ → refl) (σ n)) ⟩
   subst (a +: var) (rename suc (σ n)) ∎
 
-substSubstRename : ∀ σ a s → subst (a +: σ) s ≡ subst (a +: var) (subst (var 0 +: rename suc ∘ σ) s)
-substSubstRename σ a s = begin
-  subst (a +: σ) s                                       ≡⟨ substExt _ _ (λ {zero → refl ; (suc n) → substRenameVar σ a n}) s ⟩
+substUnion : ∀ σ a s → subst (a +: σ) s ≡ subst (a +: var) (subst (var 0 +: rename suc ∘ σ) s)
+substUnion σ a s = begin
+  subst (a +: σ) s                                       ≡⟨ substExt _ _ (λ {zero → refl ; (suc n) → substDrop σ a n}) s ⟩
   subst (subst (a +: var) ∘ (var 0 +: rename suc ∘ σ)) s ≡⟨ sym (subst∘ (a +: var) (var 0 +: rename suc ∘ σ) _ (λ _ → refl) s) ⟩
   (subst (a +: var) ∘ subst (var 0 +: rename suc ∘ σ)) s ∎
 

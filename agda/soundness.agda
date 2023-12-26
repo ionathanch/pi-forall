@@ -49,7 +49,7 @@ soundness {σ} v emV (⊢Π {B = b} {k = k} j<k tA tB) with acc< f ← wf k =
       let u , elU = soundness {σ = x +: σ}
             (∷̂  v (λ σ emV → let u , elU = soundness v emV tA in el-U u elU))
             (emV , transp (λ x → x) (accEl' (wf _) (f j<k) (el-U u elU)) elA) tB
-      in accU' (wf _) (acc< f) (transp (U _) (substSubstRename σ x b) (el-U u elU)))
+      in accU' (wf _) (acc< f) (transp (U _) (substUnion σ x b) (el-U u elU)))
 soundness {σ} v emV (⊢λᵈ {B = B} {b = b} {k = k} j<k tA tb) with acc< f ← wf k =
   let u , elU = soundness v emV tA
   in Π̂ _ j<k _ (accU' (wf _) (f j<k) (el-U u elU)) _
@@ -57,13 +57,13 @@ soundness {σ} v emV (⊢λᵈ {B = B} {b = b} {k = k} j<k tA tb) with acc< f �
       let uB , elB = soundness {σ = x +: σ}
             (∷̂  v (λ σ emV → let u , elU = soundness v emV tA in el-U u elU))
             (emV , transp (λ x → x) (accEl' (wf _) (f j<k) (el-U u elU)) elA) tb
-      in accU' (wf k) (acc< f) (transp (U k) (substSubstRename σ x B) uB)) ,
+      in accU' (wf k) (acc< f) (transp (U k) (substUnion σ x B) uB)) ,
      (λ x elA →
       let uB , elB = soundness {σ = x +: σ}
             (∷̂  v (λ σ emV → let u , elU = soundness v emV tA in el-U u elU))
             (emV , transp (λ x → x) (accEl' (wf _) (f j<k) (el-U u elU)) elA) tb
-          uB' = transp (U k) (substSubstRename σ x B) uB
-          elB' = transp (λ x → x) (el≡ (substSubstRename σ x B) uB _) elB
+          uB' = transp (U k) (substUnion σ x B) uB
+          elB' = transp (λ x → x) (el≡ (substUnion σ x B) uB _) elB
           elB'' = ⇒⋆-el uB' (⇒⋆-β σ b x) elB'
       in transp (λ x → x) (sym (accEl' (wf k) (acc< f) uB')) elB'')
 soundness {σ} v emV (⊢$ᵈ {A = A} {j = j} {B = B} {a = a} {k = k} j<k tb ta) with acc< f ← wf k in p =
