@@ -137,14 +137,15 @@ subst σ mty = mty
 subst σ (abs b) = abs (subst σ b)
 
 -- Applying var "substitution" does nothing
-substId : ∀ σ → (∀ x → σ x ≡ var x) → ∀ s → subst σ s ≡ s
-substId σ h (var s) = h s
-substId σ h ∗ = refl
-substId σ h (Π A j B) = congΠ (substId σ h A) refl (substId (↑ σ) (↑id σ h) B)
-substId σ h (λᵈ b) = cong λᵈ (substId (↑ σ) (↑id σ h) b)
-substId σ h ($ᵈ b a) = cong$ᵈ (substId σ h b) (substId σ h a)
-substId σ h mty = refl
-substId σ h (abs b) = cong abs (substId σ h b)
+private -- use substId'
+  substId : ∀ σ → (∀ x → σ x ≡ var x) → ∀ s → subst σ s ≡ s
+  substId σ h (var s) = h s
+  substId σ h ∗ = refl
+  substId σ h (Π A j B) = congΠ (substId σ h A) refl (substId (↑ σ) (↑id σ h) B)
+  substId σ h (λᵈ b) = cong λᵈ (substId (↑ σ) (↑id σ h) b)
+  substId σ h ($ᵈ b a) = cong$ᵈ (substId σ h b) (substId σ h a)
+  substId σ h mty = refl
+  substId σ h (abs b) = cong abs (substId σ h b)
 
 -- Substitution extensionality
 substExt : ∀ σ τ → (∀ x → σ x ≡ τ x) → ∀ s → subst σ s ≡ subst τ s
@@ -157,34 +158,37 @@ substExt σ τ h mty = refl
 substExt σ τ h (abs b) = cong abs (substExt σ τ h b)
 
 -- Renaming is a substitution
-substVar : ∀ ξ σ → (∀ x → (var ∘ ξ) x ≡ σ x) → ∀ s → rename ξ s ≡ subst σ s
-substVar ξ σ h (var s) = h s
-substVar ξ σ h ∗ = refl
-substVar ξ σ h (Π A j B) = congΠ (substVar ξ σ h A) refl (substVar (lift ξ) (↑ σ) (↑var ξ σ h) B) 
-substVar ξ σ h (λᵈ b) = cong λᵈ (substVar (lift ξ) (↑ σ) (↑var ξ σ h) b)
-substVar ξ σ h ($ᵈ b a) = cong$ᵈ (substVar ξ σ h b) (substVar ξ σ h a)
-substVar ξ σ h mty = refl
-substVar ξ σ h (abs b) = cong abs (substVar ξ σ h b)
+private -- use substVar'
+  substVar : ∀ ξ σ → (∀ x → (var ∘ ξ) x ≡ σ x) → ∀ s → rename ξ s ≡ subst σ s
+  substVar ξ σ h (var s) = h s
+  substVar ξ σ h ∗ = refl
+  substVar ξ σ h (Π A j B) = congΠ (substVar ξ σ h A) refl (substVar (lift ξ) (↑ σ) (↑var ξ σ h) B)
+  substVar ξ σ h (λᵈ b) = cong λᵈ (substVar (lift ξ) (↑ σ) (↑var ξ σ h) b)
+  substVar ξ σ h ($ᵈ b a) = cong$ᵈ (substVar ξ σ h b) (substVar ξ σ h a)
+  substVar ξ σ h mty = refl
+  substVar ξ σ h (abs b) = cong abs (substVar ξ σ h b)
 
 -- Substitution/renaming compositionality
-substRename : ∀ ξ (σ τ : ℕ → Term) → (∀ x → (σ ∘ ξ) x ≡ τ x) → ∀ s → subst σ (rename ξ s) ≡ subst τ s
-substRename ξ σ τ h (var s) = h s
-substRename ξ σ τ h ∗ = refl
-substRename ξ σ τ h (Π A j B) = congΠ (substRename ξ σ τ h A) refl (substRename (lift ξ) (↑ σ) (↑ τ) (↑lift ξ σ τ h) B)
-substRename ξ σ τ h (λᵈ b) = cong λᵈ (substRename (lift ξ) (↑ σ) (↑ τ) (↑lift ξ σ τ h) b)
-substRename ξ σ τ h ($ᵈ b a) = cong$ᵈ (substRename ξ σ τ h b) (substRename ξ σ τ h a)
-substRename ξ σ τ h mty = refl
-substRename ξ σ τ h (abs b) = cong abs (substRename ξ σ τ h b)
+private -- use substRename'
+  substRename : ∀ ξ (σ τ : ℕ → Term) → (∀ x → (σ ∘ ξ) x ≡ τ x) → ∀ s → subst σ (rename ξ s) ≡ subst τ s
+  substRename ξ σ τ h (var s) = h s
+  substRename ξ σ τ h ∗ = refl
+  substRename ξ σ τ h (Π A j B) = congΠ (substRename ξ σ τ h A) refl (substRename (lift ξ) (↑ σ) (↑ τ) (↑lift ξ σ τ h) B)
+  substRename ξ σ τ h (λᵈ b) = cong λᵈ (substRename (lift ξ) (↑ σ) (↑ τ) (↑lift ξ σ τ h) b)
+  substRename ξ σ τ h ($ᵈ b a) = cong$ᵈ (substRename ξ σ τ h b) (substRename ξ σ τ h a)
+  substRename ξ σ τ h mty = refl
+  substRename ξ σ τ h (abs b) = cong abs (substRename ξ σ τ h b)
 
 -- Renaming/substitution compositionality
-renameSubst : ∀ ξ σ τ → (∀ x → (rename ξ ∘ σ) x ≡ τ x) → ∀ s → rename ξ (subst σ s) ≡ subst τ s
-renameSubst ξ σ τ h (var s) = h s
-renameSubst ξ σ τ h ∗ = refl
-renameSubst ξ σ τ h (Π A j B) = congΠ (renameSubst ξ σ τ h A) refl (renameSubst (lift ξ) (↑ σ) (↑ τ) (↑rename ξ σ τ h) B)
-renameSubst ξ σ τ h (λᵈ b) = cong λᵈ (renameSubst (lift ξ) (↑ σ) (↑ τ) (↑rename ξ σ τ h) b)
-renameSubst ξ σ τ h ($ᵈ b a) = cong$ᵈ (renameSubst ξ σ τ h b) (renameSubst ξ σ τ h a)
-renameSubst ξ σ τ h mty = refl
-renameSubst ξ σ τ h (abs b) = cong abs (renameSubst ξ σ τ h b)
+private -- use renameSubst'
+  renameSubst : ∀ ξ σ τ → (∀ x → (rename ξ ∘ σ) x ≡ τ x) → ∀ s → rename ξ (subst σ s) ≡ subst τ s
+  renameSubst ξ σ τ h (var s) = h s
+  renameSubst ξ σ τ h ∗ = refl
+  renameSubst ξ σ τ h (Π A j B) = congΠ (renameSubst ξ σ τ h A) refl (renameSubst (lift ξ) (↑ σ) (↑ τ) (↑rename ξ σ τ h) B)
+  renameSubst ξ σ τ h (λᵈ b) = cong λᵈ (renameSubst (lift ξ) (↑ σ) (↑ τ) (↑rename ξ σ τ h) b)
+  renameSubst ξ σ τ h ($ᵈ b a) = cong$ᵈ (renameSubst ξ σ τ h b) (renameSubst ξ σ τ h a)
+  renameSubst ξ σ τ h mty = refl
+  renameSubst ξ σ τ h (abs b) = cong abs (renameSubst ξ σ τ h b)
 
 -- Lifting commutes with substitution
 ↑subst : ∀ ρ σ τ → (∀ x → (subst ρ ∘ σ) x ≡ τ x) → ∀ x → (subst (↑ ρ) ∘ (↑ σ)) x ≡ (↑ τ) x
@@ -198,14 +202,35 @@ renameSubst ξ σ τ h (abs b) = cong abs (renameSubst ξ σ τ h b)
   rename suc (τ n) ∎
 
 -- Substitution compositionality
-subst∘ : ∀ ρ σ τ → (∀ x → (subst ρ ∘ σ) x ≡ τ x) → ∀ s → (subst ρ ∘ subst σ) s ≡ subst τ s
-subst∘ ρ σ τ h (var s) = h s
-subst∘ ρ σ τ h ∗ = refl
-subst∘ ρ σ τ h (Π A j B) = congΠ (subst∘ ρ σ τ h A) refl (subst∘ (↑ ρ) (↑ σ) (↑ τ) (↑subst ρ σ τ h) B)
-subst∘ ρ σ τ h (λᵈ b) = cong λᵈ (subst∘ (↑ ρ) (↑ σ) (↑ τ) (↑subst ρ σ τ h) b)
-subst∘ ρ σ τ h ($ᵈ b a) = cong$ᵈ (subst∘ ρ σ τ h b) (subst∘ ρ σ τ h a)
-subst∘ ρ σ τ h mty = refl
-subst∘ ρ σ τ h (abs b) = cong abs (subst∘ ρ σ τ h b)
+private -- use subst∘'
+  subst∘ : ∀ ρ σ τ → (∀ x → (subst ρ ∘ σ) x ≡ τ x) → ∀ s → (subst ρ ∘ subst σ) s ≡ subst τ s
+  subst∘ ρ σ τ h (var s) = h s
+  subst∘ ρ σ τ h ∗ = refl
+  subst∘ ρ σ τ h (Π A j B) = congΠ (subst∘ ρ σ τ h A) refl (subst∘ (↑ ρ) (↑ σ) (↑ τ) (↑subst ρ σ τ h) B)
+  subst∘ ρ σ τ h (λᵈ b) = cong λᵈ (subst∘ (↑ ρ) (↑ σ) (↑ τ) (↑subst ρ σ τ h) b)
+  subst∘ ρ σ τ h ($ᵈ b a) = cong$ᵈ (subst∘ ρ σ τ h b) (subst∘ ρ σ τ h a)
+  subst∘ ρ σ τ h mty = refl
+  subst∘ ρ σ τ h (abs b) = cong abs (subst∘ ρ σ τ h b)
+
+{------------------------------------------------
+  Substitution & renaming lemmas, extensionally
+  TODO: Maybe the primed and unprimed should swap names
+------------------------------------------------}
+
+substId' : ∀ s → subst var s ≡ s
+substId' = substId var (λ _ → refl)
+
+substVar' : ∀ ξ s → rename ξ s ≡ subst (var ∘ ξ) s
+substVar' ξ = substVar ξ (var ∘ ξ) (λ _ → refl)
+
+substRename' : ∀ ξ σ s → (subst σ ∘ rename ξ) s ≡ subst (σ ∘ ξ) s
+substRename' ξ σ = substRename ξ σ (σ ∘ ξ) (λ _ → refl)
+
+renameSubst' : ∀ ξ σ s → (rename ξ ∘ subst σ) s ≡ subst (rename ξ ∘ σ) s
+renameSubst' ξ σ = renameSubst ξ σ (rename ξ ∘ σ) (λ _ → refl)
+
+subst∘' : ∀ σ τ s → (subst σ ∘ subst τ) s ≡ subst (subst σ ∘ τ) s
+subst∘' σ τ = subst∘ σ τ (subst σ ∘ τ) (λ _ → refl)
 
 {------------------------------------------
   Handy dandy derived substitution lemmas
@@ -228,42 +253,6 @@ substSubstCons σ a s = begin
   subst (subst σ a +: σ) s       ≡⟨ substExt _ _ (λ { zero → refl ; (suc n) → refl }) s ⟩
   subst (subst σ ∘ (a +: var)) s ≡⟨ sym (subst∘ σ (a +: var) _ (λ _ → refl) s) ⟩
   (subst σ ∘ subst (a +: var)) s ∎
-
-{------------------------------------------------
-  Substitution & renaming lemmas, extensionally
-------------------------------------------------}
-
-{-
-renameLift' : ∀ ξ a → rename ξ ∘ (a +: var) ≡ (rename ξ a +: var) ∘ lift ξ
-renameLift' ξ a = funext (renameLift ξ a)
-
-varSubst' : ∀ σ → subst σ ∘ var ≡ σ
-varSubst' σ = funext (λ _ → refl)
-
-varRename' : ∀ ξ → rename ξ ∘ var ≡ var ∘ ξ
-varRename' ξ = funext (λ _ → refl)
-
-rename∘' : ∀ ξ ζ → rename ξ ∘ rename ζ ≡ rename (ξ ∘ ζ)
-rename∘' ξ ζ = funext (rename∘ ξ ζ (ξ ∘ ζ) (λ _ → refl))
-
-substId' : subst var ≡ λ s → s
-substId' = funext (substId var (λ _ → refl))
-
-substVar' : ∀ ξ → rename ξ ≡ subst (var ∘ ξ)
-substVar' ξ = funext (substVar ξ (var ∘ ξ) (λ _ → refl))
-
-substRename' : ∀ ξ σ → subst σ ∘ rename ξ ≡ subst (σ ∘ ξ)
-substRename' ξ σ = funext (substRename ξ σ (σ ∘ ξ) (λ _ → refl))
-
-renameSubst' : ∀ ξ σ → rename ξ ∘ subst σ ≡ subst (rename ξ ∘ σ)
-renameSubst' ξ σ = funext (renameSubst ξ σ (rename ξ ∘ σ) (λ _ → refl))
-
-subst∘' : ∀ σ τ → subst σ ∘ subst τ ≡ subst (subst σ ∘ τ)
-subst∘' σ τ = funext (subst∘ σ τ (subst σ ∘ τ) (λ _ → refl))
-
-renameId' : rename (λ x → x) ≡ λ x → x
-renameId' = trans (substVar' _) substId'
--}
 
 {--------------------------
   Contexts and membership

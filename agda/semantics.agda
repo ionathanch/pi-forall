@@ -71,8 +71,8 @@ accU' {k} acc₁ acc₂ {T} u with refl ← accProp acc₁ acc₂ = u
 
 -- Proofs of accessibility are irrelevant across instantiated el'
 accEl' : ∀ {k} (acc₁ acc₂ : Acc k) {t T : Term} (A : U' k (U< acc₁) (el< acc₁) T) →
-         el' k (U< acc₂) (el< acc₂) t (accU' acc₁ acc₂ A) → el' k (U< acc₁) (el< acc₁) t A
-accEl' {k} acc₁ acc₂ {t} {T} A elA with refl ← accProp acc₁ acc₂ = elA
+         el' k (U< acc₂) (el< acc₂) t (accU' acc₁ acc₂ A) ≡ el' k (U< acc₁) (el< acc₁) t A
+accEl' {k} acc₁ acc₂ {t} {T} A with refl ← accProp acc₁ acc₂ = refl
 
 -- U' is cumulative
 cumU' : ∀ {j k} (accj : Acc j) (acck : Acc k) → j < k → {T : Term} →
@@ -82,7 +82,7 @@ cumU' _ _ _ ⊥̂  = ⊥̂
 cumU' accj@(acc< f) acck@(acc< g) j<k (Π̂ i i<j a A b B) =
   Π̂ i (trans< i<j j<k)
     a (accU' (f i<j) (g (trans< i<j j<k)) A)
-    b (λ x a → cumU' accj acck j<k (B x (accEl' (f i<j) (g (trans< i<j j<k)) A a)))
+    b (λ x a → cumU' accj acck j<k (B x (transp (λ x → x) (accEl' (f i<j) (g (trans< i<j j<k)) A) a)))
 cumU' accj acck j<k (⇒̂  a b a⇒b B) = ⇒̂  a b a⇒b (cumU' accj acck j<k B)
 
 -- el' is cumulative
@@ -91,7 +91,7 @@ cumEl' : ∀ {j k} (accj : Acc j) (acck : Acc k) (j<k : j < k) {t T : Term} (u :
 cumEl' accj acck j<k Û = cumU' accj acck j<k
 cumEl' _ _ _ ⊥̂  = λ b → b
 cumEl' accj@(acc< f) acck@(acc< g) j<k (Π̂ i i<j a A b B) elB x elA =
-  let a' = accEl' (f i<j) (g (trans< i<j j<k)) A elA
+  let a' = transp (λ x → x) (accEl' (f i<j) (g (trans< i<j j<k)) A) elA
   in cumEl' accj acck j<k (B x a') (elB x a')
 cumEl' accj acck j<k (⇒̂  a b a⇒b B) elB = cumEl' accj acck j<k B elB
 
@@ -137,23 +137,41 @@ empty : ∀ {k t} (u : U k mty) → el k t u → ⊥
 empty ⊥̂  ()
 empty (⇒̂  mty mty ⇒⋆-mty u) = empty u
 
-{-------------------------------------------------------
-  Backward preservation of U and el with respect to ⇒⋆
--------------------------------------------------------}
+{------------------------------------------------------------
+  Backward type preservation of U and el with respect to ⇒⋆
+------------------------------------------------------------}
 
 ⇒⋆-U' : ∀ {k} (acc : Acc k) {a b} → a ⇒⋆ b → U' k (U< acc) (el< acc) b → U' k (U< acc) (el< acc) a
 ⇒⋆-U' _ (⇒⋆-refl a) u = u
 ⇒⋆-U' acc (⇒⋆-trans a⇒b b⇒⋆c) u = ⇒̂ _ _ a⇒b (⇒⋆-U' acc b⇒⋆c u)
 
-⇒⋆-el' : ∀ {k} (acc : Acc k) {a b} (a⇒⋆b : a ⇒⋆ b) (u : U' k (U< acc) (el< acc) b) →
+⇒⋆-elt' : ∀ {k} (acc : Acc k) {a b} (a⇒⋆b : a ⇒⋆ b) (u : U' k (U< acc) (el< acc) b) →
          ∀ t → el' k (U< acc) (el< acc) t u ≡ el' k (U< acc) (el< acc) t (⇒⋆-U' acc a⇒⋆b u)
-⇒⋆-el' acc (⇒⋆-refl a) u t = refl
-⇒⋆-el' acc (⇒⋆-trans a⇒b b⇒⋆c) u t = ⇒⋆-el' acc b⇒⋆c u t
+⇒⋆-elt' acc (⇒⋆-refl a) u t = refl
+⇒⋆-elt' acc (⇒⋆-trans a⇒b b⇒⋆c) u t = ⇒⋆-elt' acc b⇒⋆c u t
 
 ⇒⋆-U : ∀ {k a b} → a ⇒⋆ b → U k b → U k a
 ⇒⋆-U {k} with acc< f ← wf k = ⇒⋆-U' (acc< f)
 
-⇒⋆-el : ∀ {k a b} (a⇒⋆b : a ⇒⋆ b) (u : U k b) t → el k t u ≡ el k t (⇒⋆-U a⇒⋆b u)
+⇒⋆-elt : ∀ {k a b} (a⇒⋆b : a ⇒⋆ b) (u : U k b) t → el k t u ≡ el k t (⇒⋆-U a⇒⋆b u)
+⇒⋆-elt {k} with acc< f ← wf k = ⇒⋆-elt' (acc< f)
+
+{------------------------------------------------------
+  Backward term preservation of el with respect to ⇒⋆
+------------------------------------------------------}
+
+⇒-el : ∀ {k} (acc : Acc k) {a b A} (u : U' k (U< acc) (el< acc) A) → a ⇒ b →
+       el' k (U< acc) (el< acc) b u → el' k (U< acc) (el< acc) a u
+⇒-el acc Û a⇒b = ⇒⋆-U' acc (⇒-⇒⋆ a⇒b)
+⇒-el acc (Π̂ j j<k _ A _ B) a⇒b elB x elA = ⇒-el acc (B x elA) (⇒-$ᵈ a⇒b (⇒-refl x)) (elB x elA)
+⇒-el acc (⇒̂  A B A⇒B u) a⇒b = ⇒-el acc u a⇒b
+
+⇒⋆-el' : ∀ {k} (acc : Acc k) {a b A} (u : U' k (U< acc) (el< acc) A) → a ⇒⋆ b →
+         el' k (U< acc) (el< acc) b u → el' k (U< acc) (el< acc) a u
+⇒⋆-el' acc u (⇒⋆-refl a) elU = elU
+⇒⋆-el' acc u (⇒⋆-trans a⇒b b⇒⋆c) elU = ⇒-el acc u a⇒b (⇒⋆-el' acc u b⇒⋆c elU)
+
+⇒⋆-el : ∀ {k a b A} (u : U k A) → a ⇒⋆ b → el k b u → el k a u
 ⇒⋆-el {k} with acc< f ← wf k = ⇒⋆-el' (acc< f)
 
 {-----------------------------------
@@ -214,7 +232,7 @@ SRel* (⇒⋆-trans a⇒b b⇒⋆c) u t = trans (SRel a⇒b u t) (SRel* b⇒⋆c
 ≈-U (_ , a⇒⋆c , b⇒⋆c) u = ⇒⋆-U b⇒⋆c (SRU* a⇒⋆c u)
 
 ≈-el : ∀ {k a b} (a≈b : a ≈ b) (u : U k a) t → el k t u ≡ el k t (≈-U a≈b u)
-≈-el (c , a⇒⋆c , b⇒⋆c) u t = trans (SRel* a⇒⋆c u t) (⇒⋆-el b⇒⋆c (SRU* a⇒⋆c u) t)
+≈-el (c , a⇒⋆c , b⇒⋆c) u t = trans (SRel* a⇒⋆c u t) (⇒⋆-elt b⇒⋆c (SRU* a⇒⋆c u) t)
 
 {-----------------------------------------------------
   Propositional irrelevance across U:
