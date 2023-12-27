@@ -153,6 +153,13 @@ invΠ-U acc@(acc< f) (⇒̂  (Π a j b) (Π a' j b') (⇒-Π a⇒a' b⇒b') u) =
   let j<k , A' , B' = invΠ-U acc u
   in j<k , ⇒̂  a a' a⇒a' A' , λ x elA → ⇒̂  _ _ (⇒-cong (⇒-refl x) b⇒b') (B' x elA)
 
+invΠ-el : ∀ {a j b k} (acc : Acc k) (u : U' k (U< acc) (el< acc) (Π a j b)) f →
+          el' k (U< acc) (el< acc) f u →
+          let j<k , A , B = invΠ-U acc u in
+          ∀ x → (a : el< acc j<k x A) → el' k (U< acc) (el< acc) ($ᵈ f x) (B x a)
+invΠ-el acc (Π̂ j j<k a A b B) f elB x elA = elB x elA
+invΠ-el acc@(acc< _) (⇒̂  (Π a j b) (Π a' j b') (⇒-Π a⇒a' b⇒b') u) = invΠ-el acc u
+
 {------------------------------------------------------------
   Backward type preservation of U and el with respect to ⇒⋆
 ------------------------------------------------------------}
