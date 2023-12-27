@@ -102,7 +102,7 @@ data _⇒_ : Term → Term → Set where
 ⇒-subst σ r = ⇒-morphing σ σ (λ x → ⇒-refl (σ x)) r
 
 ⇒-cong : ∀ {a a' b b'} → a ⇒ a' → b ⇒ b' → subst (a +: var) b ⇒ subst (a' +: var) b'
-⇒-cong {a} {a'} a⇒a' b⇒b' = ⇒-morphing (a +: var) (a' +: var) (λ { zero → a⇒a' ; (suc n) → ⇒-var n }) b⇒b'
+⇒-cong {a} {a'} a⇒a' b⇒b' = ⇒-morphing (a +: var) (a' +: var) (λ {zero → a⇒a' ; (suc n) → ⇒-var n}) b⇒b'
 
 {--------------------------------
   Reflexive, transitive closure

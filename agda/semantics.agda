@@ -57,6 +57,28 @@ el< : ∀ {k} (p : Acc k) {j} (j<k : j < k) → Term → ∀ {T} → U< p j<k T 
 U<  (acc< f) {j} j<k T = U'  j (U< (f j<k)) (el< (f j<k)) T
 el< (acc< f) {j} j<k t = el' j (U< (f j<k)) (el< (f j<k)) t
 
+{-------------------------------------------
+  Proofs of accessibility are irrelevant
+  where applied to U', U< and el', el< are
+  (to isolate direct uses of accProp)
+-------------------------------------------}
+
+accU' : ∀ {k} (acc₁ acc₂ : Acc k) {T} → U' k (U< acc₁) (el< acc₁) T → U' k (U< acc₂) (el< acc₂) T
+accU' {k} acc₁ acc₂ {T} u with refl ← accProp acc₁ acc₂ = u
+
+accEl' : ∀ {k} (acc₁ acc₂ : Acc k) {t T} (A : U' k (U< acc₁) (el< acc₁) T) →
+         el' k (U< acc₂) (el< acc₂) t (accU' acc₁ acc₂ A) ≡ el' k (U< acc₁) (el< acc₁) t A
+accEl' {k} acc₁ acc₂ {t} {T} A with refl ← accProp acc₁ acc₂ = refl
+
+-- Proofs of accessibility are irrelevant across instantiated U<
+accU< : ∀ {j k} (acc₁ acc₂ : Acc k) (j<k : j < k) {T} → U< acc₁ j<k T → U< acc₂ j<k T
+accU< (acc< f) (acc< g) j<k = accU' (f j<k) (g j<k)
+
+-- Proofs of accessibility are irrelevant across instantiated el<
+accEl< : ∀ {j k} (acc₁ acc₂ : Acc k) (j<k : j < k) {t T} (A : U< acc₁ j<k T) →
+         el< acc₂ j<k t (accU< acc₁ acc₂ j<k A) ≡ el< acc₁ j<k t A
+accEl< (acc< f) (acc< g) j<k = accEl' (f j<k) (g j<k)
+
 {------------------------------------------
   U, el, and cumulativity:
   * Given j < k, U j can be lifted to U k
@@ -64,15 +86,6 @@ el< (acc< f) {j} j<k t = el' j (U< (f j<k)) (el< (f j<k)) t
     the interpretation of u can be lifted
     to an interpretation of the lifted u
 ------------------------------------------}
-
--- Proofs of accessibility are irrelevant across instantiated U'
-accU' : ∀ {k} (acc₁ acc₂ : Acc k) {T} → U' k (U< acc₁) (el< acc₁) T → U' k (U< acc₂) (el< acc₂) T
-accU' {k} acc₁ acc₂ {T} u with refl ← accProp acc₁ acc₂ = u
-
--- Proofs of accessibility are irrelevant across instantiated el'
-accEl' : ∀ {k} (acc₁ acc₂ : Acc k) {t T : Term} (A : U' k (U< acc₁) (el< acc₁) T) →
-         el' k (U< acc₂) (el< acc₂) t (accU' acc₁ acc₂ A) ≡ el' k (U< acc₁) (el< acc₁) t A
-accEl' {k} acc₁ acc₂ {t} {T} A with refl ← accProp acc₁ acc₂ = refl
 
 -- U' is cumulative
 cumU' : ∀ {j k} (accj : Acc j) (acck : Acc k) → j < k → {T : Term} →
@@ -95,8 +108,10 @@ cumEl' accj@(acc< f) acck@(acc< g) j<k (Π̂ i i<j a A b B) elB x elA =
   in cumEl' accj acck j<k (B x a') (elB x a')
 cumEl' accj acck j<k (⇒̂  a b a⇒b B) elB = cumEl' accj acck j<k B elB
 
--- We tie the knot by instantiating the accessibility proof
--- in U< and el< by well-foundedness of levels
+{-------------------------------------------------
+  We tie the knot by instantiating accessibility
+  in U< and el< by well-foundedness of levels
+-----------------------------------------------}
 
 U : ∀ k → Term → Set
 U k T = U' k (U< (wf k)) (el< (wf k)) T
@@ -110,22 +125,14 @@ cumU = cumU' (wf _) (wf _)
 cumEl : ∀ {j k} → (j<k : j < k) → ∀ {t T} (u : U j T) → el j t u → el k t (cumU j<k u)
 cumEl = cumEl' (wf _) (wf _)
 
-{-------------------------
-  TODO: Reorganize these
---------------------------}
-
--- Inversion on semantic function type
-invΠ-U : ∀ {a j b k} (acc : Acc k) → U' k (U< acc) (el< acc) (Π a j b) →
-       Σ[ j<k ∈ j < k ] Σ[ A ∈ U< acc j<k a ]
-       ∀ x → el< acc j<k x A → U' k (U< acc) (el< acc) (subst (x +: var) b)
-invΠ-U acc (Π̂ j j<k a A b B) = j<k , A , B
-invΠ-U acc@(acc< f) (⇒̂  (Π a j b) (Π a' j b') (⇒-Π a⇒a' b⇒b') u) =
-  let j<k , A' , B' = invΠ-U acc u
-  in j<k , ⇒̂  a a' a⇒a' A' , λ x elA → ⇒̂  _ _ (⇒-cong (⇒-refl x) b⇒b') (B' x elA)
-
 -- Invariance across equal semantic types
+-- (holds by elProp later, but this proof is independent)
 el≡ : ∀ {k A A'} → (p : A ≡ A') → (u : U k A) → ∀ t → el k t u ≡ el k t (transp (U k) p u)
 el≡ refl u t = refl
+
+{-------------------
+  Inversion lemmas
+--------------------}
 
 -- Universes are à la Russell
 el-U : ∀ {k A} (u : U k ∗) → el k A u → U k A
@@ -136,6 +143,15 @@ el-U (⇒̂  ∗ ∗ ⇒-∗ u) elU = el-U u elU
 empty : ∀ {k t} (u : U k mty) → el k t u → ⊥
 empty ⊥̂  ()
 empty (⇒̂  mty mty ⇒⋆-mty u) = empty u
+
+-- Inversion on semantic function type
+invΠ-U : ∀ {a j b k} (acc : Acc k) → U' k (U< acc) (el< acc) (Π a j b) →
+       Σ[ j<k ∈ j < k ] Σ[ A ∈ U< acc j<k a ]
+       ∀ x → el< acc j<k x A → U' k (U< acc) (el< acc) (subst (x +: var) b)
+invΠ-U acc (Π̂ j j<k a A b B) = j<k , A , B
+invΠ-U acc@(acc< f) (⇒̂  (Π a j b) (Π a' j b') (⇒-Π a⇒a' b⇒b') u) =
+  let j<k , A' , B' = invΠ-U acc u
+  in j<k , ⇒̂  a a' a⇒a' A' , λ x elA → ⇒̂  _ _ (⇒-cong (⇒-refl x) b⇒b') (B' x elA)
 
 {------------------------------------------------------------
   Backward type preservation of U and el with respect to ⇒⋆
@@ -265,8 +281,11 @@ elProp _ _ ⊥̂ Û mty≈∗ with () ← ≉⋆-∗mty (≈-sym mty≈∗)
 elProp _ _ (Π̂ _ _ _ _ _ _) Û Π≈∗ with () ← ≉⋆-∗Π (≈-sym Π≈∗)
 elProp _ _ (Π̂ _ _ _ _ _ _) ⊥̂ Π≈mty with () ← ≉⋆-mtyΠ (≈-sym Π≈mty)
 
-elProp' : ∀ {k a A} (u₁ u₂ : U k A) → el k a u₁ ≡ el k a u₂
-elProp' {k} {a} {A} u₁ u₂ with acc< f ← wf k = elProp (acc< f) (acc< f) u₁ u₂ (≈-refl A)
+elProp' : ∀ {k a A} (acc₁ acc₂ : Acc k)
+         (u₁ : U' k (U< acc₁) (el< acc₁) A) →
+         (u₂ : U' k (U< acc₂) (el< acc₂) A) →
+         el' k (U< acc₁) (el< acc₁) a u₁ ≡ el' k (U< acc₂) (el< acc₂) a u₂
+elProp' acc₁ acc₂ u₁ u₂ = elProp acc₁ acc₂ u₁ u₂ (≈-refl _)
 
 {-----------------------------------------
   Semantic well-formedness:

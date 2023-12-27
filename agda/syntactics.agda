@@ -242,16 +242,16 @@ substDrop σ a n = begin
   subst var (σ n) ≡⟨ sym (substRename suc (a +: var) ((a +: var) ∘ suc) (λ _ → refl) (σ n)) ⟩
   subst (a +: var) (rename suc (σ n)) ∎
 
-substUnion : ∀ σ a s → subst (a +: σ) s ≡ subst (a +: var) (subst (var 0 +: rename suc ∘ σ) s)
+substUnion : ∀ σ a s → subst (a +: σ) s ≡ subst (a +: var) (subst (↑ σ) s)
 substUnion σ a s = begin
   subst (a +: σ) s                                       ≡⟨ substExt _ _ (λ {zero → refl ; (suc n) → substDrop σ a n}) s ⟩
-  subst (subst (a +: var) ∘ (var 0 +: rename suc ∘ σ)) s ≡⟨ sym (subst∘ (a +: var) (var 0 +: rename suc ∘ σ) _ (λ _ → refl) s) ⟩
+  subst (subst (a +: var) ∘ (var 0 +: rename suc ∘ σ)) s ≡⟨ sym (subst∘' (a +: var) (↑ σ) s) ⟩
   (subst (a +: var) ∘ subst (var 0 +: rename suc ∘ σ)) s ∎
 
-substSubstCons : ∀ σ a s → subst (subst σ a +: σ) s ≡ (subst σ ∘ subst (a +: var)) s
-substSubstCons σ a s = begin
-  subst (subst σ a +: σ) s       ≡⟨ substExt _ _ (λ { zero → refl ; (suc n) → refl }) s ⟩
-  subst (subst σ ∘ (a +: var)) s ≡⟨ sym (subst∘ σ (a +: var) _ (λ _ → refl) s) ⟩
+substDist : ∀ σ a s → subst (subst σ a +: σ) s ≡ subst σ (subst (a +: var) s)
+substDist σ a s = begin
+  subst (subst σ a +: σ) s       ≡⟨ substExt _ _ (λ {zero → refl ; (suc n) → refl}) s ⟩
+  subst (subst σ ∘ (a +: var)) s ≡⟨ sym (subst∘' σ (a +: var) s) ⟩
   (subst σ ∘ subst (a +: var)) s ∎
 
 {--------------------------

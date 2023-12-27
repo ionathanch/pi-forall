@@ -6,6 +6,9 @@ open import Data.Product.Base
 open import Relation.Binary.PropositionalEquality
   using (_≡_ ; refl ; sym)
   renaming (subst to transp)
+open import Relation.Binary.PropositionalEquality.Properties
+  using (module ≡-Reasoning)
+open ≡-Reasoning
 import accessibility
 import syntactics
 import reduction
@@ -66,13 +69,25 @@ soundness {σ} v emV (⊢λᵈ {B = B} {b = b} {k = k} j<k tA tb) with acc< f �
           elB' = transp (λ x → x) (el≡ (substUnion σ x B) uB _) elB
           elB'' = ⇒⋆-el uB' (⇒⋆-β σ b x) elB'
       in transp (λ x → x) (sym (accEl' (wf k) (acc< f) uB')) elB'')
-soundness {σ} v emV (⊢$ᵈ {A = A} {j = j} {B = B} {a = a} {k = k} j<k tb ta) with acc< f ← wf k in p =
+soundness {σ} v emV (⊢$ᵈ {A = A} {j = j} {B = B} {a = a} {k = k} j<k tb ta) with acc< f ← wf k =
   let Ub , elb = soundness v emV tb
       Ua , ela = soundness v emV ta
       j<k , UA , UB = invΠ-U (wf k) Ub
-      ela' = transp (λ x → x) (elProp' Ua (accU' (f j<k) (wf j) (transp (λ acc → U< acc j<k (subst σ A)) p UA))) ela
-      UB' = UB (subst σ a) {!   !}
-  in {!   !} , {!   !}
+      p : el j (subst σ a) Ua ≡ el< (wf k) j<k (subst σ a) UA
+      p = begin
+        el j (subst σ a) Ua
+          ≡⟨ elProp' (wf j) (f j<k) Ua (accU< (wf k) (acc< f) j<k UA) ⟩
+        _ ≡⟨ accEl< (wf k) (acc< f) j<k UA ⟩
+        el< (wf k) j<k (subst σ a) UA ∎
+      UB' = UB (subst σ a) (transp (λ x → x) p ela)
+      q : subst (subst σ a +: var) (subst (↑ σ) B) ≡ subst σ (subst (a +: var) B)
+      q = begin
+        subst (subst σ a +: var) (subst (↑ σ) B)
+          ≡⟨ sym (substUnion σ (subst σ a) B) ⟩
+        subst (subst σ a +: σ) B
+          ≡⟨ substDist σ a B ⟩
+        (subst σ ∘ subst (a +: var)) B ∎
+  in accU' (wf k) (acc< f) (transp (U k) q UB') , {!   !}
 soundness {σ} v emV (⊢abs {A = A} {b = b} tA tb)
   with () ← (let b , elb = soundness v emV tb in empty b elb)
 soundness v emV (⊢mty ⊢Γ) = Û , ⊥̂
@@ -82,4 +97,4 @@ soundness {σ} v emV (⊢≈ {a = a} A≈B ta _) =
   in ≈-U Aσ≈Bσ u , transp (λ x → x) (≈-el Aσ≈Bσ u (subst σ a)) elU
 
 consistency : ∀ {b k} → ∙ ⊢ b ⦂ mty # k → ⊥
-consistency tb with b , elb ← soundness {σ = var} ∙̂  tt tb = empty b elb
+consistency tb with b , elb ← soundness {σ = var} ∙̂  tt tb = empty b elb 
