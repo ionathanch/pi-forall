@@ -45,14 +45,14 @@ soundness v emV (⊢var ⊢Γ (lt j<k) where?) =
   let u , elU = soundVar v emV where?
   in cumU j<k u , cumEl j<k u elU
 soundness v emV (⊢∗ ⊢Γ) = Û , Û
-soundness {σ} v emV (⊢Π {B = b} {k = k} j<k tA tB) with acc< f ← wf k =
+soundness {σ} v emV (⊢Π {B = B} {k = k} j<k tA tB) with acc< f ← wf k =
   let u , elU = soundness v emV tA
   in Û , Π̂ _ j<k _ (accU' (wf _) (f j<k) (el-U u elU)) _
      (λ x elA →
       let u , elU = soundness {σ = x +: σ}
             (∷̂  v (λ σ emV → let u , elU = soundness v emV tA in el-U u elU))
             (emV , transp (λ x → x) (accEl' (wf _) (f j<k) (el-U u elU)) elA) tB
-      in accU' (wf _) (acc< f) (transp (U _) (substUnion σ x b) (el-U u elU)))
+      in accU' (wf k) (acc< f) (transp (U k) (substUnion σ x B) (el-U u elU)))
 soundness {σ} v emV (⊢λᵈ {B = B} {b = b} {k = k} j<k tA tb) with acc< f ← wf k =
   let u , elU = soundness v emV tA
   in Π̂ _ j<k _ (accU' (wf _) (f j<k) (el-U u elU)) _
@@ -71,17 +71,17 @@ soundness {σ} v emV (⊢λᵈ {B = B} {b = b} {k = k} j<k tA tb) with acc< f �
       in transp (λ x → x) (sym (accEl' (wf k) (acc< f) uB')) elB'')
 soundness {σ} v emV (⊢$ᵈ {j = j} {B = B} {b = b} {a = a} {k = k} j<k tb ta)
   with acc< f ← wf k | acc< g ← wf j =
-  let Ub , elb = soundness v emV tb
-      Ua , ela = soundness v emV ta
-      j<k , UA , UB = invΠ-U (wf k) Ub
-      p : el j (subst σ a) Ua ≡ el< (wf k) j<k (subst σ a) UA
+  let ub , elb = soundness v emV tb
+      ua , ela = soundness v emV ta
+      j<k , uA , uB = invΠ-U (wf k) ub
+      p : el j (subst σ a) ua ≡ el< (wf k) j<k (subst σ a) uA
       p = begin
-        el j (subst σ a) Ua
-          ≡⟨ elProp' (wf j) (f j<k) Ua (accU< (wf k) (acc< f) j<k UA) ⟩
-        _ ≡⟨ accEl< (wf k) (acc< f) j<k UA ⟩
-        el< (wf k) j<k (subst σ a) UA ∎
-      UB' = UB (subst σ a) (transp (λ x → x) p ela)
-      elb' = invΠ-el (wf k) Ub (subst σ b) elb (subst σ a) (transp (λ x → x) p ela)
+        el j (subst σ a) ua
+          ≡⟨ elProp' (wf j) (f j<k) ua (accU< (wf k) (acc< f) j<k uA) ⟩
+        _ ≡⟨ accEl< (wf k) (acc< f) j<k uA ⟩
+        el< (wf k) j<k (subst σ a) uA ∎
+      uB' = uB (subst σ a) (transp (λ x → x) p ela)
+      elb' = invΠ-el (wf k) ub (subst σ b) elb (subst σ a) (transp (λ x → x) p ela)
       q : subst (subst σ a +: var) (subst (↑ σ) B) ≡ subst σ (subst (a +: var) B)
       q = begin
         subst (subst σ a +: var) (subst (↑ σ) B)
@@ -89,9 +89,9 @@ soundness {σ} v emV (⊢$ᵈ {j = j} {B = B} {b = b} {a = a} {k = k} j<k tb ta)
         subst (subst σ a +: σ) B
           ≡⟨ substDist σ a B ⟩
         (subst σ ∘ subst (a +: var)) B ∎
-      UB'' = transp (U k) q UB'
-      elb'' = transp (λ x → x) (el≡ q UB' ($ᵈ (subst σ b) (subst σ a))) elb'
-  in accU' (wf k) (acc< f) UB'' , transp (λ x → x) (sym (accEl' (wf k) (acc< f) UB'')) elb''
+      uB'' = transp (U k) q uB'
+      elb'' = transp (λ x → x) (el≡ q uB' ($ᵈ (subst σ b) (subst σ a))) elb'
+  in accU' (wf k) (acc< f) uB'' , transp (λ x → x) (sym (accEl' (wf k) (acc< f) uB'')) elb''
 soundness {σ} v emV (⊢abs {A = A} {b = b} tA tb)
   with () ← (let b , elb = soundness v emV tb in empty b elb)
 soundness v emV (⊢mty ⊢Γ) = Û , ⊥̂
