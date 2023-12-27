@@ -136,17 +136,6 @@ subst σ ($ᵈ b a) = $ᵈ (subst σ b) (subst σ a)
 subst σ mty = mty
 subst σ (abs b) = abs (subst σ b)
 
--- Applying var "substitution" does nothing
-private -- use substId'
-  substId : ∀ σ → (∀ x → σ x ≡ var x) → ∀ s → subst σ s ≡ s
-  substId σ h (var s) = h s
-  substId σ h ∗ = refl
-  substId σ h (Π A j B) = congΠ (substId σ h A) refl (substId (↑ σ) (↑id σ h) B)
-  substId σ h (λᵈ b) = cong λᵈ (substId (↑ σ) (↑id σ h) b)
-  substId σ h ($ᵈ b a) = cong$ᵈ (substId σ h b) (substId σ h a)
-  substId σ h mty = refl
-  substId σ h (abs b) = cong abs (substId σ h b)
-
 -- Substitution extensionality
 substExt : ∀ σ τ → (∀ x → σ x ≡ τ x) → ∀ s → subst σ s ≡ subst τ s
 substExt σ τ h (var s) = h s
@@ -157,8 +146,20 @@ substExt σ τ h ($ᵈ b a) = cong$ᵈ (substExt σ τ h b) (substExt σ τ h a)
 substExt σ τ h mty = refl
 substExt σ τ h (abs b) = cong abs (substExt σ τ h b)
 
--- Renaming is a substitution
-private -- use substVar'
+-- Substitution lemmas, strengthened to go under binders,
+-- defined privately; use primed definitions below instead
+private
+  -- Applying var "substitution" does nothing
+  substId : ∀ σ → (∀ x → σ x ≡ var x) → ∀ s → subst σ s ≡ s
+  substId σ h (var s) = h s
+  substId σ h ∗ = refl
+  substId σ h (Π A j B) = congΠ (substId σ h A) refl (substId (↑ σ) (↑id σ h) B)
+  substId σ h (λᵈ b) = cong λᵈ (substId (↑ σ) (↑id σ h) b)
+  substId σ h ($ᵈ b a) = cong$ᵈ (substId σ h b) (substId σ h a)
+  substId σ h mty = refl
+  substId σ h (abs b) = cong abs (substId σ h b)
+
+  -- Renaming is a substitution
   substVar : ∀ ξ σ → (∀ x → (var ∘ ξ) x ≡ σ x) → ∀ s → rename ξ s ≡ subst σ s
   substVar ξ σ h (var s) = h s
   substVar ξ σ h ∗ = refl
@@ -168,8 +169,7 @@ private -- use substVar'
   substVar ξ σ h mty = refl
   substVar ξ σ h (abs b) = cong abs (substVar ξ σ h b)
 
--- Substitution/renaming compositionality
-private -- use substRename'
+  -- Substitution/renaming compositionality
   substRename : ∀ ξ (σ τ : ℕ → Term) → (∀ x → (σ ∘ ξ) x ≡ τ x) → ∀ s → subst σ (rename ξ s) ≡ subst τ s
   substRename ξ σ τ h (var s) = h s
   substRename ξ σ τ h ∗ = refl
@@ -179,8 +179,7 @@ private -- use substRename'
   substRename ξ σ τ h mty = refl
   substRename ξ σ τ h (abs b) = cong abs (substRename ξ σ τ h b)
 
--- Renaming/substitution compositionality
-private -- use renameSubst'
+  -- Renaming/substitution compositionality
   renameSubst : ∀ ξ σ τ → (∀ x → (rename ξ ∘ σ) x ≡ τ x) → ∀ s → rename ξ (subst σ s) ≡ subst τ s
   renameSubst ξ σ τ h (var s) = h s
   renameSubst ξ σ τ h ∗ = refl
@@ -190,19 +189,18 @@ private -- use renameSubst'
   renameSubst ξ σ τ h mty = refl
   renameSubst ξ σ τ h (abs b) = cong abs (renameSubst ξ σ τ h b)
 
--- Lifting commutes with substitution
-↑subst : ∀ ρ σ τ → (∀ x → (subst ρ ∘ σ) x ≡ τ x) → ∀ x → (subst (↑ ρ) ∘ (↑ σ)) x ≡ (↑ τ) x
-↑subst ρ σ τ h zero = refl
-↑subst ρ σ τ h (suc n) = begin
-  (subst (↑ ρ) ∘ rename suc) (σ n) ≡⟨ substRename suc (↑ ρ) (↑ ρ ∘ suc) (λ _ → refl) (σ n) ⟩
-  subst (↑ ρ ∘ suc) (σ n)          ≡⟨⟩
-  subst (rename suc ∘ ρ) (σ n)     ≡⟨ sym (renameSubst suc ρ (rename suc ∘ ρ) (λ _ → refl) (σ n)) ⟩
-  (rename suc ∘ subst ρ) (σ n)     ≡⟨⟩
-  rename suc (subst ρ (σ n))       ≡⟨ cong (rename suc) (h n) ⟩
-  rename suc (τ n) ∎
+  -- Lifting commutes with substitution
+  ↑subst : ∀ ρ σ τ → (∀ x → (subst ρ ∘ σ) x ≡ τ x) → ∀ x → (subst (↑ ρ) ∘ (↑ σ)) x ≡ (↑ τ) x
+  ↑subst ρ σ τ h zero = refl
+  ↑subst ρ σ τ h (suc n) = begin
+    (subst (↑ ρ) ∘ rename suc) (σ n) ≡⟨ substRename suc (↑ ρ) (↑ ρ ∘ suc) (λ _ → refl) (σ n) ⟩
+    subst (↑ ρ ∘ suc) (σ n)          ≡⟨⟩
+    subst (rename suc ∘ ρ) (σ n)     ≡⟨ sym (renameSubst suc ρ (rename suc ∘ ρ) (λ _ → refl) (σ n)) ⟩
+    (rename suc ∘ subst ρ) (σ n)     ≡⟨⟩
+    rename suc (subst ρ (σ n))       ≡⟨ cong (rename suc) (h n) ⟩
+    rename suc (τ n) ∎
 
--- Substitution compositionality
-private -- use subst∘'
+  -- Substitution compositionality
   subst∘ : ∀ ρ σ τ → (∀ x → (subst ρ ∘ σ) x ≡ τ x) → ∀ s → (subst ρ ∘ subst σ) s ≡ subst τ s
   subst∘ ρ σ τ h (var s) = h s
   subst∘ ρ σ τ h ∗ = refl
