@@ -153,6 +153,7 @@ invΠ-U acc@(acc< f) (⇒̂  (Π a j b) (Π a' j b') (⇒-Π a⇒a' b⇒b') u) =
   let j<k , A' , B' = invΠ-U acc u
   in j<k , ⇒̂  a a' a⇒a' A' , λ x elA → ⇒̂  _ _ (⇒-cong (⇒-refl x) b⇒b') (B' x elA)
 
+-- Inversion on semantic functions
 invΠ-el : ∀ {a j b k} (acc : Acc k) (u : U' k (U< acc) (el< acc) (Π a j b)) f →
           el' k (U< acc) (el< acc) f u →
           let j<k , A , B = invΠ-U acc u in
