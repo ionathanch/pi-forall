@@ -19,13 +19,13 @@ open semantics Level _<_ trans< wf
 soundVar : ∀ {σ Γ x A k} (v : V Γ) → em σ v → x ⦂ A # k ∈ Γ → Σ[ u ∈ U k (subst σ A) ] el k (subst σ (var x)) u
 soundVar {σ} (∷̂  v u) (emV , elU) (here {A = A}) =
   let p : subst σ (rename suc A) ≡ subst (σ ∘ suc) A
-      p = substRename' suc σ A
+      p = substRename suc σ A
   in transp (U _) (sym p) (u (σ ∘ suc) emV) ,
      coe (el≡ (sym p) (u (σ ∘ suc) emV) (σ 0)) elU
 soundVar {σ} (∷̂  v _) (emV , _) (there {x = x} {A = A} where?) =
   let u , elU = soundVar v emV where?
       p : subst σ (rename suc A) ≡ subst (σ ∘ suc) A
-      p = substRename' suc σ A
+      p = substRename suc σ A
   in transp (U _) (sym p) u ,
      coe (el≡ (sym p) u (subst σ (var (suc x)))) elU
 

@@ -104,7 +104,7 @@ cumEl' accj acck j<k (⇒̂  a b a⇒b B) elB = cumEl' accj acck j<k B elB
 {-------------------------------------------------
   We tie the knot by instantiating accessibility
   in U< and el< by well-foundedness of levels
------------------------------------------------}
+-------------------------------------------------}
 
 U : ∀ k → Term → Set
 U k T = U' k (U< (wf k)) (el< (wf k)) T
@@ -191,12 +191,12 @@ invΠ-el acc@(acc< _) (⇒̂  (Π a j b) (Π a' j b') (⇒-Π a⇒a' b⇒b') u) 
 ⇒⋆-el : ∀ {k a b A} (u : U k A) → a ⇒⋆ b → el k b u → el k a u
 ⇒⋆-el {k} with acc< f ← wf k = ⇒⋆-el' (acc< f)
 
-{-----------------------------------
+{----------------------------------
   Subject reduction of U and el:
   If a ⇒ b and U k a then U k b,
   and the interpretations of both
-  contain exactly the same terms.
------------------------------------}
+  contain exactly the same terms
+----------------------------------}
 
 SRU'  : ∀ {k} (acc : Acc k) {a b} →
        a ⇒ b → U' k (U< acc) (el< acc) a → U' k (U< acc) (el< acc) b

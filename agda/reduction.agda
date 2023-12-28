@@ -50,9 +50,9 @@ data _⇒_ : Term → Term → Set where
   h = ⇒-β (⇒-rename (lift ξ) b⇒b') (⇒-rename ξ a⇒a')
   p : subst (rename ξ a' +: var) (rename (lift ξ) b') ≡ rename ξ (subst (a' +: var) b')
   p = begin
-    subst (rename ξ a' +: var) (rename (lift ξ) b')   ≡⟨ substRename' (lift ξ) (rename ξ a' +: var) b' ⟩
+    subst (rename ξ a' +: var) (rename (lift ξ) b')   ≡⟨ substRename (lift ξ) (rename ξ a' +: var) b' ⟩
     subst ((rename ξ a' +: var) ∘ (lift ξ)) b'        ≡⟨ sym (substExt _ _ (renameLift ξ a') b') ⟩
-    subst (rename ξ ∘ (a' +: var)) b'                 ≡⟨ sym (renameSubst' ξ (a' +: var) b') ⟩
+    subst (rename ξ ∘ (a' +: var)) b'                 ≡⟨ sym (renameSubst ξ (a' +: var) b') ⟩
     rename ξ (subst (a' +: var) b') ∎
 ⇒-rename ξ (⇒-var s) = ⇒-var (ξ s)
 ⇒-rename ξ ⇒-∗ = ⇒-∗
@@ -73,14 +73,14 @@ data _⇒_ : Term → Term → Set where
   p : ∀ x → (subst (subst τ a' +: var) ∘ ↑ τ) x ≡ (subst τ ∘ (a' +: var)) x
   p zero = refl
   p (suc n) = begin
-    (subst (subst τ a' +: var) ∘ rename suc) (τ n) ≡⟨ substRename' suc (subst τ a' +: var) (τ n) ⟩
-    subst var (τ n)                                ≡⟨ substId' (τ n) ⟩
+    (subst (subst τ a' +: var) ∘ rename suc) (τ n) ≡⟨ substRename suc (subst τ a' +: var) (τ n) ⟩
+    subst var (τ n)                                ≡⟨ substId (τ n) ⟩
     τ n ∎
   q : subst (subst τ a' +: var) (subst (↑ τ) b')   ≡ subst τ (subst (a' +: var) b')
   q = begin
-    subst (subst τ a' +: var) (subst (↑ τ) b')     ≡⟨ subst∘' _ _ b' ⟩
+    subst (subst τ a' +: var) (subst (↑ τ) b')     ≡⟨ subst∘ _ _ b' ⟩
     subst (subst (subst τ a' +: var) ∘ (↑ τ)) b'   ≡⟨ substExt _ _ p b' ⟩
-    subst (subst τ ∘ (a' +: var)) b'               ≡⟨ sym (subst∘' _ _ b') ⟩
+    subst (subst τ ∘ (a' +: var)) b'               ≡⟨ sym (subst∘ _ _ b') ⟩
     subst τ (subst (a' +: var) b') ∎
 ⇒-morphing σ τ r (⇒-var s) = r s
 ⇒-morphing σ τ r ⇒-∗ = ⇒-∗
@@ -140,9 +140,9 @@ data _⇒⋆_ : Term → Term → Set where
   let a'' , b'' , p , a'⇒⋆a'' , b'⇒⋆b'' = ⇒⋆-Π-inv r*
   in a'' , b'' , p , ⇒⋆-trans a⇒a' a'⇒⋆a'' , ⇒⋆-trans b⇒b' b'⇒⋆b''
 
-⇒⋆-β : ∀ σ b a → ($ᵈ (λᵈ (subst (var 0 +: (rename suc ∘ σ)) b)) a) ⇒⋆ (subst (a +: σ) b)
+⇒⋆-β : ∀ σ b a → ($ᵈ (λᵈ (subst (↑ σ) b)) a) ⇒⋆ (subst (a +: σ) b)
 ⇒⋆-β σ b a = ⇒⋆-trans (⇒-β (⇒-refl _) (⇒-refl _))
-                     (transp (_⇒⋆ subst (a +: σ) b) (substUnion σ a b) (⇒⋆-refl _))
+                      (transp (_⇒⋆ subst (a +: σ) b) (substUnion σ a b) (⇒⋆-refl _))
 
 {----------------------------------
   Confluence via diamond property
