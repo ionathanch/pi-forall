@@ -71,9 +71,9 @@ soundness {σ} v emV (⊢$ᵈ {j = j} {B = B} {b = b} {a = a} {k = k} j<k tb ta)
       uB'' = transp (U k) (substDist σ a B) uB'
       elb'' = coe (el≡ (substDist σ a B) uB' ($ᵈ (subst σ b) (subst σ a))) elb'
   in accU' (wf k) (acc< f) uB'' , coe (sym (accEl' (wf k) (acc< f) uB'')) elb''
+soundness v emV (⊢mty ⊢Γ) = Û , ⊥̂
 soundness {σ} v emV (⊢abs {A = A} {b = b} tA tb)
   with () ← (let b , elb = soundness v emV tb in empty b elb)
-soundness v emV (⊢mty ⊢Γ) = Û , ⊥̂
 soundness {σ} v emV (⊢≈ {a = a} A≈B ta _) =
   let u , elU = soundness v emV ta
       Aσ≈Bσ = ≈-subst σ A≈B
