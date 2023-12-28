@@ -14,6 +14,7 @@ open Acc
 WF : Set
 WF = ∀ k → Acc k
 
-import funext
-accProp : ∀ {k} (p q : Acc k) → p ≡ q
-accProp (acc< f) (acc< g) = let open funext in cong acc< (funext' (λ j → funext (λ j<k → accProp (f j<k) (g j<k))))
+module accext where
+  accProp : ∀ {k} (p q : Acc k) → p ≡ q
+  accProp (acc< f) (acc< g) = cong acc< (funext' (λ j → funext (λ j<k → accProp (f j<k) (g j<k))))
+    where open funext

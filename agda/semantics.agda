@@ -57,11 +57,11 @@ el< (acc< f) {j} j<k t = el' j (U< (f j<k)) (el< (f j<k)) t
 -------------------------------------------}
 
 accU' : ∀ {k} (acc₁ acc₂ : Acc k) {T} → U' k (U< acc₁) (el< acc₁) T → U' k (U< acc₂) (el< acc₂) T
-accU' {k} acc₁ acc₂ {T} u with refl ← accProp acc₁ acc₂ = u
+accU' {k} acc₁ acc₂ {T} u with refl ← (let open accext in accProp acc₁ acc₂) = u
 
 accEl' : ∀ {k} (acc₁ acc₂ : Acc k) {t T} (A : U' k (U< acc₁) (el< acc₁) T) →
          el' k (U< acc₂) (el< acc₂) t (accU' acc₁ acc₂ A) ≡ el' k (U< acc₁) (el< acc₁) t A
-accEl' {k} acc₁ acc₂ {t} {T} A with refl ← accProp acc₁ acc₂ = refl
+accEl' {k} acc₁ acc₂ {t} {T} A with refl ← (let open accext in accProp acc₁ acc₂) = refl
 
 -- Proofs of accessibility are irrelevant across instantiated U<
 accU< : ∀ {j k} (acc₁ acc₂ : Acc k) (j<k : j < k) {T} → U< acc₁ j<k T → U< acc₂ j<k T
@@ -204,6 +204,12 @@ SRU'  : ∀ {k} (acc : Acc k) {a b} →
 SRel' : ∀ {k} (acc : Acc k) {a b} →
        (a⇒b : a ⇒ b) → (u : U' k (U< acc) (el< acc) a) →
        ∀ t → el' k (U< acc) (el< acc) t u ≡ el' k (U< acc) (el< acc) t (SRU' acc a⇒b u)
+-- I imagine that instead of an equality, you merely need an isomorphism,
+-- i.e. (l , r) : el k t u ↔ el k t (SRU a⇒b u) s.t. l ∘ r ≡ id × r ∘ l ≡ id,
+-- but because the function case requires the sym of SRel',
+-- both functions and both equalities need to be defined mutually,
+-- which is a mess and can lead to termination issues;
+-- using function extensionality, while unnecessary, is a lot more convenient
 
 -- This case needs to be first so it reduces in the type of SRel'!
 -- Otherwise Agda will refuse since it doesn't match on a⇒b
@@ -218,14 +224,13 @@ SRU' acc@(acc< f) (⇒-Π {a' = a'} {b' = b'} a⇒a' b⇒b') (Π̂ i i<j a A b B
     b' (λ x elA → SRU' acc (⇒-cong (⇒-refl x) b⇒b')
          (B x (coe (sym (SRel' (f i<j) a⇒a' A x)) elA)))
 
-import funext
 SRel' (acc< _) ⇒-∗ Û _ = refl
 SRel' (acc< _) ⇒-mty ⊥̂ _ = refl
 SRel' acc@(acc< f) (⇒-Π a⇒a' b⇒b') (Π̂ i i<j a A b B) h =
-  let open funext in
   cong-fun refl (λ x →
     cong-fun (SRel' (f i<j) a⇒a' A x)
              (λ elA → SRel' acc (⇒-cong (⇒-refl x) b⇒b') (B x elA) ($ᵈ h x)))
+  where open funext
 SRel' acc@(acc< _)a⇒b (⇒̂  a c a⇒c C) x =
   let d , b⇒d , c⇒d = diamond a⇒b a⇒c
   in SRel' acc c⇒d C x
@@ -262,8 +267,8 @@ elProp : ∀ {k a A₁ A₂} (acc₁ acc₂ : Acc k)
          (u₁ : U' k (U< acc₁) (el< acc₁) A₁)
          (u₂ : U' k (U< acc₂) (el< acc₂) A₂) → A₁ ≈ A₂ →
          el' k (U< acc₁) (el< acc₁) a u₁ → el' k (U< acc₂) (el< acc₂) a u₂
-elProp acc₁ acc₂ Û Û _ x with refl ← accProp acc₁ acc₂ = x
-elProp acc₁ acc₂ ⊥̂ ⊥̂ _ x with refl ← accProp acc₁ acc₂ = x
+elProp acc₁ acc₂ Û Û _ = accU' acc₁ acc₂
+elProp acc₁ acc₂ ⊥̂ ⊥̂ _ ()
 elProp acc₁@(acc< f) acc₂@(acc< g) (Π̂ j₁ j<k₁ a₁ A₁ b₁ B₁) (Π̂ j₂ j<k₂ a₂ A₂ b₂ B₂) Πab₁≈Πab₂ =
   let a₁≈a₂ , j₁≡j₂ , b₁≈b₂ = ≈-Π-inv Πab₁≈Πab₂ in helper a₁≈a₂ j₁≡j₂ b₁≈b₂ where
     helper : a₁ ≈ a₂ → j₁ ≡ j₂ → b₁ ≈ b₂ →
