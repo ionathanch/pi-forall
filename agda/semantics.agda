@@ -1,14 +1,7 @@
-open import Data.Empty
-open import Agda.Builtin.Unit
-open import Agda.Builtin.Nat
-open import Data.Product.Base
-open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_ ; refl ; sym ; trans)
-  renaming (subst to transp)
+open import common
 import accessibility
 import syntactics
 import reduction
-import funext
 
 module semantics
   (Level : Set)
@@ -95,7 +88,7 @@ cumU' _ _ _ ⊥̂  = ⊥̂
 cumU' accj@(acc< f) acck@(acc< g) j<k (Π̂ i i<j a A b B) =
   Π̂ i (trans< i<j j<k)
     a (accU' (f i<j) (g (trans< i<j j<k)) A)
-    b (λ x a → cumU' accj acck j<k (B x (transp (λ x → x) (accEl' (f i<j) (g (trans< i<j j<k)) A) a)))
+    b (λ x a → cumU' accj acck j<k (B x (coe (accEl' (f i<j) (g (trans< i<j j<k)) A) a)))
 cumU' accj acck j<k (⇒̂  a b a⇒b B) = ⇒̂  a b a⇒b (cumU' accj acck j<k B)
 
 -- el' is cumulative
@@ -104,7 +97,7 @@ cumEl' : ∀ {j k} (accj : Acc j) (acck : Acc k) (j<k : j < k) {t T : Term} (u :
 cumEl' accj acck j<k Û = cumU' accj acck j<k
 cumEl' _ _ _ ⊥̂  = λ b → b
 cumEl' accj@(acc< f) acck@(acc< g) j<k (Π̂ i i<j a A b B) elB x elA =
-  let a' = transp (λ x → x) (accEl' (f i<j) (g (trans< i<j j<k)) A) elA
+  let a' = coe (accEl' (f i<j) (g (trans< i<j j<k)) A) elA
   in cumEl' accj acck j<k (B x a') (elB x a')
 cumEl' accj acck j<k (⇒̂  a b a⇒b B) elB = cumEl' accj acck j<k B elB
 
@@ -223,8 +216,9 @@ SRU' acc@(acc< f) (⇒-Π {a' = a'} {b' = b'} a⇒a' b⇒b') (Π̂ i i<j a A b B
   Π̂ i i<j
     a' (SRU' (f i<j) a⇒a' A)
     b' (λ x elA → SRU' acc (⇒-cong (⇒-refl x) b⇒b')
-         (B x (transp (λ x → x) (sym (SRel' (f i<j) a⇒a' A x)) elA)))
+         (B x (coe (sym (SRel' (f i<j) a⇒a' A x)) elA)))
 
+import funext
 SRel' (acc< _) ⇒-∗ Û _ = refl
 SRel' (acc< _) ⇒-mty ⊥̂ _ = refl
 SRel' acc@(acc< f) (⇒-Π a⇒a' b⇒b') (Π̂ i i<j a A b B) h =
@@ -267,17 +261,16 @@ SRel* (⇒⋆-trans a⇒b b⇒⋆c) u t = trans (SRel a⇒b u t) (SRel* b⇒⋆c
 elProp : ∀ {k a A₁ A₂} (acc₁ acc₂ : Acc k)
          (u₁ : U' k (U< acc₁) (el< acc₁) A₁)
          (u₂ : U' k (U< acc₂) (el< acc₂) A₂) → A₁ ≈ A₂ →
-         el' k (U< acc₁) (el< acc₁) a u₁ ≡ el' k (U< acc₂) (el< acc₂) a u₂
-elProp acc₁ acc₂ Û Û _ with refl ← accProp acc₁ acc₂ = refl
-elProp acc₁ acc₂ ⊥̂ ⊥̂ _ with refl ← accProp acc₁ acc₂ = refl
+         el' k (U< acc₁) (el< acc₁) a u₁ → el' k (U< acc₂) (el< acc₂) a u₂
+elProp acc₁ acc₂ Û Û _ x with refl ← accProp acc₁ acc₂ = x
+elProp acc₁ acc₂ ⊥̂ ⊥̂ _ x with refl ← accProp acc₁ acc₂ = x
 elProp acc₁@(acc< f) acc₂@(acc< g) (Π̂ j₁ j<k₁ a₁ A₁ b₁ B₁) (Π̂ j₂ j<k₂ a₂ A₂ b₂ B₂) Πab₁≈Πab₂ =
   let a₁≈a₂ , j₁≡j₂ , b₁≈b₂ = ≈-Π-inv Πab₁≈Πab₂ in helper a₁≈a₂ j₁≡j₂ b₁≈b₂ where
     helper : a₁ ≈ a₂ → j₁ ≡ j₂ → b₁ ≈ b₂ →
-      el' _ _ _ _ (Π̂ j₁ j<k₁ a₁ A₁ b₁ B₁) ≡ el' _ _ _ _ (Π̂ j₂ j<k₂ a₂ A₂ b₂ B₂)
-    helper a₁≈a₂ refl b₁≈b₂ = let open funext in
-      cong-fun' refl (λ x → cong-fun'
-        (elProp (f j<k₁) (g j<k₂) A₁ A₂ a₁≈a₂)
-        (λ elA → elProp acc₁ acc₂ (B₁ x elA) (B₂ x _) (≈-cong (≈-refl x) b₁≈b₂)))
+      el' _ _ _ _ (Π̂ j₁ j<k₁ a₁ A₁ b₁ B₁) → el' _ _ _ _ (Π̂ j₂ j<k₂ a₂ A₂ b₂ B₂)
+    helper a₁≈a₂ refl b₁≈b₂ elf x ela =
+      let ela' = elProp (g j<k₂) (f j<k₁) A₂ A₁ (≈-sym a₁≈a₂) ela
+      in elProp acc₁ acc₂ (B₁ x ela') (B₂ x ela) (≈-cong (≈-refl x) b₁≈b₂) (elf x ela')
 elProp acc₁ acc₂ (⇒̂  a₁ a₂ a₁⇒a₂ u₁) u₂ a₁≈a₃ =
   elProp acc₁ acc₂ u₁ u₂ (≈-trans (≈-sym (⇒-≈ a₁⇒a₂)) a₁≈a₃)
 elProp acc₁ acc₂ u₁ (⇒̂  a₂ a₃ a₂⇒a₃ u₂) a₁≈a₂ =
@@ -292,7 +285,7 @@ elProp _ _ (Π̂ _ _ _ _ _ _) ⊥̂ Π≈mty with () ← ≉⋆-mtyΠ (≈-sym
 elProp' : ∀ {k a A} (acc₁ acc₂ : Acc k)
          (u₁ : U' k (U< acc₁) (el< acc₁) A) →
          (u₂ : U' k (U< acc₂) (el< acc₂) A) →
-         el' k (U< acc₁) (el< acc₁) a u₁ ≡ el' k (U< acc₂) (el< acc₂) a u₂
+         el' k (U< acc₁) (el< acc₁) a u₁ → el' k (U< acc₂) (el< acc₂) a u₂
 elProp' acc₁ acc₂ u₁ u₂ = elProp acc₁ acc₂ u₁ u₂ (≈-refl _)
 
 {-----------------------------------------

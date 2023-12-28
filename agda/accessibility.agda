@@ -1,5 +1,4 @@
-open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_ ; refl ; cong)
+open import common
 
 module accessibility
   (Level : Set)

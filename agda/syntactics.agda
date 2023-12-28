@@ -1,11 +1,4 @@
-open import Agda.Builtin.Nat renaming (Nat to ℕ)
-open import Data.Product.Base
-open import Relation.Binary.PropositionalEquality
-  using (_≡_ ; refl ; sym ; cong)
-  renaming (subst to transp)
-open import Relation.Binary.PropositionalEquality.Properties
-  using (module ≡-Reasoning)
-open ≡-Reasoning
+open import common
 
 module syntactics (Level : Set) where
 
@@ -13,12 +6,8 @@ variable
   A B C : Set
   P : A → Set
 
-infix 20 _∘_
-_∘_ : (B → C) → (A → B) → A → C
-f ∘ g = λ x → f (g x)
-
 infix 10 _+:_
-_+:_ : A → (ℕ → A) → ℕ → A
+_+:_ : A → (Nat → A) → Nat → A
 (x +: ξ) zero = x
 (x +: ξ) (suc n) = ξ n
 
@@ -27,7 +16,7 @@ _+:_ : A → (ℕ → A) → ℕ → A
 -----------------------}
 
 data Term : Set where
-  var : ℕ → Term
+  var : Nat → Term
   ∗ : Term
   Π : Term → Level → Term → Term
   λᵈ : Term → Term
@@ -48,7 +37,7 @@ cong$ᵈ refl refl = refl
   Lifting renamings
 ---------------------}
 
-lift : (ℕ → ℕ) → ℕ → ℕ
+lift : (Nat → Nat) → Nat → Nat
 lift ξ = 0 +: (suc ∘ ξ)
 
 -- Lifting composes
@@ -60,7 +49,7 @@ lift∘ ξ ζ ρ h (suc n) = cong suc (h n)
   Applying renamings
 ---------------------}
 
-rename : (ℕ → ℕ) → Term → Term
+rename : (Nat → Nat) → Term → Term
 rename ξ (var s) = var (ξ s)
 rename ξ ∗ = ∗
 rename ξ (Π A j B) = Π (rename ξ A) j (rename (lift ξ) B)
@@ -89,7 +78,7 @@ renameLift ξ a (suc n) = refl
 ------------------------}
 
 infix 30 ↑_
-↑_ : (ℕ → Term) → ℕ → Term
+↑_ : (Nat → Term) → Nat → Term
 ↑ σ = var 0 +: (rename suc ∘ σ)
 
 -- Lifting var "substitution" does nothing
@@ -127,7 +116,7 @@ infix 30 ↑_
   Applying substitutions
 -------------------------}
 
-subst : (ℕ → Term) → Term → Term
+subst : (Nat → Term) → Term → Term
 subst σ (var s) = σ s
 subst σ ∗ = ∗
 subst σ (Π A j B) = Π (subst σ A) j (subst (↑ σ) B)
@@ -170,7 +159,7 @@ private
   substVar ξ σ h (abs b) = cong abs (substVar ξ σ h b)
 
   -- Substitution/renaming compositionality
-  substRename : ∀ ξ (σ τ : ℕ → Term) → (∀ x → (σ ∘ ξ) x ≡ τ x) → ∀ s → subst σ (rename ξ s) ≡ subst τ s
+  substRename : ∀ ξ (σ τ : Nat → Term) → (∀ x → (σ ∘ ξ) x ≡ τ x) → ∀ s → subst σ (rename ξ s) ≡ subst τ s
   substRename ξ σ τ h (var s) = h s
   substRename ξ σ τ h ∗ = refl
   substRename ξ σ τ h (Π A j B) = congΠ (substRename ξ σ τ h A) refl (substRename (lift ξ) (↑ σ) (↑ τ) (↑lift ξ σ τ h) B)
@@ -234,7 +223,7 @@ subst∘' σ τ = subst∘ σ τ (subst σ ∘ τ) (λ _ → refl)
   Handy dandy derived substitution lemmas
 ------------------------------------------}
 
-substDrop : ∀ (σ : ℕ → Term) a n → σ n ≡ subst (a +: var) (rename suc (σ n))
+substDrop : ∀ (σ : Nat → Term) a n → σ n ≡ subst (a +: var) (rename suc (σ n))
 substDrop σ a n = begin
   σ n ≡⟨ sym (substId var (λ _ → refl) (σ n)) ⟩
   subst var (σ n) ≡⟨ sym (substRename suc (a +: var) ((a +: var) ∘ suc) (λ _ → refl) (σ n)) ⟩
@@ -243,8 +232,8 @@ substDrop σ a n = begin
 substUnion : ∀ σ a s → subst (a +: σ) s ≡ subst (a +: var) (subst (↑ σ) s)
 substUnion σ a s = begin
   subst (a +: σ) s                                       ≡⟨ substExt _ _ (λ {zero → refl ; (suc n) → substDrop σ a n}) s ⟩
-  subst (subst (a +: var) ∘ (var 0 +: rename suc ∘ σ)) s ≡⟨ sym (subst∘' (a +: var) (↑ σ) s) ⟩
-  (subst (a +: var) ∘ subst (var 0 +: rename suc ∘ σ)) s ∎
+  subst (subst (a +: var) ∘ (var 0 +: (rename suc ∘ σ))) s ≡⟨ sym (subst∘' (a +: var) (↑ σ) s) ⟩
+  (subst (a +: var) ∘ subst (var 0 +: (rename suc ∘ σ))) s ∎
 
 substDist : ∀ σ a s → subst (subst σ a +: σ) s ≡ subst σ (subst (a +: var) s)
 substDist σ a s = begin
@@ -261,6 +250,6 @@ data Ctxt : Set where
   _∷_#_ : Ctxt → Term → Level → Ctxt
 
 infix 40 _⦂_#_∈_
-data _⦂_#_∈_ : ℕ → Term → Level → Ctxt → Set where
+data _⦂_#_∈_ : Nat → Term → Level → Ctxt → Set where
   here  : ∀ {Γ A k} → 0 ⦂ (rename suc A) # k ∈ (Γ ∷ A # k)
   there : ∀ {Γ x A B k j} → x ⦂ A # k ∈ Γ → suc x ⦂ (rename suc A) # k ∈ (Γ ∷ B # j) 

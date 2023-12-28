@@ -1,12 +1,4 @@
-open import Agda.Builtin.Nat
-open import Data.Empty
-open import Data.Product.Base
-open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_ ; refl ; sym ; trans)
-  renaming (subst to transp)
-open import Relation.Binary.PropositionalEquality.Properties
-  using (module ≡-Reasoning)
-open ≡-Reasoning
+open import common
 import syntactics
 
 module reduction (Level : Set) where
@@ -208,7 +200,7 @@ diacon (⇒⋆-trans a⇒b b⇒⋆c) a⇒d =
     a
   //  \
  b     c  by diacon
-  \\ //  \
+  \\ // \\
     e     d  by confluence
      \\ //
        f

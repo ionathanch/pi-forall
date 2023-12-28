@@ -1,6 +1,3 @@
-open import Agda.Builtin.Nat
-open import Data.Fin.Base hiding (_≤_)
-open import Data.Product.Base
 import syntactics
 import reduction
 

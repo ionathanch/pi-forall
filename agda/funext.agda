@@ -1,5 +1,4 @@
-open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_ ; refl ; subst ; cong ; sym)
+open import common
 
 postulate
   funext' : ∀ {ℓ₁ ℓ₂} {A : Set ℓ₁} {B : A → Set ℓ₂} →
@@ -9,10 +8,10 @@ postulate
 
 cong-fun : ∀ {A A' : Set} {B B' : A → Set} →
   (p : A ≡ A') → (∀ x → B x ≡ B' x) →
-  (∀ x → B x) ≡ (∀ x → B' (subst (λ x → x) (sym p) x))
+  (∀ x → B x) ≡ (∀ x → B' (coe (sym p) x))
 cong-fun refl h = cong (λ B → ∀ x → B x) (funext h)
 
 cong-fun' : ∀ {A A' : Set} {B : A → Set} {B' : A' → Set} →
-  (p : A ≡ A') → (∀ x → B x ≡ B' (subst (λ x → x) p x)) →
+  (p : A ≡ A') → (∀ x → B x ≡ B' (coe p x)) →
   (∀ x → B x) ≡ (∀ x → B' x)
 cong-fun' refl h = cong (λ B → ∀ x → B x) (funext h)
