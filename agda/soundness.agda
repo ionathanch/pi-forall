@@ -64,20 +64,12 @@ soundness {σ} v emV (⊢$ᵈ {j = j} {B = B} {b = b} {a = a} {k = k} j<k tb ta)
   let ub , elb = soundness v emV tb
       ua , ela = soundness v emV ta
       j<k , uA , uB = invΠ-U (wf k) ub
-      ela' : el< (wf k) j<k (subst σ a) uA
       ela' = coe (accEl< (wf k) (acc< f) j<k uA)
                  (elProp' (wf j) (f j<k) ua (accU< (wf k) (acc< f) j<k uA) ela)
       uB' = uB (subst σ a) ela'
       elb' = invΠ-el (wf k) ub (subst σ b) elb (subst σ a) ela'
-      q : subst (subst σ a +: var) (subst (↑ σ) B) ≡ subst σ (subst (a +: var) B)
-      q = begin
-        subst (subst σ a +: var) (subst (↑ σ) B)
-          ≡⟨ sym (substUnion σ (subst σ a) B) ⟩
-        subst (subst σ a +: σ) B
-          ≡⟨ substDist σ a B ⟩
-        (subst σ ∘ subst (a +: var)) B ∎
-      uB'' = transp (U k) q uB'
-      elb'' = coe (el≡ q uB' ($ᵈ (subst σ b) (subst σ a))) elb'
+      uB'' = transp (U k) (substDist σ a B) uB'
+      elb'' = coe (el≡ (substDist σ a B) uB' ($ᵈ (subst σ b) (subst σ a))) elb'
   in accU' (wf k) (acc< f) uB'' , coe (sym (accEl' (wf k) (acc< f) uB'')) elb''
 soundness {σ} v emV (⊢abs {A = A} {b = b} tA tb)
   with () ← (let b , elb = soundness v emV tb in empty b elb)

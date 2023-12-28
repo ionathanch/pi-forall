@@ -216,10 +216,11 @@ substUnion σ a s = begin
   subst (subst (a +: var) ∘ (var 0 +: (rename suc ∘ σ))) s ≡⟨ sym (subst∘ (a +: var) (↑ σ) s) ⟩
   (subst (a +: var) ∘ subst (var 0 +: (rename suc ∘ σ))) s ∎
 
-substDist : ∀ σ a s → subst (subst σ a +: σ) s ≡ subst σ (subst (a +: var) s)
+substDist : ∀ σ a s → subst (subst σ a +: var) (subst (↑ σ) s) ≡ subst σ (subst (a +: var) s)
 substDist σ a s = begin
-  subst (subst σ a +: σ) s       ≡⟨ substExt _ _ (λ {zero → refl ; (suc n) → refl}) s ⟩
-  subst (subst σ ∘ (a +: var)) s ≡⟨ sym (subst∘ σ (a +: var) s) ⟩
+  (subst (subst σ a +: var) ∘ subst (↑ σ)) s ≡⟨ sym (substUnion σ (subst σ a) s) ⟩
+  subst (subst σ a +: σ) s                   ≡⟨ substExt _ _ (λ {zero → refl ; (suc n) → refl}) s ⟩
+  subst (subst σ ∘ (a +: var)) s             ≡⟨ sym (subst∘ σ (a +: var) s) ⟩
   (subst σ ∘ subst (a +: var)) s ∎
 
 {--------------------------

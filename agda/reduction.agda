@@ -67,21 +67,10 @@ data _⇒_ : Term → Term → Set where
 ⇒-lift r (suc n) = ⇒-rename suc (r n)
 
 ⇒-morphing : ∀ {a b} σ τ → (∀ x → σ x ⇒ τ x) → a ⇒ b → subst σ a ⇒ subst τ b
-⇒-morphing σ τ r (⇒-β {b} {b'} {a} {a'} b⇒b' a⇒a') = transp (subst σ ($ᵈ (λᵈ b) a) ⇒_) q h where
+⇒-morphing σ τ r (⇒-β {b} {b'} {a} {a'} b⇒b' a⇒a') =
+  transp (subst σ ($ᵈ (λᵈ b) a) ⇒_) (substDist τ a' b') h where
   h : $ᵈ (λᵈ (subst (↑ σ) b)) (subst σ a) ⇒ subst (subst τ a' +: var) (subst (↑ τ) b')
   h = ⇒-β (⇒-morphing (↑ σ) (↑ τ) (⇒-lift r) b⇒b') (⇒-morphing σ τ r a⇒a')
-  p : ∀ x → (subst (subst τ a' +: var) ∘ ↑ τ) x ≡ (subst τ ∘ (a' +: var)) x
-  p zero = refl
-  p (suc n) = begin
-    (subst (subst τ a' +: var) ∘ rename suc) (τ n) ≡⟨ substRename suc (subst τ a' +: var) (τ n) ⟩
-    subst var (τ n)                                ≡⟨ substId (τ n) ⟩
-    τ n ∎
-  q : subst (subst τ a' +: var) (subst (↑ τ) b')   ≡ subst τ (subst (a' +: var) b')
-  q = begin
-    subst (subst τ a' +: var) (subst (↑ τ) b')     ≡⟨ subst∘ _ _ b' ⟩
-    subst (subst (subst τ a' +: var) ∘ (↑ τ)) b'   ≡⟨ substExt _ _ p b' ⟩
-    subst (subst τ ∘ (a' +: var)) b'               ≡⟨ sym (subst∘ _ _ b') ⟩
-    subst τ (subst (a' +: var) b') ∎
 ⇒-morphing σ τ r (⇒-var s) = r s
 ⇒-morphing σ τ r ⇒-∗ = ⇒-∗
 ⇒-morphing σ τ r (⇒-Π a⇒a' b⇒b') = ⇒-Π (⇒-morphing σ τ r a⇒a') (⇒-morphing (↑ σ) (↑ τ) (⇒-lift r) b⇒b')
