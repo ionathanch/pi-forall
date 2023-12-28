@@ -200,9 +200,16 @@ renameSubst ξ σ = renameSubst' ξ σ (rename ξ ∘ σ) (λ _ → refl)
 subst∘ : ∀ σ τ s → (subst σ ∘ subst τ) s ≡ subst (subst σ ∘ τ) s
 subst∘ σ τ = subst∘' σ τ (subst σ ∘ τ) (λ _ → refl)
 
-{------------------------------------------
-  Handy dandy derived substitution lemmas
-------------------------------------------}
+{---------------------------------------------------
+  Handy dandy derived renaming substitution lemmas
+---------------------------------------------------}
+
+renameDist : ∀ ξ a s → subst (rename ξ a +: var) (rename (lift ξ) s) ≡ rename ξ (subst (a +: var) s)
+renameDist ξ a s = begin
+  subst (rename ξ a +: var) (rename (lift ξ) s) ≡⟨ substRename (lift ξ) (rename ξ a +: var) s ⟩
+  subst ((rename ξ a +: var) ∘ (lift ξ)) s      ≡⟨ sym (substExt _ _ (renameLift ξ a) s) ⟩
+  subst (rename ξ ∘ (a +: var)) s               ≡⟨ sym (renameSubst ξ (a +: var) s) ⟩
+  rename ξ (subst (a +: var) s) ∎
 
 substDrop : ∀ (σ : Nat → Term) a n → σ n ≡ subst (a +: var) (rename suc (σ n))
 substDrop σ a n = begin

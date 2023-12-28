@@ -45,15 +45,10 @@ data _⇒_ : Term → Term → Set where
 ⇒-refl (abs b) = ⇒-abs (⇒-refl b)
 
 ⇒-rename : ∀ {a b} ξ → a ⇒ b → rename ξ a ⇒ rename ξ b
-⇒-rename ξ (⇒-β {b} {b'} {a} {a'} b⇒b' a⇒a') = transp (_ ⇒_) p h where
+⇒-rename ξ (⇒-β {b} {b'} {a} {a'} b⇒b' a⇒a') =
+  transp (_ ⇒_) (renameDist ξ a' b') h where
   h : $ᵈ (λᵈ (rename (lift ξ) b)) (rename ξ a) ⇒ subst (rename ξ a' +: var) (rename (lift ξ) b')
   h = ⇒-β (⇒-rename (lift ξ) b⇒b') (⇒-rename ξ a⇒a')
-  p : subst (rename ξ a' +: var) (rename (lift ξ) b') ≡ rename ξ (subst (a' +: var) b')
-  p = begin
-    subst (rename ξ a' +: var) (rename (lift ξ) b')   ≡⟨ substRename (lift ξ) (rename ξ a' +: var) b' ⟩
-    subst ((rename ξ a' +: var) ∘ (lift ξ)) b'        ≡⟨ sym (substExt _ _ (renameLift ξ a') b') ⟩
-    subst (rename ξ ∘ (a' +: var)) b'                 ≡⟨ sym (renameSubst ξ (a' +: var) b') ⟩
-    rename ξ (subst (a' +: var) b') ∎
 ⇒-rename ξ (⇒-var s) = ⇒-var (ξ s)
 ⇒-rename ξ ⇒-∗ = ⇒-∗
 ⇒-rename ξ (⇒-Π a⇒a' b⇒b') = ⇒-Π (⇒-rename ξ a⇒a') (⇒-rename (lift ξ) b⇒b')
