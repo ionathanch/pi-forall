@@ -50,27 +50,86 @@ el< : ∀ {k} (p : Acc k) {j} (j<k : j < k) → Term → ∀ {T} → U< p j<k T 
 U<  (acc< f) {j} j<k T = U'  j (U< (f j<k)) (el< (f j<k)) T
 el< (acc< f) {j} j<k t = el' j (U< (f j<k)) (el< (f j<k)) t
 
-{-------------------------------------------
-  Proofs of accessibility are irrelevant
-  where applied to U', U< and el', el< are
-  (to isolate direct uses of accProp)
--------------------------------------------}
+-- We tie the knot by instantiating accessibility
+-- in U< and el< by well-foundedness of levels
 
-accU' : ∀ {k} (acc₁ acc₂ : Acc k) {T} → U' k (U< acc₁) (el< acc₁) T → U' k (U< acc₂) (el< acc₂) T
-accU' {k} acc₁ acc₂ {T} u with refl ← (let open accext in accProp acc₁ acc₂) = u
+U : ∀ k → Term → Set
+U k T = U' k (U< (wf k)) (el< (wf k)) T
 
-accEl' : ∀ {k} (acc₁ acc₂ : Acc k) {t T} (A : U' k (U< acc₁) (el< acc₁) T) →
-         el' k (U< acc₂) (el< acc₂) t (accU' acc₁ acc₂ A) ≡ el' k (U< acc₁) (el< acc₁) t A
-accEl' {k} acc₁ acc₂ {t} {T} A with refl ← (let open accext in accProp acc₁ acc₂) = refl
+el : ∀ k → Term → ∀ {T} → U k T → Set
+el k t = el' k (U< (wf k)) (el< (wf k)) t
 
--- Proofs of accessibility are irrelevant across instantiated U<
+{-----------------------------------------------------------
+  Proofs of accessibility applied to U', U< are irrelevant
+-----------------------------------------------------------}
+
+accU' : ∀ {k T} (acc₁ acc₂ : Acc k) → U' k (U< acc₁) (el< acc₁) T → U' k (U< acc₂) (el< acc₂) T
+accU' acc₁ acc₂ u with refl ← (let open accext in accProp acc₁ acc₂) = u
+
 accU< : ∀ {j k} (acc₁ acc₂ : Acc k) (j<k : j < k) {T} → U< acc₁ j<k T → U< acc₂ j<k T
 accU< (acc< f) (acc< g) j<k = accU' (f j<k) (g j<k)
 
--- Proofs of accessibility are irrelevant across instantiated el<
-accEl< : ∀ {j k} (acc₁ acc₂ : Acc k) (j<k : j < k) {t T} (A : U< acc₁ j<k T) →
-         el< acc₂ j<k t (accU< acc₁ acc₂ j<k A) ≡ el< acc₁ j<k t A
+{-----------------------------------------------------
+  Propositional irrelevance across U:
+  two proofs of a ∈ 〚A⟧ₖ are propositionally equal,
+  even given two different sets 〚A⟧ₖ for the same A
+-----------------------------------------------------}
+
+elProp : ∀ {k a A₁ A₂} (acc₁ acc₂ : Acc k)
+         (u₁ : U' k (U< acc₁) (el< acc₁) A₁)
+         (u₂ : U' k (U< acc₂) (el< acc₂) A₂) → A₁ ≈ A₂ →
+         el' k (U< acc₁) (el< acc₁) a u₁ → el' k (U< acc₂) (el< acc₂) a u₂
+elProp acc₁ acc₂ Û Û _ = accU' acc₁ acc₂
+elProp acc₁ acc₂ ⊥̂ ⊥̂ _ ()
+elProp acc₁@(acc< f) acc₂@(acc< g) (Π̂ j₁ j<k₁ a₁ A₁ b₁ B₁) (Π̂ j₂ j<k₂ a₂ A₂ b₂ B₂) Πab₁≈Πab₂ =
+  let a₁≈a₂ , j₁≡j₂ , b₁≈b₂ = ≈-Π-inv Πab₁≈Πab₂ in helper a₁≈a₂ j₁≡j₂ b₁≈b₂ where
+    helper : a₁ ≈ a₂ → j₁ ≡ j₂ → b₁ ≈ b₂ →
+      el' _ _ _ _ (Π̂ j₁ j<k₁ a₁ A₁ b₁ B₁) → el' _ _ _ _ (Π̂ j₂ j<k₂ a₂ A₂ b₂ B₂)
+    helper a₁≈a₂ refl b₁≈b₂ elf x ela =
+      let ela' = elProp (g j<k₂) (f j<k₁) A₂ A₁ (≈-sym a₁≈a₂) ela
+      in elProp acc₁ acc₂ (B₁ x ela') (B₂ x ela) (≈-cong (≈-refl x) b₁≈b₂) (elf x ela')
+elProp acc₁ acc₂ (⇒̂  a₁ a₂ a₁⇒a₂ u₁) u₂ a₁≈a₃ =
+  elProp acc₁ acc₂ u₁ u₂ (≈-trans (≈-sym (⇒-≈ a₁⇒a₂)) a₁≈a₃)
+elProp acc₁ acc₂ u₁ (⇒̂  a₂ a₃ a₂⇒a₃ u₂) a₁≈a₂ =
+  elProp acc₁ acc₂ u₁ u₂ (≈-trans a₁≈a₂ (⇒-≈ a₂⇒a₃))
+elProp _ _ Û ⊥̂ ∗≈mty with () ← ≉⋆-∗mty ∗≈mty
+elProp _ _ Û (Π̂ _ _ _ _ _ _) ∗≈Π with () ← ≉⋆-∗Π ∗≈Π
+elProp _ _ ⊥̂ (Π̂ _ _ _ _ _ _) mty≈Π with () ← ≉⋆-mtyΠ mty≈Π
+elProp _ _ ⊥̂ Û mty≈∗ with () ← ≉⋆-∗mty (≈-sym mty≈∗)
+elProp _ _ (Π̂ _ _ _ _ _ _) Û Π≈∗ with () ← ≉⋆-∗Π (≈-sym Π≈∗)
+elProp _ _ (Π̂ _ _ _ _ _ _) ⊥̂ Π≈mty with () ← ≉⋆-mtyΠ (≈-sym Π≈mty)
+
+-- elProp specialized to identical syntactic types
+
+accEl' : ∀ {k a A} (acc₁ acc₂ : Acc k)
+        (u₁ : U' k (U< acc₁) (el< acc₁) A)
+        (u₂ : U' k (U< acc₂) (el< acc₂) A) →
+        el' k (U< acc₁) (el< acc₁) a u₁ →
+        el' k (U< acc₂) (el< acc₂) a u₂
+accEl' acc₁ acc₂ u₁ u₂ = elProp acc₁ acc₂ u₁ u₂ (≈-refl _)
+
+accEl< : ∀ {j k a A} (acc₁ acc₂ : Acc k) (j<k : j < k)
+        (u₁ : U< acc₁ j<k A)
+        (u₂ : U< acc₂ j<k A) →
+        el< acc₁ j<k a u₁ →
+        el< acc₂ j<k a u₂
 accEl< (acc< f) (acc< g) j<k = accEl' (f j<k) (g j<k)
+
+-- elProp specialized to identical proofs of accessibility
+
+≈-el' : ∀ {k a A B} (acc : Acc k)
+        (uA : U' k (U< acc) (el< acc) A)
+        (uB : U' k (U< acc) (el< acc) B) (A≈B : A ≈ B) →
+        el' k (U< acc) (el< acc) a uA →
+        el' k (U< acc) (el< acc) a uB
+≈-el' {k} acc = elProp acc acc
+
+≈-el : ∀ {k a A B} (uA : U k A) (uB : U k B) (A≈B : A ≈ B) → el k a uA → el k a uB
+≈-el {k} = elProp (wf k) (wf k)
+
+-- Could use ≈-el since A ≡ B → A ≈ B by ≈-refl, but that's a little silly
+≡-el : ∀ {k t A A'} (u : U k A) (p : A ≡ A') → el k t u → el k t (transp (U k) p u)
+≡-el u refl elA = elA
 
 {------------------------------------------
   U, el, and cumulativity:
@@ -86,9 +145,9 @@ cumU' : ∀ {j k} (accj : Acc j) (acck : Acc k) → j < k → {T : Term} →
 cumU' _ _ _ Û = Û
 cumU' _ _ _ ⊥̂  = ⊥̂
 cumU' accj@(acc< f) acck@(acc< g) j<k (Π̂ i i<j a A b B) =
-  Π̂ i (trans< i<j j<k)
-    a (accU' (f i<j) (g (trans< i<j j<k)) A)
-    b (λ x a → cumU' accj acck j<k (B x (coe (accEl' (f i<j) (g (trans< i<j j<k)) A) a)))
+  let A' = accU' (f i<j) (g (trans< i<j j<k)) A
+  in Π̂ i (trans< i<j j<k) a A'
+       b (λ x a → cumU' accj acck j<k (B x (accEl' (g (trans< i<j j<k)) (f i<j) A' A a)))
 cumU' accj acck j<k (⇒̂  a b a⇒b B) = ⇒̂  a b a⇒b (cumU' accj acck j<k B)
 
 -- el' is cumulative
@@ -97,31 +156,16 @@ cumEl' : ∀ {j k} (accj : Acc j) (acck : Acc k) (j<k : j < k) {t T : Term} (u :
 cumEl' accj acck j<k Û = cumU' accj acck j<k
 cumEl' _ _ _ ⊥̂  = λ b → b
 cumEl' accj@(acc< f) acck@(acc< g) j<k (Π̂ i i<j a A b B) elB x elA =
-  let a' = coe (accEl' (f i<j) (g (trans< i<j j<k)) A) elA
+  let A' = accU' (f i<j) (g (trans< i<j j<k)) A
+      a' = accEl' (g (trans< i<j j<k)) (f i<j) A' A elA
   in cumEl' accj acck j<k (B x a') (elB x a')
 cumEl' accj acck j<k (⇒̂  a b a⇒b B) elB = cumEl' accj acck j<k B elB
-
-{-------------------------------------------------
-  We tie the knot by instantiating accessibility
-  in U< and el< by well-foundedness of levels
--------------------------------------------------}
-
-U : ∀ k → Term → Set
-U k T = U' k (U< (wf k)) (el< (wf k)) T
-
-el : ∀ k → Term → ∀ {T} → U k T → Set
-el k t = el' k (U< (wf k)) (el< (wf k)) t
 
 cumU : ∀ {j k} → j < k → ∀ {T} → U j T → U k T
 cumU = cumU' (wf _) (wf _)
 
 cumEl : ∀ {j k} → (j<k : j < k) → ∀ {t T} (u : U j T) → el j t u → el k t (cumU j<k u)
 cumEl = cumEl' (wf _) (wf _)
-
--- Invariance across equal semantic types
--- (holds by elProp later, but this proof is independent)
-el≡ : ∀ {k A A'} → (p : A ≡ A') → (u : U k A) → ∀ t → el k t u ≡ el k t (transp (U k) p u)
-el≡ refl u t = refl
 
 {-------------------
   Inversion lemmas
@@ -154,24 +198,16 @@ invΠ-el : ∀ {a j b k} (acc : Acc k) (u : U' k (U< acc) (el< acc) (Π a j b)) 
 invΠ-el acc (Π̂ j j<k a A b B) f elB x elA = elB x elA
 invΠ-el acc@(acc< _) (⇒̂  (Π a j b) (Π a' j b') (⇒-Π a⇒a' b⇒b') u) = invΠ-el acc u
 
-{------------------------------------------------------------
-  Backward type preservation of U and el with respect to ⇒⋆
-------------------------------------------------------------}
+{-----------------------------------------------------
+  Backward type preservation of U with respect to ⇒⋆
+-----------------------------------------------------}
 
 ⇒⋆-U' : ∀ {k} (acc : Acc k) {a b} → a ⇒⋆ b → U' k (U< acc) (el< acc) b → U' k (U< acc) (el< acc) a
 ⇒⋆-U' _ (⇒⋆-refl a) u = u
 ⇒⋆-U' acc (⇒⋆-trans a⇒b b⇒⋆c) u = ⇒̂ _ _ a⇒b (⇒⋆-U' acc b⇒⋆c u)
 
-⇒⋆-elt' : ∀ {k} (acc : Acc k) {a b} (a⇒⋆b : a ⇒⋆ b) (u : U' k (U< acc) (el< acc) b) →
-         ∀ t → el' k (U< acc) (el< acc) t u ≡ el' k (U< acc) (el< acc) t (⇒⋆-U' acc a⇒⋆b u)
-⇒⋆-elt' acc (⇒⋆-refl a) u t = refl
-⇒⋆-elt' acc (⇒⋆-trans a⇒b b⇒⋆c) u t = ⇒⋆-elt' acc b⇒⋆c u t
-
 ⇒⋆-U : ∀ {k a b} → a ⇒⋆ b → U k b → U k a
 ⇒⋆-U {k} with acc< f ← wf k = ⇒⋆-U' (acc< f)
-
-⇒⋆-elt : ∀ {k a b} (a⇒⋆b : a ⇒⋆ b) (u : U k b) t → el k t u ≡ el k t (⇒⋆-U a⇒⋆b u)
-⇒⋆-elt {k} with acc< f ← wf k = ⇒⋆-elt' (acc< f)
 
 {------------------------------------------------------
   Backward term preservation of el with respect to ⇒⋆
@@ -191,107 +227,33 @@ invΠ-el acc@(acc< _) (⇒̂  (Π a j b) (Π a' j b') (⇒-Π a⇒a' b⇒b') u) 
 ⇒⋆-el : ∀ {k a b A} (u : U k A) → a ⇒⋆ b → el k b u → el k a u
 ⇒⋆-el {k} with acc< f ← wf k = ⇒⋆-el' (acc< f)
 
-{----------------------------------
-  Subject reduction of U and el:
-  If a ⇒ b and U k a then U k b,
-  and the interpretations of both
-  contain exactly the same terms
-----------------------------------}
+{--------------------------------
+  Subject reduction of U:
+  if a ⇒ b and U k a then U k b
+--------------------------------}
 
 SRU'  : ∀ {k} (acc : Acc k) {a b} →
        a ⇒ b → U' k (U< acc) (el< acc) a → U' k (U< acc) (el< acc) b
-
-SRel' : ∀ {k} (acc : Acc k) {a b} →
-       (a⇒b : a ⇒ b) → (u : U' k (U< acc) (el< acc) a) →
-       ∀ t → el' k (U< acc) (el< acc) t u ≡ el' k (U< acc) (el< acc) t (SRU' acc a⇒b u)
--- I imagine that instead of an equality, you merely need an isomorphism,
--- i.e. (l , r) : el k t u ↔ el k t (SRU a⇒b u) s.t. l ∘ r ≡ id × r ∘ l ≡ id,
--- but because the function case requires the sym of SRel',
--- both functions and both equalities need to be defined mutually,
--- which is a mess and can lead to termination issues;
--- using function extensionality, while unnecessary, is a lot more convenient
-
--- This case needs to be first so it reduces in the type of SRel'!
--- Otherwise Agda will refuse since it doesn't match on a⇒b
-SRU' acc@(acc< f) {b = b} a⇒b (⇒̂  a c a⇒c C) =
-  let d , b⇒d , c⇒d = diamond a⇒b a⇒c
-  in ⇒̂  b d b⇒d (SRU' acc c⇒d C)
 SRU' (acc< _) ⇒-∗ Û = Û
 SRU' (acc< _) ⇒-mty ⊥̂ = ⊥̂
 SRU' acc@(acc< f) (⇒-Π {a' = a'} {b' = b'} a⇒a' b⇒b') (Π̂ i i<j a A b B) =
   Π̂ i i<j
     a' (SRU' (f i<j) a⇒a' A)
     b' (λ x elA → SRU' acc (⇒-cong (⇒-refl x) b⇒b')
-         (B x (coe (sym (SRel' (f i<j) a⇒a' A x)) elA)))
-
-SRel' (acc< _) ⇒-∗ Û _ = refl
-SRel' (acc< _) ⇒-mty ⊥̂ _ = refl
-SRel' acc@(acc< f) (⇒-Π a⇒a' b⇒b') (Π̂ i i<j a A b B) h =
-  cong-fun refl (λ x →
-    cong-fun (SRel' (f i<j) a⇒a' A x)
-             (λ elA → SRel' acc (⇒-cong (⇒-refl x) b⇒b') (B x elA) ($ᵈ h x)))
-  where open funext
-SRel' acc@(acc< _)a⇒b (⇒̂  a c a⇒c C) x =
+         (B x (≈-el' (f i<j) (SRU' (f i<j) a⇒a' A) A (≈-sym (⇒-≈ a⇒a')) elA)))
+SRU' acc@(acc< f) {b = b} a⇒b (⇒̂  a c a⇒c C) =
   let d , b⇒d , c⇒d = diamond a⇒b a⇒c
-  in SRel' acc c⇒d C x
+  in ⇒̂  b d b⇒d (SRU' acc c⇒d C)
 
 SRU : ∀ {k a b} → a ⇒ b → U k a → U k b
 SRU {k} with acc< f ← wf k = SRU' (acc< f)
-
-SRel : ∀ {k a b} (a⇒b : a ⇒ b) (u : U k a) →
-       ∀ t → el k t u ≡ el k t (SRU a⇒b u)
-SRel {k} with acc< f ← wf k = SRel' (acc< f)
 
 SRU* : ∀ {k a b} → a ⇒⋆ b → U k a → U k b
 SRU* (⇒⋆-refl a) u = SRU (⇒-refl a) u
 SRU* (⇒⋆-trans a⇒b b⇒⋆c) u = SRU* b⇒⋆c (SRU a⇒b u)
 
-SRel* : ∀ {k a b} (a⇒⋆b : a ⇒⋆ b) (u : U k a) →
-        ∀ t → el k t u ≡ el k t (SRU* a⇒⋆b u)
-SRel* (⇒⋆-refl a) = SRel (⇒-refl a)
-SRel* (⇒⋆-trans a⇒b b⇒⋆c) u t = trans (SRel a⇒b u t) (SRel* b⇒⋆c (SRU a⇒b u) t)
-
 ≈-U : ∀ {k a b} → a ≈ b → U k a → U k b
 ≈-U (_ , a⇒⋆c , b⇒⋆c) u = ⇒⋆-U b⇒⋆c (SRU* a⇒⋆c u)
-
-≈-el : ∀ {k a b} (a≈b : a ≈ b) (u : U k a) t → el k t u ≡ el k t (≈-U a≈b u)
-≈-el (c , a⇒⋆c , b⇒⋆c) u t = trans (SRel* a⇒⋆c u t) (⇒⋆-elt b⇒⋆c (SRU* a⇒⋆c u) t)
-
-{-----------------------------------------------------
-  Propositional irrelevance across U:
-  two proofs of a ∈ 〚A⟧ₖ are propositionally equal,
-  even given two different sets 〚A⟧ₖ for the same A
------------------------------------------------------}
-
-elProp : ∀ {k a A₁ A₂} (acc₁ acc₂ : Acc k)
-         (u₁ : U' k (U< acc₁) (el< acc₁) A₁)
-         (u₂ : U' k (U< acc₂) (el< acc₂) A₂) → A₁ ≈ A₂ →
-         el' k (U< acc₁) (el< acc₁) a u₁ → el' k (U< acc₂) (el< acc₂) a u₂
-elProp acc₁ acc₂ Û Û _ = accU' acc₁ acc₂
-elProp acc₁ acc₂ ⊥̂ ⊥̂ _ ()
-elProp acc₁@(acc< f) acc₂@(acc< g) (Π̂ j₁ j<k₁ a₁ A₁ b₁ B₁) (Π̂ j₂ j<k₂ a₂ A₂ b₂ B₂) Πab₁≈Πab₂ =
-  let a₁≈a₂ , j₁≡j₂ , b₁≈b₂ = ≈-Π-inv Πab₁≈Πab₂ in helper a₁≈a₂ j₁≡j₂ b₁≈b₂ where
-    helper : a₁ ≈ a₂ → j₁ ≡ j₂ → b₁ ≈ b₂ →
-      el' _ _ _ _ (Π̂ j₁ j<k₁ a₁ A₁ b₁ B₁) → el' _ _ _ _ (Π̂ j₂ j<k₂ a₂ A₂ b₂ B₂)
-    helper a₁≈a₂ refl b₁≈b₂ elf x ela =
-      let ela' = elProp (g j<k₂) (f j<k₁) A₂ A₁ (≈-sym a₁≈a₂) ela
-      in elProp acc₁ acc₂ (B₁ x ela') (B₂ x ela) (≈-cong (≈-refl x) b₁≈b₂) (elf x ela')
-elProp acc₁ acc₂ (⇒̂  a₁ a₂ a₁⇒a₂ u₁) u₂ a₁≈a₃ =
-  elProp acc₁ acc₂ u₁ u₂ (≈-trans (≈-sym (⇒-≈ a₁⇒a₂)) a₁≈a₃)
-elProp acc₁ acc₂ u₁ (⇒̂  a₂ a₃ a₂⇒a₃ u₂) a₁≈a₂ =
-  elProp acc₁ acc₂ u₁ u₂ (≈-trans a₁≈a₂ (⇒-≈ a₂⇒a₃))
-elProp _ _ Û ⊥̂ ∗≈mty with () ← ≉⋆-∗mty ∗≈mty
-elProp _ _ Û (Π̂ _ _ _ _ _ _) ∗≈Π with () ← ≉⋆-∗Π ∗≈Π
-elProp _ _ ⊥̂ (Π̂ _ _ _ _ _ _) mty≈Π with () ← ≉⋆-mtyΠ mty≈Π
-elProp _ _ ⊥̂ Û mty≈∗ with () ← ≉⋆-∗mty (≈-sym mty≈∗)
-elProp _ _ (Π̂ _ _ _ _ _ _) Û Π≈∗ with () ← ≉⋆-∗Π (≈-sym Π≈∗)
-elProp _ _ (Π̂ _ _ _ _ _ _) ⊥̂ Π≈mty with () ← ≉⋆-mtyΠ (≈-sym Π≈mty)
-
-elProp' : ∀ {k a A} (acc₁ acc₂ : Acc k)
-         (u₁ : U' k (U< acc₁) (el< acc₁) A) →
-         (u₂ : U' k (U< acc₂) (el< acc₂) A) →
-         el' k (U< acc₁) (el< acc₁) a u₁ → el' k (U< acc₂) (el< acc₂) a u₂
-elProp' acc₁ acc₂ u₁ u₂ = elProp acc₁ acc₂ u₁ u₂ (≈-refl _)
 
 {-----------------------------------------
   Semantic well-formedness:

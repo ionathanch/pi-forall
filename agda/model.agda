@@ -1,7 +1,6 @@
 {-# OPTIONS --rewriting --with-K #-}
 
 open import common
-open funext
 import accessibility
 
 {-# BUILTIN REWRITE _≡_ #-}
