@@ -80,4 +80,4 @@ soundness {σ} v emV (⊢≈ {a = a} A≈B ta _) =
   in ≈-U Aσ≈Bσ u , coe (≈-el Aσ≈Bσ u (subst σ a)) elU
 
 consistency : ∀ {b k} → ∙ ⊢ b ⦂ mty # k → ⊥
-consistency tb with b , elb ← soundness {σ = var} ∙̂  tt tb = empty b elb 
+consistency tb with b , elb ← soundness {σ = var} ∙̂  tt tb = empty b elb
