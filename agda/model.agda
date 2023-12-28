@@ -1,9 +1,10 @@
 {-# OPTIONS --rewriting --with-K #-}
 
-open import Relation.Binary.PropositionalEquality.Core
-  using (_≡_ ; refl ; trans ; subst ; cong)
-open import funext
+open import common
+open funext
 import accessibility
+
+{-# BUILTIN REWRITE _≡_ #-}
 
 {-----------------------------------------------------------
   This model is modelled after Conor McBride's
@@ -28,22 +29,51 @@ module model
   (trans< : ∀ {i j k} → i < j → j < k → i < k)
   (wf : accessibility.WF Level _<_) where
 open accessibility Level _<_
+open accext
+
+funeq : ∀ {A₁ A₂ : Set} {B : A₂ → Set} (p : A₁ ≡ A₂) →
+  ((a : A₂) → B a) ≡ ((a : A₁) → B (transp _ p a))
+funeq refl = refl
+
+accPropRefl : ∀ {k} (acc : Acc k) → accProp acc acc ≡ refl
+accPropRefl acc with refl ← accProp acc acc = refl
+
+-- This fails confluence checking as accProp reduces on acc<
+{-# REWRITE accPropRefl #-}
 
 {-----------------------------------------------------------
-  Some preliminary definitions to avoid importing
-  Agda.Builtin.{Unit,Sigma} and Data.Empty.
+  This is the desired direct model of universes,
+  which isn't valid since it fails strict positivity:
+  the domain el j A could return U j if A is Û.
+  However, its level must be strictly smaller,
+  so the model is in fact valid,
+  but we must induct on accessibility of levels
+  to convince Agda of this fact.
 -----------------------------------------------------------}
 
-data ⊥ : Set where
+module direct where
+  data U (k : Level) : Set
+  el : ∀ k → U k → Set
 
-record ⊤ : Set where
-  constructor tt
+  {-# NO_POSITIVITY_CHECK #-}
+  data U k where
+    Û : U k
+    ⊥̂ : U k
+    Π̂ : ∀ j → j < k → (A : U j) → (el j A → U k) → U k
 
-record Σ (A : Set) (B : A → Set) : Set where
-  constructor _,_
-  field
-    fst : A
-    snd : B fst
+  el k Û = U k
+  el k ⊥̂  = ⊥
+  el k (Π̂ j j<k A B) = (x : el j A) → el k (B x)
+
+  lift : ∀ {j k} → j < k → U j → U k
+  lift _ Û = Û
+  lift _ ⊥̂ = ⊥̂
+  lift j<k (Π̂ i i<j A B) = Π̂ i (trans< i<j j<k) A (λ a → lift j<k (B a))
+
+  el→ : ∀ {j k} → (j<k : j < k) → ∀ u → el j u → el k (lift j<k u)
+  el→ j<k Û = lift j<k
+  el→ _ ⊥̂  ()
+  el→ j<k (Π̂ i i<j A B) b a = el→ j<k (B a) (b a)
 
 {-----------------------------------------------------------
   A universe of codes U' at level k, and
@@ -84,18 +114,18 @@ el< (acc< f) {j} j<k = el' j (U< (f j<k)) (el< (f j<k))
 -----------------------------------------------------------}
 
 el'≡1 : ∀ {k} {acc₁ acc₂ : Acc k} (A : U' k (U< acc₁) (el< acc₁)) →
-  let A' = subst (λ a → U' k (U< a) (el< a)) (accProp acc₁ acc₂) A
+  let A' = transp (λ a → U' k (U< a) (el< a)) (accProp acc₁ acc₂) A
   in el' k (U< acc₂) (el< acc₂) A' ≡ el' k (U< acc₁) (el< acc₁) A
 el'≡1 {k} {acc₁} {acc₂} A =
   cong (λ a → el' k (U< a) (el< a)
-                  (subst (λ a → U' k (U< a) (el< a))
-                         (accProp acc₁ a) A))
+                  (transp (λ a → U' k (U< a) (el< a))
+                          (accProp acc₁ a) A))
        (accProp acc₂ acc₁)
 
 el'→1 : ∀ {k} {acc₁ acc₂ : Acc k} (A : U' k (U< acc₁) (el< acc₁)) →
-  let A' = subst (λ a → U' k (U< a) (el< a)) (accProp acc₁ acc₂) A
+  let A' = transp (λ a → U' k (U< a) (el< a)) (accProp acc₁ acc₂) A
   in el' k (U< acc₂) (el< acc₂) A' → el' k (U< acc₁) (el< acc₁) A
-el'→1 A = subst (λ T → T) (el'≡1 A)
+el'→1 A = transp (λ T → T) (el'≡1 A)
 
 lift' : ∀ {j k} (accj : Acc j) (acck : Acc k) → j < k → U' j (U< accj) (el< accj) → U' k (U< acck) (el< acck)
 lift' _ _ _ Û = Û
@@ -172,7 +202,7 @@ data C where
   _▷_ : ∀ {k} → (Γ : C) → Ty k Γ → C
 
 em ∙ = ⊤
-em (Γ ▷ A) = Σ (em Γ) λ γ → el _ (A γ)
+em (Γ ▷ A) = Σ[ γ ∈ em Γ ] el _ (A γ)
 
 {-----------------------------------------------------------
   Cumulativity tells us that we are allowed to lift types
@@ -367,8 +397,8 @@ data Ctx : ℕ → Set where
 +1≡suc {suc n} = cong suc +1≡suc
 
 get : ∀ {n} → Ctx n → Fin n → Term n
-get (Γ ∷ A) zero = subst Term +1≡suc (weaken A)
-get (Γ ∷ A) (suc n) = subst Term +1≡suc (weaken (get Γ n))
+get (Γ ∷ A) zero = transp Term +1≡suc (weaken A)
+get (Γ ∷ A) (suc n) = transp Term +1≡suc (weaken (get Γ n))
 
 postulate substitute : ∀ {n : ℕ} → Term (suc n) → Term n → Term n
 
@@ -396,4 +426,4 @@ data _⊢_⦂_#_ {n : ℕ} (Γ : Ctx n) : Term n → Term n → Level → Set wh
             -----------------
             Γ ⊢ abs b ⦂ B # k
 
------------------------------------------------------------}
+-----------------------------------------------------------} 
