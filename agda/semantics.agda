@@ -19,7 +19,7 @@ open reduction Level
     Π a j b ∈ ⟦∗⟧ₖ       = j < k ∧ a ∈ ⟦∗⟧ⱼ ∧ (∀ x → x ∈ ⟦a⟧ⱼ → b{x} ∈ ⟦∗⟧ₖ)
     _       ∈ ⟦mty⟧ₖ     = ⊥
     f       ∈ ⟦Π a j b⟧ₖ = ∀ x → x ∈ ⟦a⟧ⱼ → f x ∈ ⟦b{x}⟧ₖ
-    x       ∈ ⟦a⟧ₖ       = ∃ b → a ≈ b ∧ x ∈ ⟦b⟧ₖ
+    x       ∈ ⟦a⟧ₖ       = ∃ b → a ⇔ b ∧ x ∈ ⟦b⟧ₖ
 ----------------------------------------------------------}
 
 data U' k (U< : ∀ {j} → j < k → Term → Set)
@@ -77,27 +77,27 @@ accU< (acc< f) (acc< g) j<k = accU' (f j<k) (g j<k)
 
 elProp : ∀ {k a A₁ A₂} (acc₁ acc₂ : Acc k)
          (u₁ : U' k (U< acc₁) (el< acc₁) A₁)
-         (u₂ : U' k (U< acc₂) (el< acc₂) A₂) → A₁ ≈ A₂ →
+         (u₂ : U' k (U< acc₂) (el< acc₂) A₂) → A₁ ⇔ A₂ →
          el' k (U< acc₁) (el< acc₁) a u₁ → el' k (U< acc₂) (el< acc₂) a u₂
 elProp acc₁ acc₂ Û Û _ = accU' acc₁ acc₂
 elProp acc₁ acc₂ ⊥̂ ⊥̂ _ ()
-elProp acc₁@(acc< f) acc₂@(acc< g) (Π̂ j₁ j<k₁ a₁ A₁ b₁ B₁) (Π̂ j₂ j<k₂ a₂ A₂ b₂ B₂) Πab₁≈Πab₂ =
-  let a₁≈a₂ , j₁≡j₂ , b₁≈b₂ = ≈-Π-inv Πab₁≈Πab₂ in helper a₁≈a₂ j₁≡j₂ b₁≈b₂ where
-    helper : a₁ ≈ a₂ → j₁ ≡ j₂ → b₁ ≈ b₂ →
+elProp acc₁@(acc< f) acc₂@(acc< g) (Π̂ j₁ j<k₁ a₁ A₁ b₁ B₁) (Π̂ j₂ j<k₂ a₂ A₂ b₂ B₂) Πab₁⇔Πab₂ =
+  let a₁⇔a₂ , j₁≡j₂ , b₁⇔b₂ = ⇔-Π-inv Πab₁⇔Πab₂ in helper a₁⇔a₂ j₁≡j₂ b₁⇔b₂ where
+    helper : a₁ ⇔ a₂ → j₁ ≡ j₂ → b₁ ⇔ b₂ →
       el' _ _ _ _ (Π̂ j₁ j<k₁ a₁ A₁ b₁ B₁) → el' _ _ _ _ (Π̂ j₂ j<k₂ a₂ A₂ b₂ B₂)
-    helper a₁≈a₂ refl b₁≈b₂ elf x ela =
-      let ela' = elProp (g j<k₂) (f j<k₁) A₂ A₁ (≈-sym a₁≈a₂) ela
-      in elProp acc₁ acc₂ (B₁ x ela') (B₂ x ela) (≈-cong (≈-refl x) b₁≈b₂) (elf x ela')
-elProp acc₁ acc₂ (⇒̂  a₁ a₂ a₁⇒a₂ u₁) u₂ a₁≈a₃ =
-  elProp acc₁ acc₂ u₁ u₂ (≈-trans (≈-sym (⇒-≈ a₁⇒a₂)) a₁≈a₃)
-elProp acc₁ acc₂ u₁ (⇒̂  a₂ a₃ a₂⇒a₃ u₂) a₁≈a₂ =
-  elProp acc₁ acc₂ u₁ u₂ (≈-trans a₁≈a₂ (⇒-≈ a₂⇒a₃))
-elProp _ _ Û ⊥̂ ∗≈mty with () ← ≉⋆-∗mty ∗≈mty
-elProp _ _ Û (Π̂ _ _ _ _ _ _) ∗≈Π with () ← ≉⋆-∗Π ∗≈Π
-elProp _ _ ⊥̂ (Π̂ _ _ _ _ _ _) mty≈Π with () ← ≉⋆-mtyΠ mty≈Π
-elProp _ _ ⊥̂ Û mty≈∗ with () ← ≉⋆-∗mty (≈-sym mty≈∗)
-elProp _ _ (Π̂ _ _ _ _ _ _) Û Π≈∗ with () ← ≉⋆-∗Π (≈-sym Π≈∗)
-elProp _ _ (Π̂ _ _ _ _ _ _) ⊥̂ Π≈mty with () ← ≉⋆-mtyΠ (≈-sym Π≈mty)
+    helper a₁⇔a₂ refl b₁⇔b₂ elf x ela =
+      let ela' = elProp (g j<k₂) (f j<k₁) A₂ A₁ (⇔-sym a₁⇔a₂) ela
+      in elProp acc₁ acc₂ (B₁ x ela') (B₂ x ela) (⇔-cong ⇔-refl b₁⇔b₂) (elf x ela')
+elProp acc₁ acc₂ (⇒̂  a₁ a₂ a₁⇒a₂ u₁) u₂ a₁⇔a₃ =
+  elProp acc₁ acc₂ u₁ u₂ (⇔-trans (⇔-sym (⇒-⇔ a₁⇒a₂)) a₁⇔a₃)
+elProp acc₁ acc₂ u₁ (⇒̂  a₂ a₃ a₂⇒a₃ u₂) a₁⇔a₂ =
+  elProp acc₁ acc₂ u₁ u₂ (⇔-trans a₁⇔a₂ (⇒-⇔ a₂⇒a₃))
+elProp _ _ Û ⊥̂ ∗⇔mty with () ← ⇎⋆-∗mty ∗⇔mty
+elProp _ _ Û (Π̂ _ _ _ _ _ _) ∗⇔Π with () ← ⇎⋆-∗Π ∗⇔Π
+elProp _ _ ⊥̂ (Π̂ _ _ _ _ _ _) mty⇔Π with () ← ⇎⋆-mtyΠ mty⇔Π
+elProp _ _ ⊥̂ Û mty⇔∗ with () ← ⇎⋆-∗mty (⇔-sym mty⇔∗)
+elProp _ _ (Π̂ _ _ _ _ _ _) Û Π⇔∗ with () ← ⇎⋆-∗Π (⇔-sym Π⇔∗)
+elProp _ _ (Π̂ _ _ _ _ _ _) ⊥̂ Π⇔mty with () ← ⇎⋆-mtyΠ (⇔-sym Π⇔mty)
 
 -- elProp specialized to identical syntactic types
 
@@ -106,7 +106,7 @@ accEl' : ∀ {k a A} (acc₁ acc₂ : Acc k)
         (u₂ : U' k (U< acc₂) (el< acc₂) A) →
         el' k (U< acc₁) (el< acc₁) a u₁ →
         el' k (U< acc₂) (el< acc₂) a u₂
-accEl' acc₁ acc₂ u₁ u₂ = elProp acc₁ acc₂ u₁ u₂ (≈-refl _)
+accEl' acc₁ acc₂ u₁ u₂ = elProp acc₁ acc₂ u₁ u₂ ⇔-refl
 
 accEl< : ∀ {j k a A} (acc₁ acc₂ : Acc k) (j<k : j < k)
         (u₁ : U< acc₁ j<k A)
@@ -117,17 +117,17 @@ accEl< (acc< f) (acc< g) j<k = accEl' (f j<k) (g j<k)
 
 -- elProp specialized to identical proofs of accessibility
 
-≈-el' : ∀ {k a A B} (acc : Acc k)
+⇔-el' : ∀ {k a A B} (acc : Acc k)
         (uA : U' k (U< acc) (el< acc) A)
-        (uB : U' k (U< acc) (el< acc) B) (A≈B : A ≈ B) →
+        (uB : U' k (U< acc) (el< acc) B) (A⇔B : A ⇔ B) →
         el' k (U< acc) (el< acc) a uA →
         el' k (U< acc) (el< acc) a uB
-≈-el' {k} acc = elProp acc acc
+⇔-el' {k} acc = elProp acc acc
 
-≈-el : ∀ {k a A B} (uA : U k A) (uB : U k B) (A≈B : A ≈ B) → el k a uA → el k a uB
-≈-el {k} = elProp (wf k) (wf k)
+⇔-el : ∀ {k a A B} (uA : U k A) (uB : U k B) (A⇔B : A ⇔ B) → el k a uA → el k a uB
+⇔-el {k} = elProp (wf k) (wf k)
 
--- Could use ≈-el since A ≡ B → A ≈ B by ≈-refl, but that's a little silly
+-- Could use ⇔-el since A ≡ B → A ⇔ B by ⇔-refl, but that's a little silly
 ≡-el : ∀ {k t A A'} (u : U k A) (p : A ≡ A') → el k t u → el k t (transp (U k) p u)
 ≡-el u refl elA = elA
 
@@ -240,7 +240,7 @@ SRU' acc@(acc< f) (⇒-Π {a' = a'} {b' = b'} a⇒a' b⇒b') (Π̂ i i<j a A b B
   Π̂ i i<j
     a' (SRU' (f i<j) a⇒a' A)
     b' (λ x elA → SRU' acc (⇒-cong (⇒-refl x) b⇒b')
-         (B x (≈-el' (f i<j) (SRU' (f i<j) a⇒a' A) A (≈-sym (⇒-≈ a⇒a')) elA)))
+         (B x (⇔-el' (f i<j) (SRU' (f i<j) a⇒a' A) A (⇔-sym (⇒-⇔ a⇒a')) elA)))
 SRU' acc@(acc< f) {b = b} a⇒b (⇒̂  a c a⇒c C) =
   let d , b⇒d , c⇒d = diamond a⇒b a⇒c
   in ⇒̂  b d b⇒d (SRU' acc c⇒d C)
@@ -252,8 +252,8 @@ SRU* : ∀ {k a b} → a ⇒⋆ b → U k a → U k b
 SRU* (⇒⋆-refl a) u = SRU (⇒-refl a) u
 SRU* (⇒⋆-trans a⇒b b⇒⋆c) u = SRU* b⇒⋆c (SRU a⇒b u)
 
-≈-U : ∀ {k a b} → a ≈ b → U k a → U k b
-≈-U (_ , a⇒⋆c , b⇒⋆c) u = ⇒⋆-U b⇒⋆c (SRU* a⇒⋆c u)
+⇔-U : ∀ {k a b} → a ⇔ b → U k a → U k b
+⇔-U (_ , a⇒⋆c , b⇒⋆c) u = ⇒⋆-U b⇒⋆c (SRU* a⇒⋆c u)
 
 {-----------------------------------------
   Semantic well-formedness:

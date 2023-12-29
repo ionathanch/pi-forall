@@ -1,3 +1,4 @@
+open import common
 import syntactics
 import reduction
 
@@ -11,6 +12,77 @@ open reduction Level
 data _≤_ : Level → Level → Set where
   eq : ∀ {k} → k ≤ k
   lt : ∀ {j k} → j < k → j ≤ k
+
+{------------------------
+  Definitional equality
+------------------------}
+
+data _≈_ : Term → Term → Set where
+  ≈-refl  : ∀ {a} → a ≈ a
+  ≈-sym   : ∀ {a b} →
+            b ≈ a →
+            ---------
+            a ≈ b
+  ≈-trans : ∀ {a b c} →
+            a ≈ b →
+            b ≈ c →
+            -----------
+            a ≈ c
+  ≈-β     : ∀ {b a} →
+            --------------------------------
+            $ᵈ (λᵈ b) a ≈ subst (a +: var) b
+  ≈-Π     : ∀ {a a' j b b'} →
+            a ≈ a' →
+            b ≈ b' →
+            -------------------
+            Π a j b ≈ Π a' j b'
+  ≈-λᵈ    : ∀ {b b'} →
+            b ≈ b' →
+            ------------
+            λᵈ b ≈ λᵈ b'
+  ≈-$ᵈ    : ∀ {b b' a a'} →
+            b ≈ b' →
+            a ≈ a' →
+            -----------------
+            $ᵈ b a ≈ $ᵈ b' a'
+  ≈-abs   : ∀ {b b'} →
+            b ≈ b' →
+            --------------
+            abs b ≈ abs b'
+
+-- Conversion is sound and complete with respect to definitional equality,
+-- making conversion an appropriate implementation of definitional equality
+
+⇒-≈ : ∀ {a b} → a ⇒ b → a ≈ b
+⇒-≈ (⇒-β b⇒b' a⇒a') = ≈-trans (≈-$ᵈ (≈-λᵈ (⇒-≈ b⇒b')) (⇒-≈ a⇒a')) ≈-β
+⇒-≈ (⇒-var s) = ≈-refl
+⇒-≈ ⇒-∗ = ≈-refl
+⇒-≈ (⇒-Π a⇒a' b⇒b') = ≈-Π (⇒-≈ a⇒a') (⇒-≈ b⇒b')
+⇒-≈ (⇒-λᵈ b⇒b') = ≈-λᵈ (⇒-≈ b⇒b')
+⇒-≈ (⇒-$ᵈ b⇒b' a⇒a') = ≈-$ᵈ (⇒-≈ b⇒b') (⇒-≈ a⇒a')
+⇒-≈ ⇒-mty = ≈-refl
+⇒-≈ (⇒-abs b⇒b') = ≈-abs (⇒-≈ b⇒b')
+
+⇒⋆-≈ : ∀ {a b} → a ⇒⋆ b → a ≈ b
+⇒⋆-≈ (⇒⋆-refl a) = ≈-refl
+⇒⋆-≈ (⇒⋆-trans a⇒b b⇒⋆c) = ≈-trans (⇒-≈ a⇒b) (⇒⋆-≈ b⇒⋆c)
+
+⇔-≈ : ∀ {a b} → a ⇔ b → a ≈ b
+⇔-≈ (_ , a⇒⋆c , b⇒⋆c) = ≈-trans (⇒⋆-≈ a⇒⋆c) (≈-sym (⇒⋆-≈ b⇒⋆c))
+
+≈-⇔ : ∀ {a b} → a ≈ b → a ⇔ b
+≈-⇔ ≈-refl = ⇔-refl
+≈-⇔ (≈-sym b≈a) = ⇔-sym (≈-⇔ b≈a)
+≈-⇔ (≈-trans a≈b b≈c) = ⇔-trans (≈-⇔ a≈b) (≈-⇔ b≈c)
+≈-⇔ ≈-β = ⇒-⇔ (⇒-β (⇒-refl _) (⇒-refl _))
+≈-⇔ (≈-Π a≈a' b≈b') = ⇔-Π (≈-⇔ a≈a') (≈-⇔ b≈b')
+≈-⇔ (≈-λᵈ b≈b') = ⇔-λᵈ (≈-⇔ b≈b')
+≈-⇔ (≈-$ᵈ b≈b' a≈a') = ⇔-$ᵈ (≈-⇔ b≈b') (≈-⇔ a≈a')
+≈-⇔ (≈-abs b≈b') = ⇔-abs (≈-⇔ b≈b')
+
+{--------------------------------------------------
+  Context well-formedness and term well-typedness
+--------------------------------------------------}
 
 infix 10 ⊢_
 data ⊢_ : Ctxt → Set

@@ -12,6 +12,7 @@ data _⇒_ : Term → Term → Set where
   ⇒-β   : ∀ {b b' a a'} →
           b ⇒ b' →
           a ⇒ a' →
+          ----------------------------------
           $ᵈ (λᵈ b) a ⇒ subst (a' +: var) b'
   ⇒-var : ∀ s → var s ⇒ var s
   ⇒-∗   : ∗ ⇒ ∗
@@ -110,6 +111,26 @@ data _⇒⋆_ : Term → Term → Set where
 ⇒⋆-cong (⇒⋆-trans a⇒b b⇒⋆c) (⇒⋆-refl d) = ⇒⋆-trans (⇒-cong a⇒b (⇒-refl d)) (⇒⋆-cong b⇒⋆c (⇒⋆-refl d))
 ⇒⋆-cong (⇒⋆-trans a⇒b b⇒⋆c) (⇒⋆-trans d⇒e e⇒⋆f) = ⇒⋆-trans (⇒-cong a⇒b d⇒e) (⇒⋆-cong b⇒⋆c e⇒⋆f)
 
+⇒⋆-Π : ∀ {a a' j b b'} → a ⇒⋆ a' → b ⇒⋆ b' → Π a j b ⇒⋆ Π a' j b'
+⇒⋆-Π (⇒⋆-refl a) (⇒⋆-refl b) = ⇒⋆-refl (Π a _ b)
+⇒⋆-Π (⇒⋆-refl a) (⇒⋆-trans b⇒b' b'⇒⋆b'') = ⇒⋆-trans (⇒-Π (⇒-refl a) b⇒b') (⇒⋆-Π (⇒⋆-refl a) b'⇒⋆b'')
+⇒⋆-Π (⇒⋆-trans a⇒a' a'⇒⋆a'') (⇒⋆-refl b) = ⇒⋆-trans (⇒-Π a⇒a' (⇒-refl b)) (⇒⋆-Π a'⇒⋆a'' (⇒⋆-refl b))
+⇒⋆-Π (⇒⋆-trans a⇒a' a'⇒⋆a'') (⇒⋆-trans b⇒b' b'⇒⋆b'') = ⇒⋆-trans (⇒-Π a⇒a' b⇒b') (⇒⋆-Π a'⇒⋆a'' b'⇒⋆b'')
+
+⇒⋆-λᵈ : ∀ {b b'} → b ⇒⋆ b' → λᵈ b ⇒⋆ λᵈ b'
+⇒⋆-λᵈ (⇒⋆-refl b) = ⇒⋆-refl (λᵈ b)
+⇒⋆-λᵈ (⇒⋆-trans b⇒b' b'⇒⋆b'') = ⇒⋆-trans (⇒-λᵈ b⇒b') (⇒⋆-λᵈ b'⇒⋆b'')
+
+⇒⋆-$ᵈ : ∀ {a a' b b'} → b ⇒⋆ b' → a ⇒⋆ a' → $ᵈ b a ⇒⋆ $ᵈ b' a'
+⇒⋆-$ᵈ (⇒⋆-refl b) (⇒⋆-refl a) = ⇒⋆-refl ($ᵈ b a)
+⇒⋆-$ᵈ (⇒⋆-trans b⇒b' b'⇒⋆b'') (⇒⋆-refl a) = ⇒⋆-trans (⇒-$ᵈ b⇒b' (⇒-refl a)) (⇒⋆-$ᵈ b'⇒⋆b'' (⇒⋆-refl a))
+⇒⋆-$ᵈ (⇒⋆-refl b) (⇒⋆-trans a⇒a' a'⇒⋆a'') = ⇒⋆-trans (⇒-$ᵈ (⇒-refl b) a⇒a') (⇒⋆-$ᵈ (⇒⋆-refl b) a'⇒⋆a'')
+⇒⋆-$ᵈ (⇒⋆-trans b⇒b' b'⇒⋆b'') (⇒⋆-trans a⇒a' a'⇒⋆a'') = ⇒⋆-trans (⇒-$ᵈ b⇒b' a⇒a') (⇒⋆-$ᵈ b'⇒⋆b'' a'⇒⋆a'')
+
+⇒⋆-abs : ∀ {b b'} → b ⇒⋆ b' → abs b ⇒⋆ abs b'
+⇒⋆-abs (⇒⋆-refl b) = ⇒⋆-refl (abs b)
+⇒⋆-abs (⇒⋆-trans b⇒b' b'⇒⋆b'') = ⇒⋆-trans (⇒-abs b⇒b') (⇒⋆-abs b'⇒⋆b'')
+
 ⇒⋆-∗-inv : ∀ {b} → ∗ ⇒⋆ b → b ≡ ∗
 ⇒⋆-∗-inv (⇒⋆-refl ∗) = refl
 ⇒⋆-∗-inv (⇒⋆-trans ⇒-∗ ∗⇒⋆b) = ⇒⋆-∗-inv ∗⇒⋆b
@@ -201,44 +222,56 @@ confluence a⇒⋆b (⇒⋆-trans a⇒c c⇒⋆d) =
   Conversion/coherence
 -----------------------}
 
-_≈_ : Term → Term → Set
-a ≈ b = ∃[ c ] a ⇒⋆ c × b ⇒⋆ c
+_⇔_ : Term → Term → Set
+a ⇔ b = ∃[ c ] a ⇒⋆ c × b ⇒⋆ c
 
-⇒-≈ : ∀ {a b} → a ⇒ b → a ≈ b
-⇒-≈ {a} {b} a⇒b = b , ⇒-⇒⋆ a⇒b , ⇒⋆-refl b
+⇒-⇔ : ∀ {a b} → a ⇒ b → a ⇔ b
+⇒-⇔ {a} {b} a⇒b = b , ⇒-⇒⋆ a⇒b , ⇒⋆-refl b
 
-≈-refl : ∀ a → a ≈ a
-≈-refl a = a , ⇒⋆-refl a , ⇒⋆-refl a
+⇔-refl : ∀ {a} → a ⇔ a
+⇔-refl {a} = a , ⇒⋆-refl a , ⇒⋆-refl a
 
-≈-sym : ∀ {a b} → a ≈ b → b ≈ a
-≈-sym (c , p , q) = c , q , p
+⇔-sym : ∀ {a b} → a ⇔ b → b ⇔ a
+⇔-sym (c , p , q) = c , q , p
 
-≈-trans : ∀ {a b c} → a ≈ b → b ≈ c → a ≈ c
-≈-trans (d , a⇒⋆d , b⇒⋆d) (e , b⇒⋆e , c⇒⋆e) =
+⇔-trans : ∀ {a b c} → a ⇔ b → b ⇔ c → a ⇔ c
+⇔-trans (d , a⇒⋆d , b⇒⋆d) (e , b⇒⋆e , c⇒⋆e) =
   let f , d⇒⋆f , e⇒⋆f = confluence b⇒⋆d b⇒⋆e
   in f , ⇒⋆-trans' a⇒⋆d d⇒⋆f , ⇒⋆-trans' c⇒⋆e e⇒⋆f
 
-≈-subst : ∀ {a b} σ → a ≈ b → subst σ a ≈ subst σ b
-≈-subst σ (c , a⇒⋆c , b⇒⋆c) = subst σ c , ⇒⋆-subst σ a⇒⋆c , ⇒⋆-subst σ b⇒⋆c
+⇔-subst : ∀ {a b} σ → a ⇔ b → subst σ a ⇔ subst σ b
+⇔-subst σ (c , a⇒⋆c , b⇒⋆c) = subst σ c , ⇒⋆-subst σ a⇒⋆c , ⇒⋆-subst σ b⇒⋆c
 
-≈-cong : ∀ {a a' b b'} → a ≈ a' → b ≈ b' → subst (a +: var) b ≈ subst (a' +: var) b'
-≈-cong (a'' , a⇒⋆a'' , a'⇒⋆a'') (b'' , b⇒⋆b'' , b'⇒⋆b'') =
+⇔-cong : ∀ {a a' b b'} → a ⇔ a' → b ⇔ b' → subst (a +: var) b ⇔ subst (a' +: var) b'
+⇔-cong (a'' , a⇒⋆a'' , a'⇒⋆a'') (b'' , b⇒⋆b'' , b'⇒⋆b'') =
   subst (a'' +: var) b'' , ⇒⋆-cong a⇒⋆a'' b⇒⋆b'' , ⇒⋆-cong a'⇒⋆a'' b'⇒⋆b''
 
-≉⋆-∗mty : ∗ ≈ mty → ⊥
-≉⋆-∗mty (b , ∗⇒⋆b , mty⇒⋆b) with ⇒⋆-∗-inv ∗⇒⋆b | ⇒⋆-mty-inv mty⇒⋆b
+⇔-Π : ∀ {aₗ aᵣ j bₗ bᵣ} → aₗ ⇔ aᵣ → bₗ ⇔ bᵣ → Π aₗ j bₗ ⇔ Π aᵣ j bᵣ
+⇔-Π (a , aₗ⇒⋆a , aᵣ⇒⋆a) (b , bₗ⇒⋆b , bᵣ⇒⋆b) = Π a _ b , ⇒⋆-Π aₗ⇒⋆a bₗ⇒⋆b , ⇒⋆-Π aᵣ⇒⋆a bᵣ⇒⋆b
+
+⇔-λᵈ : ∀ {bₗ bᵣ} → bₗ ⇔ bᵣ → λᵈ bₗ ⇔ λᵈ bᵣ
+⇔-λᵈ (b , bₗ⇒⋆b , bᵣ⇒⋆b) = λᵈ b , ⇒⋆-λᵈ bₗ⇒⋆b , ⇒⋆-λᵈ bᵣ⇒⋆b
+
+⇔-$ᵈ : ∀ {aₗ aᵣ bₗ bᵣ} → bₗ ⇔ bᵣ → aₗ ⇔ aᵣ → $ᵈ bₗ aₗ ⇔ $ᵈ bᵣ aᵣ
+⇔-$ᵈ (b , bₗ⇒⋆b , bᵣ⇒⋆b) (a , aₗ⇒⋆a , aᵣ⇒⋆a) = $ᵈ b a , ⇒⋆-$ᵈ bₗ⇒⋆b aₗ⇒⋆a , ⇒⋆-$ᵈ bᵣ⇒⋆b aᵣ⇒⋆a
+
+⇔-abs : ∀ {bₗ bᵣ} → bₗ ⇔ bᵣ → abs bₗ ⇔ abs bᵣ
+⇔-abs (b , bₗ⇒⋆b , bᵣ⇒⋆b) = abs b , ⇒⋆-abs bₗ⇒⋆b , ⇒⋆-abs bᵣ⇒⋆b
+
+⇎⋆-∗mty : ∗ ⇔ mty → ⊥
+⇎⋆-∗mty (b , ∗⇒⋆b , mty⇒⋆b) with ⇒⋆-∗-inv ∗⇒⋆b | ⇒⋆-mty-inv mty⇒⋆b
 ... | refl | ()
 
-≉⋆-∗Π : ∀ {a j b} → ∗ ≈ Π a j b → ⊥
-≉⋆-∗Π (b , ∗⇒⋆b , Π⇒⋆b) with ⇒⋆-∗-inv ∗⇒⋆b | ⇒⋆-Π-inv Π⇒⋆b
+⇎⋆-∗Π : ∀ {a j b} → ∗ ⇔ Π a j b → ⊥
+⇎⋆-∗Π (b , ∗⇒⋆b , Π⇒⋆b) with ⇒⋆-∗-inv ∗⇒⋆b | ⇒⋆-Π-inv Π⇒⋆b
 ... | refl | ()
 
-≉⋆-mtyΠ : ∀ {a j b} → mty ≈ Π a j b → ⊥
-≉⋆-mtyΠ (b , mty⇒⋆b , Π⇒⋆b) with ⇒⋆-mty-inv mty⇒⋆b | ⇒⋆-Π-inv Π⇒⋆b
+⇎⋆-mtyΠ : ∀ {a j b} → mty ⇔ Π a j b → ⊥
+⇎⋆-mtyΠ (b , mty⇒⋆b , Π⇒⋆b) with ⇒⋆-mty-inv mty⇒⋆b | ⇒⋆-Π-inv Π⇒⋆b
 ... | refl | ()
 
-≈-Π-inv : ∀ {aₗ aᵣ jₗ jᵣ bₗ bᵣ} → Π aₗ jₗ bₗ ≈ Π aᵣ jᵣ bᵣ → aₗ ≈ aᵣ × jₗ ≡ jᵣ × bₗ ≈ bᵣ
-≈-Π-inv {aₗ = aₗ} {bₗ = bₗ} (c , Πajbₗ⇒⋆c , Πajbᵣ⇒⋆c) =
+⇔-Π-inv : ∀ {aₗ aᵣ jₗ jᵣ bₗ bᵣ} → Π aₗ jₗ bₗ ⇔ Π aᵣ jᵣ bᵣ → aₗ ⇔ aᵣ × jₗ ≡ jᵣ × bₗ ⇔ bᵣ
+⇔-Π-inv {aₗ = aₗ} {bₗ = bₗ} (c , Πajbₗ⇒⋆c , Πajbᵣ⇒⋆c) =
   let aₗ' , bₗ' , pₗ , aₗ⇒⋆aₗ' , bₗ⇒⋆bₗ' = ⇒⋆-Π-inv Πajbₗ⇒⋆c
       aᵣ' , bᵣ' , pᵣ , aᵣ⇒⋆aᵣ' , bᵣ⇒⋆bᵣ' = ⇒⋆-Π-inv Πajbᵣ⇒⋆c
       aₗ'≡aᵣ' , jₗ≡jᵣ , bₗ'≡bᵣ' = invΠ (trans (sym pₗ) pᵣ)

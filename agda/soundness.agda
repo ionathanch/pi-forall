@@ -78,8 +78,8 @@ soundness {σ} v emV (⊢abs {A = A} {b = b} tA tb)
   with () ← (let b , elb = soundness v emV tb in empty b elb)
 soundness {σ} v emV (⊢≈ {a = a} A≈B ta _) =
   let u , elU = soundness v emV ta
-      Aσ≈Bσ = ≈-subst σ A≈B
-  in ≈-U Aσ≈Bσ u , ≈-el u (≈-U Aσ≈Bσ u) Aσ≈Bσ elU
+      Aσ⇔Bσ = ⇔-subst σ (≈-⇔ A≈B)
+  in ⇔-U Aσ⇔Bσ u , ⇔-el u (⇔-U Aσ⇔Bσ u) Aσ⇔Bσ elU
 
 consistency : ∀ {b k} → ∙ ⊢ b ⦂ mty # k → ⊥
 consistency tb with b , elb ← soundness {σ = var} ∙̂  tt tb = empty b elb
