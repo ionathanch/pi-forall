@@ -11,9 +11,6 @@ record Acc (k : Level) : Set where
   field acc : ∀ {j} → j < k → Acc j
 open Acc
 
-WF : Set
-WF = ∀ k → Acc k
-
 module accext where
   private postulate
     funext' : ∀ {A : Set} {B : A → Set} →

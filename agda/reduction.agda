@@ -141,8 +141,8 @@ data _⇒⋆_ : Term → Term → Set where
 
 ⇒⋆-Π-inv : ∀ {a j b c} → Π a j b ⇒⋆ c → ∃[ a' ] ∃[ b' ] c ≡ Π a' j b' × a ⇒⋆ a' × b ⇒⋆ b'
 ⇒⋆-Π-inv (⇒⋆-refl (Π a j b)) = a , b , refl , ⇒⋆-refl a , ⇒⋆-refl b
-⇒⋆-Π-inv (⇒⋆-trans (⇒-Π a⇒a' b⇒b') r*) =
-  let a'' , b'' , p , a'⇒⋆a'' , b'⇒⋆b'' = ⇒⋆-Π-inv r*
+⇒⋆-Π-inv (⇒⋆-trans (⇒-Π a⇒a' b⇒b') Πab'⇒⋆c) =
+  let a'' , b'' , p , a'⇒⋆a'' , b'⇒⋆b'' = ⇒⋆-Π-inv Πab'⇒⋆c
   in a'' , b'' , p , ⇒⋆-trans a⇒a' a'⇒⋆a'' , ⇒⋆-trans b⇒b' b'⇒⋆b''
 
 ⇒⋆-β : ∀ σ b a → ($ᵈ (λᵈ (subst (↑ σ) b)) a) ⇒⋆ (subst (a +: σ) b)
