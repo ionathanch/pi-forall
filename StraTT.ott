@@ -680,6 +680,10 @@ S |- b ~> b'
 ---------------- :: App
 S |- b a ~> b' a
 
+S |- b ~> b'
+-------------------------- :: Absurd
+S |- absurd b ~> absurd b'
+
 defns
   AWHNF :: '' ::=
 
