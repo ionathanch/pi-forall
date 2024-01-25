@@ -530,7 +530,10 @@ Inductive Reduce : signature -> tm -> tm -> Prop :=    (* defn Reduce *)
  | R_App : forall (S:signature) (b a b':tm),
      lc_tm a ->
      Reduce S b b' ->
-     Reduce S (a_App b a) (a_App b' a).
+     Reduce S (a_App b a) (a_App b' a)
+ | R_Absurd : forall (S:signature) (b b':tm),
+     Reduce S b b' ->
+     Reduce S (a_Absurd b) (a_Absurd b').
 
 (* defns AWHNF *)
 Inductive WHNF : signature -> tm -> tm -> Prop :=    (* defn WHNF *)
