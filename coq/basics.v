@@ -70,11 +70,11 @@ Lemma DEquiv_lc : forall {S A B}, DEquiv S A B -> lc_tm A /\ lc_tm B.
 Proof.
 induction 1; split_hyp; split; eauto with lc.
 - inversion H. eapply lc_body_tm_wrt_tm; eauto.
-- pick fresh x.
-  specialize (H x Fr).
+(* - pick fresh x.
+  specialize (H0 x Fr).
   eapply lc_a_Abs_exists with (x1:=x).
   rewrite H.
-  eauto.
+  eauto. *)
 - pick fresh x.
   edestruct H1; eauto.
   eapply lc_a_Pi_exists with (x1 := x); eauto.

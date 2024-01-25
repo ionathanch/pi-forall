@@ -27,10 +27,10 @@ Axiom DEquiv_Pi_inj3 : forall S A1 B1 j1 j2 A2 B2 a,
     -> DEquiv S (a_Pi A1 j1 B1) (a_Pi A2 j2 B2)
     -> DEquiv S (open_tm_wrt_tm B1 a) (open_tm_wrt_tm B2 a).
 
+(* Axioms needed for progress lemma *)
+
 Axiom ineq_Arrow_Pi : forall S A1 B1 A2 j B2,
     DEquiv S (a_Arrow A1 A2) (a_Pi B1 j B2) -> False.
-
-(* Axioms needed for progress lemma *)
 
 Axiom ineq_Arrow_Type :
   forall S (A1 A2 : tm),
@@ -51,6 +51,4 @@ Axiom ineq_Pi_Bottom:
   forall S B1 j B2,
   DEquiv S (a_Pi B1 j B2) a_Bottom -> False.
 
-Axiom empty_Bottom :
-  forall S b k, DTyping S nil b a_Bottom k -> False.
 

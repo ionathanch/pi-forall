@@ -217,6 +217,10 @@ Proof.
        move: (@DTyping_a_Pi_inversion x _ _ _ _ _ _ TPi ltac:(auto)) => h. split_hyp. auto.
        eapply DTyping_regularity; eauto.
        eapply DE_Sym; auto.
+  - (* absurd cong *)
+    move: (DTyping_regularity DT) => TB.
+    move: (DTyping_a_Absurd_inversion DT) => Tb.
+    econstructor; eauto.
 Qed.
 
 Lemma WHNF_Preservation : forall S a b, WHNF S a b ->
@@ -259,6 +263,7 @@ Proof.
     contradiction.
 Qed.
 
+
 Lemma canonical_Pi : forall S A j B b k,
     DTyping S nil b (a_Pi A j B) k -> Value b -> exists a, b = a_Abs a.
 Proof.
@@ -280,6 +285,42 @@ Proof.
     assert False. eapply ineq_Pi_Type. eapply DE_Sym. eapply DE_Trans; eauto.
     contradiction.
 Qed.
+
+
+Lemma canonical_Bottom : forall S b k,
+    DTyping S nil b a_Bottom k -> Value b -> False.
+Proof.
+  intros.
+  dependent induction H; subst.
+  all: match goal with [ H2 : Value _ |- _ ] => inversion H2 ; subst end.
+  - pick fresh x.
+    eapply (@DTyping_a_Abs_inversion x) in H; eauto.
+    destruct H as (j1 & j2 & A1 & A2 & h1 & h2).
+    destruct h2 as [[h2 [h3 h4]]| [A3 [h2 h3]]].
+    + assert False. eapply ineq_Arrow_Bottom.
+      eapply DE_Sym. eapply DE_Trans; eauto.
+      contradiction.
+    + assert False. eapply ineq_Pi_Bottom.
+      eapply DE_Sym. eapply DE_Trans; eauto.
+      contradiction.
+
+  - apply DTyping_a_Type_inversion in H.
+    assert False. eapply ineq_Type_Bottom.
+    eapply DE_Sym. eapply DE_Trans; eauto.
+    contradiction.
+  - pick fresh x.
+    eapply (@DTyping_a_Pi_inversion1 x) in H; eauto. split_hyp.
+    assert False. eapply ineq_Type_Bottom. eapply DE_Trans. eapply DE_Sym; eauto. eauto.
+    contradiction.
+  - eapply DTyping_a_Arrow_inversion1 in H; eauto. split_hyp.
+    assert False. eapply ineq_Type_Bottom. eapply DE_Trans. eapply DE_Sym; eauto. eauto.
+    contradiction.
+  - eapply DTyping_a_Bottom_inversion in H; eauto.
+    assert False. eapply ineq_Type_Bottom. eapply DE_Sym. eapply DE_Trans; eauto.
+    contradiction.
+Qed.
+
+
 
 Lemma progress : forall S a A k, DTyping S nil a A k -> Value a \/ exists b, Reduce S a b.
 Proof.
@@ -308,7 +349,11 @@ Proof.
       econstructor; eauto with lc.
     + right. eexists. eauto with lc.
   - (* absurd *)
-    assert False. eapply empty_Bottom; eauto. contradiction.
+    right.
+    destruct IHDTyping2; auto.
+    move: (canonical_Bottom H0 H1) => h. contradiction.
+    destruct H1 as [b' hb'].
+    exists (a_Absurd b'). eauto.
   - destruct IHDTyping1 as [|[b' Hb]]; eauto.
 Unshelve.
 all: exact nil.

@@ -61,14 +61,14 @@ Proof.
     apply lc_incr.
     auto.
     reflexivity.
-  - pick fresh x and apply DE_Eta.
+(*  - pick fresh x and apply DE_Eta.
     spec x.
     replace (a_Var_f x) with (incr j (a_Var_f x)).
     rewrite <- incr_open.
     rewrite H.
     reflexivity.
     reflexivity.
-    eauto with lc.
+    eauto with lc. *)
   - rewrite incr_incr. eauto.
   - pick fresh x and apply DE_Pi; auto.
     repeat spec x.

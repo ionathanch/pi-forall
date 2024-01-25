@@ -244,3 +244,14 @@ Proof.
   eauto.
   eapply DE_Trans; eauto.
 Qed.
+
+Lemma DTyping_a_Absurd_inversion : forall  S G b A k, 
+    DTyping S G (a_Absurd b) A k -> 
+    DTyping S G b a_Bottom k.
+Proof.
+  intros. dependent induction H.
+  eauto.
+  move: (IHDTyping1 b ltac:(eauto)) => h.
+  auto.
+Qed.
+  

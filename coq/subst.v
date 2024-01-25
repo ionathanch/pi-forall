@@ -30,13 +30,14 @@ Proof.
     eapply DE_Beta; eauto with lngen.
     move: (subst_tm_lc_tm _ _ x H ltac:(eauto)) => h. simpl in h.
     auto.
+(*
   - (* eta *)
     pick fresh y and apply DE_Eta.
     spec y.
     replace (b' [x ~> a] ^ y) with ((b' ^ y)[x ~> a]).
     rewrite H. simpl. destruct (y == x). subst. fsetdec. auto.
     autorewrite with lngen; auto.
-    eapply subst_tm_lc_tm; eauto.
+    eapply subst_tm_lc_tm; eauto. *)
   - (* const *)
     have DT: DTyping S nil a0 A k.
     eapply DSig_regularity; eauto.
