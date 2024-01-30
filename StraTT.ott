@@ -29,7 +29,7 @@ nat ,  i , j , k :: 'l_' ::= {{ coq nat }} {{ com natural numbers }}
    | ( i )   :: M :: paren  {{ coq ([[i]]) }}
    | (# i #) :: M :: sparen {{ coq ([[i]]) }} {{ tex [[i]] }}
 
-tm, A, B, C, a, b, c, sigma {{ tex \sigma }} :: 'a_' ::= {{ com terms and types }}
+tm, A, B, C, a, b, c :: 'a_' ::= {{ com terms and types }}
   | type :: :: Type
     {{ com universe }}
     {{ tex \star }}
