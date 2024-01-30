@@ -43,6 +43,15 @@ idid3 = \id. id (((X : Type @ 2) -> X -> X) -> (X : Type @ 0) -> X -> X)
                 idid2
                 (\X x. id X x)
 
+idid1id : idid1 (\X. \x. x) = (\X. \x. x)
+idid1id = Refl
+
+idid2id : idid2 (\X. \x. x) = (\X. \x. x)
+idid2id = Refl
+
+idid3id : idid3 (\X. \x. x) = (\X. \x. x)
+idid3id = Refl
+
 {- Church encoding of the Option type -}
 
 OptionC : Type -> Type @ 1
@@ -84,6 +93,20 @@ yes = \X x Z f g. f x
 
 no : (X : Type @ 0) -> neg X -> DecC X @ 1
 no = \X nx Z f g. g nx
+
+{- Church encoding of decidable types without nondependent functions -}
+
+neg' : (_ : Type @ 0) -> Type @ 1
+neg' = \X. X -> Void
+
+DecC' : (_ : Type @ 0) -> Type @ 3
+DecC' = \X. (Z : Type @ 0) -> (yz : (x : X @ 0) -> Z @ 2) -> (nz : (nx : neg' X @ 1) -> Z @ 2) -> Z
+
+yes' : (X : Type @ 0) -> (x : X @ 0) -> DecC' X @ 3
+yes' = \X x Z f g. f x
+
+no' : (X : Type @ 0) -> (nx : neg' X @ 1) -> DecC' X @ 3
+no' = \X nx Z f g. g nx
 
 {- Leibniz equality -}
 
