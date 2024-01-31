@@ -4,7 +4,6 @@ Require Export StraTT.basics.
 Require Export StraTT.ctx.
 Require Export StraTT.subst.
 Require Export StraTT.inversion.
-Require Export StraTT.restrict.
 
 Set Implicit Arguments.
 
@@ -44,6 +43,8 @@ Proof.
   auto.
   econstructor; eauto with lc.
 Qed.
+
+#[local] Hint Resolve Ctx_DEquiv_refl : core.
 
 Lemma DCtx_DTyping_conversion :
   (forall S, DSig S -> True) /\
@@ -109,20 +110,6 @@ Proof.
   eapply DCtx_DTyping_conversion; eauto.
 Qed.
 
-Lemma SubG_float_restrict :
-    forall G j k, j <= k -> SubG G (float j k (restrict G j)).
-Proof.
-  intros. alist induction G. simpl; auto.
-  simpl. destruct a.
-  destruct (k0 <=? j) eqn: E; simpl; eauto.
-  unfold refocus. destruct (k0 == j) eqn:E2; rewrite E2. subst.
-  econstructor; eauto.
-  econstructor; eauto.
-  econstructor; eauto.
-Qed.
-
-#[local] Hint Resolve SubG_float_restrict Ctx_DEquiv_refl : core.
-
 Lemma Reduce_Preservation : forall S G a b,
     Reduce S a b
     -> forall A k, DTyping S G a A k ->  DTyping S G b A k.
@@ -136,28 +123,18 @@ Proof.
       move: (DTyping_regularity DABS) => h.
       eapply DTyping_a_Arrow_inversion in h. split_hyp.
       eapply (@DTyping_a_Abs_inversion x) in DABS; eauto.
-      move: DABS => [j1 [j2 [A1 [A2 [h [X | Y]]]]]]. split_hyp.
+      move: DABS => [j1 [A1 [A2 [h [X | Y]]]]]. split_hyp. subst.
       ++ have E1: (DEquiv S A1 A). eapply DEquiv_Arrow_inj1; eauto.
          have E2: (DEquiv S A2 B). eapply DEquiv_Arrow_inj2; eauto.
          subst.
          move: (DTyping_DCtx h) => DC. inversion DC. subst.
-         (* strategy: use substitution lemma. But first need to float b to k0 *)
          rewrite (subst_tm_intro x); auto.
-         apply DTyping_float_restrict with (k := k0) in h; auto.
-         simpl_env in h. simpl in h.
-         rewrite Nat.leb_refl in h. simpl in h.
-         unfold refocus in h. destruct (j2 == j2). 2: done. simpl_env in h.
-         (* Now use narrowing to go back to G in typing of b *)
-         eapply DTyping_SubG with (G' := x ~ Tm A1 k0 ++ G) in h; eauto with ctx.
          replace B with (subst_tm a x B). 2: rewrite subst_tm_fresh_eq; auto.
          eapply DT_Conv with (k:=k0) (B:=A1) in Da; eauto.
          eapply DTyping_subst1; eauto.
          eapply DT_Conv; eauto.
          eapply DTyping_regularity.
          eapply DTyping_weakening1; eauto.
-         eapply DTyping_DCtx; eauto.
-         eapply DTyping_cumul; eauto.
-         eapply DCtx_cumul; eauto.
       ++ move: Y => [A3 Z]. split_hyp. subst.
          (* impossible. by consistency of DEquiv *)
          eapply ineq_Arrow_Pi in H3. contradiction.
@@ -167,7 +144,7 @@ Proof.
       pick fresh x.
       eapply (@DTyping_a_Pi_inversion x) in h. split_hyp.
       eapply (@DTyping_a_Abs_inversion x) in TABS; eauto.
-      move: TABS => [j1 [j2 [A1 [A2 [h [X | Y]]]]]]. split_hyp.
+      move: TABS => [j1 [A1 [A2 [h [X | Y]]]]]. split_hyp.
       ++ (* impossible. by consistency of DEquiv *)
         apply DE_Sym in H4.
         eapply ineq_Arrow_Pi in H4. contradiction.
@@ -183,7 +160,6 @@ Proof.
       rewrite (subst_tm_intro x A3); auto.
       simpl_env in h.
       eapply DTyping_subst1; eauto.
-      eapply DTyping_cumul; eauto.
       eapply DCtx_conversion; eauto with ctx.
       eapply DTyping_regularity; eauto.
       eapply DE_Sym. eapply DE_Trans; eauto.
@@ -295,8 +271,8 @@ Proof.
   all: match goal with [ H2 : Value _ |- _ ] => inversion H2 ; subst end.
   - pick fresh x.
     eapply (@DTyping_a_Abs_inversion x) in H; eauto.
-    destruct H as (j1 & j2 & A1 & A2 & h1 & h2).
-    destruct h2 as [[h2 [h3 h4]]| [A3 [h2 h3]]].
+    destruct H as (j1 & A1 & A2 & h1 & h2).
+    destruct h2 as [[h2 h3]| [A3 [h2 h3]]].
     + assert False. eapply ineq_Arrow_Bottom.
       eapply DE_Sym. eapply DE_Trans; eauto.
       contradiction.

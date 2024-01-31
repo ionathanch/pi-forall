@@ -121,21 +121,21 @@ Qed.
 Lemma DTyping_a_Abs_inversion :
   forall x S G b B k, DTyping S G (a_Abs b) B k ->
        x `notin` dom G \u dom S ->
-       exists j1 j2 A1 A2,
-       DTyping S (x ~ Tm A1 j1 ++ G) (b ^ x) A2 j2 /\
-         ((DEquiv S B (a_Arrow A1 A2) /\ j1 = j2 /\ j2 <= k) \/
+       exists j1 A1 A2,
+       DTyping S (x ~ Tm A1 j1 ++ G) (b ^ x) A2 k /\
+         ((DEquiv S B (a_Arrow A1 A2) /\ j1 = k) \/
          (exists A3, (DEquiv S B (a_Pi A1 j1 A3)) /\ A2 = (A3 ^ x)
-                     /\ j1 < j2 /\ j1 < k /\ j2 <= k
+                     /\ j1 < k
                      /\ x `notin` fv_tm A3)).
 Proof.
   intros.
   dependent induction H.
-  + exists k. exists k. exists A. exists B.
+  + exists k. exists A. exists B.
     split.
     pick fresh y. spec y.
     eapply DTyping_rename1; eauto.
-    left. split; eauto with lc.
-  + exists j. exists k. exists A. exists (B ^ x).
+    left. eauto with lc.
+  + exists j. exists A. exists (B ^ x).
     pick fresh y. spec y.
     split.
     eapply DTyping_rename2; eauto.
@@ -148,12 +148,12 @@ Proof.
     move: (h _ _ _ _ _ H0) => [f1 f2].
     simpl in f2.
     rewrite <- fv_tm_open_tm_wrt_tm_lower in f2. fsetdec.
-  + edestruct IHDTyping1 as [j0 [j2 [A2 [A3 h]]]]. eauto. auto.
+  + edestruct IHDTyping1 as [j0 [A2 [A3 h]]]. eauto. auto.
     split_hyp.
     have DC: DCtx S (x ~ Tm A2 j0 ++ G). eauto with ctx.
     inversion DC. subst.
     destruct H4.
-    ++ exists j0. exists j2. exists A2. exists A3.
+    ++ exists j0. exists A2. exists A3.
        split_hyp. subst.
        split. eapply DT_Conv; eauto.
        eapply DT_Conv; eauto.
@@ -161,7 +161,7 @@ Proof.
        eapply DE_Refl; eauto with lc.
        left. split. eapply DE_Trans; eauto. lia.
     ++ move: H4 => [A4 h].  split_hyp. subst.
-       exists j0. exists j2. exists A2. exists (A4 ^ x).
+       exists j0. exists A2. exists (A4 ^ x).
        split.
        auto.
        right.
