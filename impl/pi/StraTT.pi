@@ -126,14 +126,6 @@ isSet = \X. (x : X @ 0) -> (y : X @ 0) -> isProp^1 (eq^0 X x y)
  SECTION 5: Prototype implementation
  -----------------------------------}
 
-{- Annotation inference -}
-
-idid' : (X : Type) -> X -> X
-idid' = id ((X : Type) -> X -> X) (\X x. id X x)
-
-cps' : (X : Type) -> Type
-cps' = \X. (R : Type @ 1) -> (X -> R) -> R
-
 {- Datatypes -}
 
 data Option (X : Type) : Type @ 0 where
@@ -166,20 +158,20 @@ map = \X Y f box. case box of
 data NPair (X : Type @ 0) (P : X -> Type) : Type @ 1 where
   MkPair of (x : X @ 0) (P x) @ 1
 
-sfst : (X : Type @ 0) -> (P : X -> Type @ 0) -> NPair^0 X P -> X @ 1
-sfst = \X P p. case p of MkPair x y -> x
+nfst : (X : Type @ 0) -> (P : X -> Type @ 0) -> NPair^0 X P -> X @ 1
+nfst = \X P p. case p of MkPair x y -> x
 
-ssnd : (X : Type @ 0) -> (P : X -> Type @ 0) -> (p : NPair^0 X P @ 1) -> P (sfst^0 X P p) @ 2
-ssnd = \X P p. case p of MkPair x y -> y
+nsnd : (X : Type @ 0) -> (P : X -> Type @ 0) -> (p : NPair^0 X P @ 1) -> P (nfst^0 X P p) @ 2
+nsnd = \X P p. case p of MkPair x y -> y
 
 data DPair (X : Type @ 0) (P : (_ : X @ 0) -> Type) : Type @ 1 where
   MkPair of (x : X @ 0) (P x) @ 1
 
-wfst : (X : Type @ 0) -> (P : (_ : X @ 0) -> Type @ 1) -> DPair^0 X P -> X @ 2
-wfst = \X P p. case p of MkPair x y -> x
+dfst : (X : Type @ 0) -> (P : (_ : X @ 0) -> Type @ 1) -> DPair^0 X P -> X @ 2
+dfst = \X P p. case p of MkPair x y -> x
 
-wsnd : (X : Type @ 0) -> (P : (_ : X @ 0) -> Type @ 1) -> (p : DPair^0 X P @ 1) -> (case p of MkPair x y -> P x) @ 2
-wsnd = \X P p. case p of MkPair x y -> y
+dsnd : (X : Type @ 0) -> (P : (_ : X @ 0) -> Type @ 1) -> (p : DPair^0 X P @ 1) -> (case p of MkPair x y -> P x) @ 2
+dsnd = \X P p. case p of MkPair x y -> y
 
 {-------------------------
  SECTION 6: On consistency
@@ -215,7 +207,7 @@ regular = \u. case u of
 R : U^2 @ 3
 R = MkU^2 (NPair^1 U^0 regular) (\ureg. TRUSTME) -- (sfst^1 U^0 regular^0)
 
--- regular R = (x : NPair U regular) -> sfst U regular x = MkU X f -> Void
+-- regular R ≜ (x : NPair U regular) -> sfst U regular x = MkU X f -> Void
 
 R_nonreg : regular^2 R^0 -> Void @ 3
 R_nonreg = TRUSTME -- \reg. reg (MkPair^1 R^0 reg) Refl
