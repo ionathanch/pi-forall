@@ -30,7 +30,9 @@ Note: some files have been generated with:
 
 ## Axioms
 
-All axioms are listed in the file axioms.v.
+Because we use the `dependent induction` tactic from Coq.Program.Equality,
+this development inherits the `eq_rect_eq` axiom (i.e. UIP) from Coq.Logic.Eqdep.
+All additional axioms are listed in the file axioms.v.
 
 
 ## Mechanization summary
