@@ -1,39 +1,41 @@
 module Blowup where
 
-{- In Coq, we get a stack overflow with this code. -}
+{-
+  Set Universe Polymorphism.
+  Time Definition T1 : Type := Type -> Type -> Type -> Type -> Type -> Type.
+  Time Definition T2 : Type := T1 -> T1 -> T1 -> T1 -> T1 -> T1.
+  Time Definition T3 : Type := T2 -> T2 -> T2 -> T2 -> T2 -> T2.
+  Time Definition T4 : Type := T3 -> T3 -> T3 -> T3 -> T3 -> T3.
+  Time Definition T5 : Type := T4 -> T4 -> T4 -> T4 -> T4 -> T4.
+  Time Definition T6 : Type := T5 -> T5 -> T5 -> T5 -> T5 -> T5.
+  Time Definition T7 : Type := T6 -> T6 -> T6 -> T6 -> T6 -> T6.
+  Time Definition T8 : Type := T7 -> T7 -> T7 -> T7 -> T7 -> T7.
+-}
 
 {-
-Set Printing Universes.
-Set Universe Polymorphism.
-
-Time Definition T1 : Type := Type -> Type -> Type -> Type.
-Time Definition T2 : Type := T1 -> T1 -> T1 -> T1.
-Time Definition T3 : Type := T2 -> T2 -> T2 -> T2.
-Time Definition T4 : Type := T3 -> T3 -> T3 -> T3.
-Time Definition T5 : Type := T4 -> T4 -> T4 -> T4.
-Time Definition T6 : Type := T5 -> T5 -> T5 -> T5.
-Time Definition T7 : Type := T6 -> T6 -> T6 -> T6.
-Time Definition T8 : Type := T7 -> T7 -> T7 -> T7.
-Print T8.
-Time Definition T9 : Type := T8 -> T8 -> T8 -> T8.
+  def T1 : Type _ := Type _ → Type _ → Type _ → Type _ → Type _ → Type _
+  def T2 : Type _ := T1 → T1 → T1 → T1 → T1 → T1
+  def T3 : Type _ := T2 → T2 → T2 → T2 → T2 → T2
+  def T4 : Type _ := T3 → T3 → T3 → T3 → T3 → T3
+  def T5 : Type _ := T4 → T4 → T4 → T4 → T4 → T4
+  def T6 : Type _ := T5 → T5 → T5 → T5 → T5 → T5
+  def T7 : Type _ := T6 → T6 → T6 → T6 → T6 → T6
+  def T8 : Type _ := T7 → T7 → T7 → T7 → T7 → T7
 -}
 
 T1 : Type
-T1 = Type -> Type -> Type -> Type
+T1 = Type -> Type -> Type -> Type -> Type -> Type
 T2 : Type
-T2 = T1 -> T1 -> T1 -> T1
+T2 = T1 -> T1 -> T1 -> T1 -> T1 -> T1
 T3 : Type
-T3 = T2 -> T2 -> T2 -> T2
+T3 = T2 -> T2 -> T2 -> T2 -> T2 -> T2
 T4 : Type
-T4 = T3 -> T3 -> T3 -> T3
+T4 = T3 -> T3 -> T3 -> T3 -> T3 -> T3
 T5 : Type
-T5 = T4 -> T4 -> T4 -> T4
+T5 = T4 -> T4 -> T4 -> T4 -> T4 -> T4
 T6 : Type
-T6 = T5 -> T5 -> T5 -> T5
+T6 = T5 -> T5 -> T5 -> T5 -> T5 -> T5
 T7 : Type
-T7 = T6 -> T6 -> T6 -> T6
+T7 = T6 -> T6 -> T6 -> T6 -> T6 -> T6
 T8 : Type
-T8 = T7 -> T7 -> T7 -> T7
-T9 : Type
-T9 = T8 -> T8 -> T8 -> T8
-
+T8 = T7 -> T7 -> T7 -> T7 -> T7 -> T7

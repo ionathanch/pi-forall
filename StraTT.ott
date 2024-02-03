@@ -2,7 +2,7 @@ embed {{ coq-preamble
   Require Export Metalib.LibLNgen.
   }}
 
-metavar var, x, y, z, f, g ::=
+metavar var, x, y, z ::=
   {{ repr-locally-nameless }}
   {{ com variables }}
   {{ lex alphanum }}

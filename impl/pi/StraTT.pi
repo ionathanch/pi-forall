@@ -1,7 +1,7 @@
 module StraTT where
 
 {-------------------
- SECTION 2: Examples
+ SECTION 3: Examples
  -------------------}
 
 {- The identity function -}
@@ -122,20 +122,11 @@ isProp = \X. (x : X @ 0) -> (y : X @ 0) -> eq^0 X x y
 isSet : (X : Type @ 0) -> Type @ 2
 isSet = \X. (x : X @ 0) -> (y : X @ 0) -> isProp^1 (eq^0 X x y)
 
-{-----------------------------------
- SECTION 5: Prototype implementation
- -----------------------------------}
+{---------------------
+ Appendix C: Datatypes
+ ---------------------}
 
-{- Datatypes -}
-
-data Option (X : Type) : Type @ 0 where
-  None @ 0
-  Some of (X) @ 0
-
-join : (X : Type @ 0) -> Option^0 (Option^0 X) -> Option^0 X
-join = \X oopt. case oopt of
-  None -> None
-  Some opt -> opt
+{- Decidable types -}
 
 data Dec (X : Type) : Type @ 0 where
   Yes of (X) @ 0
@@ -146,12 +137,20 @@ decDNE = \X dec nnx. case dec of
   Yes x -> x
   No nx -> absurd (nnx nx)
 
-data Box (X : Type @ 0) : Type @ 1 where
-  MkBox of (x : X @ 0) @ 1
+{- Propositional equality -}
 
-map : (X : Type @ 1) -> (Y : Type @ 1) -> (f : X -> Y @ 1) -> Box^1 X -> Box^1 Y @ 2
-map = \X Y f box. case box of
-  MkBox x -> MkBox (f x)
+data Eq (X : Type @ 0) (x : X) (y : X) : Type @ 1 where
+  refl of (z : X @ 0) [z = x] [z = y] @ 1
+
+isProp' : (X : Type @ 0) -> Type @ 1
+isProp' = \X. (x : X @ 0) -> (y : X @ 0) -> Eq X x y
+
+isSet' : (X : Type @ 0) -> Type @ 2
+isSet' = \X. (x : X @ 0) -> (y : X @ 0) -> isProp'^1 (Eq X x y)
+
+UIP : (X : Type @ 0) -> (x : X @ 0) -> (p : Eq X x x) -> Eq (Eq X x x) p (refl x)
+UIP = \X. \x. \p. case p of
+  refl z -> refl (refl z)
 
 {- Dependent pairs -}
 
@@ -173,16 +172,16 @@ dfst = \X P p. case p of MkPair x y -> x
 dsnd : (X : Type @ 0) -> (P : (_ : X @ 0) -> Type @ 1) -> (p : DPair^0 X P @ 1) -> (case p of MkPair x y -> P x) @ 2
 dsnd = \X P p. case p of MkPair x y -> y
 
-{-------------------------
- SECTION 6: On consistency
- -------------------------}
+{---------------------
+ Appendix D: Paradoxes
+ ---------------------}
 
 data U : Type @ 1 where
   MkU of (X : Type @ 0) (X -> U) @ 1
 
 {- Burali-Forti's paradox -}
 
-data WF (u : U^0 @ 1) : Type @ 2 where
+data WF (u : U^0) : Type @ 2 where
   MkWF of (X : Type @ 0) (f : X -> U^0 @ 1) ((x : X @ 1) -> WF^0 (f x)) [u = MkU^0 X f] @ 2
 
 wf : (u : U @ 1) -> WF^0 u @ 2
