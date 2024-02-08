@@ -18,9 +18,12 @@ The grammar for the implemented language is given below,
 with a description for each construct and
 its corresponding StraTT syntax from the paper where they differ.
 In addition to datatypes, there is also a primitive equality type.
+Note that parentheses `()` and brackets `[]` are concrete syntax,
+while braces `{}` aren't and are only used for grouping,
+in particular for use with ellipses `...` to denote sequences.
 
 ```ebnf
-f, x, y, z ::= <name>  (* variable/constant names *)
+x, y, z ::= <name>     (* variable/constant names *)
 D ::= <name>           (* datatype names *)
 C ::= <name>           (* constructor names *)
 M ::= <name>           (* module names *)
@@ -50,7 +53,7 @@ a, b, A, B ::= x                   (*             variable or constant with impl
              | D a...              (*             fully applied datatype *)
              | C a...              (*             fully applied constructor *)
              | case a of           (*             case expression *)
-                 (C x... => b)...
+                 {C x... => b}...
 
 (* signatures *)
 Δ ::= x : A      (* [x : A ≔ a] global definition *)
@@ -59,7 +62,7 @@ a, b, A, B ::= x                   (*             variable or constant with impl
 
 (* file structure *)
 file ::= module M where
-         (import M)...
+         {import M}...
          Δ...
 ```
 
@@ -88,17 +91,17 @@ The syntax for parameters and arguments are a little nonuniform
 to accommodate both dependency/nondependency and explicit/implicit levels.
 Named parameters with no level annotations indicate nondependent parameters,
 while named constructor arguments with no level annotations indicate dependent arguments whose level is inferred.
-For instance, below is how `WPair` would be declared
+For instance, below is how `DPair` would be declared
 along with its corresponding paper StraTT definition.
 
 ```
-data WPair (A : Type @ 0) (B : (_ : A @ 0) -> Type) : Type @ 1 where
+data DPair (A : Type @ 0) (B : (_ : A @ 0) -> Type) : Type @ 1 where
   MkPair of (x : A @ 0) (B x) @ 1
 ```
 
 ```
-data WPair (A :⁰ ⋆) (B : Π _ :⁰ A . ⋆) :¹ ⋆ where
-  MkPair :¹ Π x :⁰ A . B x → WPair A B
+data DPair (A :⁰ ⋆) (B : Π _ :⁰ A . ⋆) :¹ ⋆ where
+  MkPair :¹ Π x :⁰ A . B x → DPair A B
 ```
 
 Rather than having indices, parameters can be equated to values.
