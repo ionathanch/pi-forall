@@ -29,19 +29,19 @@ id = \X x. x
 -- id id
 idid1 : ((X : Type @ 1) -> X -> X) -> (X : Type @ 0) -> X -> X @ 2
 idid1 = \id. id ((X : Type @ 0) -> X -> X)
-                (\X x. id X x)
+                (\X. id X)
 
 -- id (id id) id
 idid2 : ((X : Type @ 2) -> X -> X) -> (X : Type @ 0) -> X -> X @ 3
 idid2 = \id. id (((X : Type @ 1) -> X -> X) -> (X : Type @ 0) -> X -> X)
                 idid1
-                (\X x. id X x)
+                (\X. id X)
 
 -- id (id (id id) id) id
 idid3 : ((X : Type @ 3) -> X -> X) -> (X : Type @ 0) -> X -> X @ 4
 idid3 = \id. id (((X : Type @ 2) -> X -> X) -> (X : Type @ 0) -> X -> X)
                 idid2
-                (\X x. id X x)
+                (\X. id X)
 
 idid1id : idid1 (\X. \x. x) = (\X. \x. x)
 idid1id = Refl
