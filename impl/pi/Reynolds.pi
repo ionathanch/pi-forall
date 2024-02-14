@@ -1,0 +1,56 @@
+{- Adapted from https://vilhelms.github.io/posts/why-must-inductive-types-be-strictly-positive/ -}
+
+module StrictPositivity where
+import Logic
+
+P : Type -> Type
+P = \S. S -> Type
+
+-- Basic manipulations of equality
+
+cong : [A : Type] -> [B : Type] -> [x : A] -> [y : A] -> [f : A -> B] -> x = y -> f x = f y
+cong = \[A]. \[B]. \[x]. \[y]. \[f]. \h. subst Refl by h
+
+transp : [A : Type] -> [B : A -> Type] -> [x : A] -> [y : A] -> x = y -> B x -> B y
+transp = \[A]. \[B]. \[x]. \[y]. \h. \Bx. subst Bx by h
+
+-- Our non-strictly positive datatype and some injectivity lemmas
+
+data Bad : Type where
+  MkBad of (P (P Bad))
+
+f : P Bad -> Bad
+f = \p. MkBad (\p'. p' = p)
+
+badInj : (p : P (P Bad) @ 1) -> (q : P (P Bad) @ 1) -> MkBad p = MkBad q -> p = q
+badInj = \p. \q. \h.
+  cong [Bad] [P (P Bad)] [MkBad p] [MkBad q]
+       [\bad. case bad of MkBad ppb -> ppb] h
+
+-- MkBad (_= p) = MkBad (_= q) ---[badInj]--> (_= p) = (_= q) ---[transp]--> (p = p) -> (p = q)
+fInj : (p : P Bad @ 1) -> (q : P Bad @ 1) -> f p = f q -> p = q
+fInj = \p. \q. \h.
+  transp [P (P Bad)] [\f. f p] [\p'. p' = p] [\p'. p' = q]
+         (badInj (\p'. p' = p) (\p'. p' = q) h) Refl
+
+-- Russell's paradox (?)
+
+pbad : P Bad
+pbad = \x. {p : P Bad | And (x = f p) (neg (p x)) }
+
+bad : Bad
+bad = f pbad
+
+lem1 : neg (pbad bad)
+lem1 = \p1. let (p , a) = p1 in
+  case a of
+    Conj badfp negpbad -> negpbad (subst p1 by fInj pbad p badfp)
+    -- badfp : bad = f p
+    -- negpbad : neg (p bad)
+    -- fInj pbad p badfp : pbad = p
+
+lem2 : neg (pbad bad) -> pbad bad
+lem2 = \negpbad. PRINTME -- (pbad , Conj Refl negpbad)
+
+false : Void
+false = lem1 (lem2 lem1)
