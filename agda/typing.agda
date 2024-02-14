@@ -5,7 +5,7 @@ import reduction
 module typing
   (Level : Set)
   (_<_ : Level → Level → Set)
-  where
+  (trans< : ∀ {i j k} → i < j → j < k → i < k) where
 open syntactics Level
 open reduction Level
 
@@ -138,3 +138,14 @@ data _⊢_⦂_#_ Γ where
          Γ ⊢ B ⦂ ∗ # k →
          -------------
          Γ ⊢ a ⦂ B # k
+
+cumulativity : ∀ {Γ a A j k} → j < k → Γ ⊢ a ⦂ A # j → Γ ⊢ a ⦂ A # k
+cumulativity j<k (⊢var ⊢Γ eq where?) = ⊢var ⊢Γ (lt j<k) where?
+cumulativity j<k (⊢var ⊢Γ (lt i<j) where?) = ⊢var ⊢Γ (lt (trans< i<j j<k)) where?
+cumulativity j<k (⊢∗ ⊢Γ) = ⊢∗ ⊢Γ
+cumulativity j<k (⊢Π i<j A B) = ⊢Π (trans< i<j j<k) A (cumulativity j<k B)
+cumulativity j<k (⊢λᵈ i<j A b) = ⊢λᵈ (trans< i<j j<k) A (cumulativity j<k b)
+cumulativity j<k (⊢$ᵈ i<j b a) = ⊢$ᵈ (trans< i<j j<k) (cumulativity j<k b) a
+cumulativity j<k (⊢mty ⊢Γ) = ⊢mty ⊢Γ
+cumulativity j<k (⊢abs A b) = ⊢abs (cumulativity j<k A) (cumulativity j<k b)
+cumulativity j<k (⊢≈ A≈B a B) = ⊢≈ A≈B (cumulativity j<k a) (cumulativity j<k B)

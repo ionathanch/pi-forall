@@ -12,7 +12,7 @@ module soundness
 open accessibility Level _<_
 open syntactics Level
 open reduction Level
-open typing Level _<_
+open typing Level _<_ trans<
 open semantics Level _<_ trans<
 
 soundVar : ∀ {σ Γ x A k} (v : V Γ) → em σ v → x ⦂ A # k ∈ Γ →

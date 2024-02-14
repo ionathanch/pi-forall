@@ -241,4 +241,4 @@ data Ctxt : Set where
 infix 40 _⦂_#_∈_
 data _⦂_#_∈_ : Nat → Term → Level → Ctxt → Set where
   here  : ∀ {Γ A k} → 0 ⦂ (rename suc A) # k ∈ (Γ ∷ A # k)
-  there : ∀ {Γ x A B k j} → x ⦂ A # k ∈ Γ → suc x ⦂ (rename suc A) # k ∈ (Γ ∷ B # j) 
+  there : ∀ {Γ x A B k j} → x ⦂ A # k ∈ Γ → suc x ⦂ (rename suc A) # k ∈ (Γ ∷ B # j)
