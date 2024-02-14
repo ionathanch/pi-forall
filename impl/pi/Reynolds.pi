@@ -3,8 +3,8 @@
 module Reynolds where
 import Logic
 
-P : Type -> Type
-P = \S. S -> Type
+Phi : Type -> Type
+Phi = \S. (S -> Type) -> Type
 
 -- Basic manipulations of equality
 
@@ -17,41 +17,41 @@ transp = \[A]. \[B]. \[x]. \[y]. \h. \Bx. subst Bx by h
 -- Our non-strictly positive datatype and some injectivity lemmas
 
 data Bad : Type where
-  MkBad of (P (P Bad))
+  MkBad of (Phi Bad)
 
-f : P Bad -> Bad
-f = \p. MkBad (\p'. p' = p)
+f : (Bad -> Type) -> Bad
+f = \x. MkBad (\z. z = x)
 
-badInj : (p : P (P Bad) @ 1) -> (q : P (P Bad) @ 1) -> MkBad p = MkBad q -> p = q
-badInj = \p. \q. \h.
-  cong [Bad] [P (P Bad)] [MkBad p] [MkBad q]
-       [\bad. case bad of MkBad ppb -> ppb] h
+badInj : (x : Phi Bad @ 1) -> (y : Phi Bad @ 1) -> MkBad x = MkBad y -> x = y
+badInj = \x. \y. \h.
+  cong [Bad] [Phi Bad] [MkBad x] [MkBad y]
+       [\bad. case bad of MkBad z -> z] h
 
--- MkBad (_= p) = MkBad (_= q) ---[badInj]--> (_= p) = (_= q) ---[transp]--> (p = p) -> (p = q)
-fInj : (p : P Bad @ 1) -> (q : P Bad @ 1) -> f p = f q -> p = q
-fInj = \p. \q. \h.
-  transp [P (P Bad)] [\f. f p] [\p'. p' = p] [\p'. p' = q]
-         (badInj (\p'. p' = p) (\p'. p' = q) h) Refl
+-- MkBad (_= x) = MkBad (_= y) ---[badInj]--> (_= x) = (_= y) ---[transp]--> (x = x) -> (x = y)
+fInj : (x : Bad -> Type @ 1) -> (y : Bad -> Type @ 1) -> f x = f y -> x = y
+fInj = \x. \y. \h.
+  transp [Phi Bad] [\f. f x] [\z. z = x] [\z. z = y]
+         (badInj (\z. z = x) (\z. z = y) h) Refl
 
--- Russell's paradox (?)
+-- Russell's paradox
 
-pbad : P Bad
-pbad = \x. {p : P Bad | And (x = f p) (neg (p x)) }
+P0 : Bad -> Type
+P0 = \x. {P : Bad -> Type | And (x = f P) (neg (P x)) }
 
 bad : Bad
-bad = f pbad
+bad = f P0
 
-lem1 : neg (pbad bad)
-lem1 = \p1. let (p , a) = p1 in
-  case a of
-    Conj badfp negpbad -> negpbad (subst p1 by fInj pbad p badfp)
-    -- badfp : bad = f p
-    -- negpbad : neg (p bad)
-    -- fInj pbad p badfp : pbad = p
+lem1 : neg (P0 bad)
+lem1 = \p. let (P , hn) = p in
+  case hn of
+    Conj h n -> n (subst p by fInj P0 P h)
+    -- h : f P0 = f P
+    -- n : neg (P bad)
+    -- fInj P0 P badfp : P0 = P
 
 {-
-lem2 : neg (pbad bad) -> pbad bad
-lem2 = \negpbad. PRINTME -- (pbad , Conj Refl negpbad)
+lem2 : neg (P0 bad) -> P0 bad
+lem2 = \np. PRINTME -- (P0 , Conj Refl np)
 
 false : Void
 false = lem1 (lem2 lem1)
