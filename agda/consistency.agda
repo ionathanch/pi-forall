@@ -44,7 +44,7 @@ trans< n<m m<k = trans<' n<m (trans≤ (suc≤ _) m<k)
 open accessibility Nat _<_
 open syntactics Nat
 open reduction Nat
-open typing Nat _<_
+open typing Nat _<_ trans<
 open semantics Nat _<_ trans<
 open soundness Nat _<_ trans<
 
