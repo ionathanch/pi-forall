@@ -44,6 +44,9 @@ import Russell
 import Hurkens
 import HurkensAnnot
 
+-- Portion of Reynolds' paradox that checks
+import Reynolds
+
 -- Other miscellaneous files
 import Blowup
 import Case

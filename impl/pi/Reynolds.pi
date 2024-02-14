@@ -1,6 +1,6 @@
 {- Adapted from https://vilhelms.github.io/posts/why-must-inductive-types-be-strictly-positive/ -}
 
-module StrictPositivity where
+module Reynolds where
 import Logic
 
 P : Type -> Type
@@ -49,8 +49,10 @@ lem1 = \p1. let (p , a) = p1 in
     -- negpbad : neg (p bad)
     -- fInj pbad p badfp : pbad = p
 
+{-
 lem2 : neg (pbad bad) -> pbad bad
 lem2 = \negpbad. PRINTME -- (pbad , Conj Refl negpbad)
 
 false : Void
 false = lem1 (lem2 lem1)
+-}
