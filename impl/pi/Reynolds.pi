@@ -16,43 +16,40 @@ transp = \[A]. \[B]. \[x]. \[y]. \h. \Bx. subst Bx by h
 
 -- Our non-strictly positive datatype and some injectivity lemmas
 
-data Bad : Type where
-  MkBad of (Phi Bad)
+data A0 : Type where
+  MkA0 of (Phi A0)
 
-f : (Bad -> Type) -> Bad
-f = \x. MkBad (\z. z = x)
+f : (A0 -> Type) -> A0
+f = \x. MkA0 (\z. z = x)
 
-badInj : (x : Phi Bad @ 1) -> (y : Phi Bad @ 1) -> MkBad x = MkBad y -> x = y
-badInj = \x. \y. \h.
-  cong [Bad] [Phi Bad] [MkBad x] [MkBad y]
-       [\bad. case bad of MkBad z -> z] h
+A0Inj : (x : Phi A0 @ 1) -> (y : Phi A0 @ 1) -> MkA0 x = MkA0 y -> x = y
+A0Inj = \x. \y. \h.
+  cong [A0] [Phi A0] [MkA0 x] [MkA0 y]
+       [\a. case a of MkA0 z -> z] h
 
--- MkBad (_= x) = MkBad (_= y) ---[badInj]--> (_= x) = (_= y) ---[transp]--> (x = x) -> (x = y)
-fInj : (x : Bad -> Type @ 1) -> (y : Bad -> Type @ 1) -> f x = f y -> x = y
+-- MkA0 (_= x) = MkA0 (_= y) ---[A0Inj]--> (_= x) = (_= y) ---[transp]--> (x = x) -> (x = y)
+fInj : (x : A0 -> Type @ 1) -> (y : A0 -> Type @ 1) -> f x = f y -> x = y
 fInj = \x. \y. \h.
-  transp [Phi Bad] [\f. f x] [\z. z = x] [\z. z = y]
-         (badInj (\z. z = x) (\z. z = y) h) Refl
+  transp [Phi A0] [\f. f x] [\z. z = x] [\z. z = y]
+         (A0Inj (\z. z = x) (\z. z = y) h) Refl
 
 -- Russell's paradox
 
-P0 : Bad -> Type
-P0 = \x. {P : Bad -> Type | And (x = f P) (neg (P x)) }
+P0 : A0 -> Type
+P0 = \x. {P : A0 -> Type | And (x = f P) (neg (P x)) }
 
-bad : Bad
-bad = f P0
+a0 : A0
+a0 = f P0
 
-lem1 : neg (P0 bad)
-lem1 = \p. let (P , hn) = p in
+lem : neg (P0 a0)
+lem = \p. let (P , hn) = p in
   case hn of
     Conj h n -> n (subst p by fInj P0 P h)
     -- h : f P0 = f P
-    -- n : neg (P bad)
-    -- fInj P0 P badfp : P0 = P
+    -- n : neg (P a0)
+    -- fInj P0 P h : P0 = P
 
 {-
-lem2 : neg (P0 bad) -> P0 bad
-lem2 = \np. PRINTME -- (P0 , Conj Refl np)
-
 false : Void
-false = lem1 (lem2 lem1)
+false = lem (P0 , Conj Refl lem)
 -}
