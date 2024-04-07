@@ -239,7 +239,6 @@ Proof.
     contradiction.
 Qed.
 
-
 Lemma canonical_Pi : forall S A j B b k,
     DTyping S nil b (a_Pi A j B) k -> Value b -> exists a, b = a_Abs a.
 Proof.
@@ -262,7 +261,6 @@ Proof.
     contradiction.
 Qed.
 
-
 Lemma canonical_Bottom : forall S b k,
     DTyping S nil b a_Bottom k -> Value b -> False.
 Proof.
@@ -279,7 +277,6 @@ Proof.
     + assert False. eapply ineq_Pi_Bottom.
       eapply DE_Sym. eapply DE_Trans; eauto.
       contradiction.
-
   - apply DTyping_a_Type_inversion in H.
     assert False. eapply ineq_Type_Bottom.
     eapply DE_Sym. eapply DE_Trans; eauto.
@@ -296,9 +293,8 @@ Proof.
     contradiction.
 Qed.
 
-
-
-Lemma progress : forall S a A k, DTyping S nil a A k -> Value a \/ exists b, Reduce S a b.
+Lemma Reduce_Progress : forall S a A k,
+    DTyping S nil a A k -> Value a \/ exists b, Reduce S a b.
 Proof.
   intros S a A k H.
   dependent induction H; intros.
@@ -331,6 +327,26 @@ Proof.
     destruct H1 as [b' hb'].
     exists (a_Absurd b'). eauto.
   - destruct IHDTyping1 as [|[b' Hb]]; eauto.
+Unshelve.
+all: exact nil.
+Qed.
+
+Lemma WHNF_Reduce : forall S a b,
+    Reduce S a b -> WHNF S a b.
+Proof.
+  intros S a b r.
+  econstructor. apply r. constructor.
+Abort.
+
+Lemma WHNF_Progress : forall S a A k,
+    DTyping S nil a A k -> Value a \/ exists b, WHNF S a b.
+Proof.
+  intros S a A k H.
+  have LC: lc_tm a. eauto with lc.
+  destruct (Reduce_Progress H) as [v | [b r]]; auto.
+  right. exists b. econstructor. apply r. constructor.
+  pose (Reduce_Preservation r H) as p.
+  eauto with lc.
 Unshelve.
 all: exact nil.
 Qed.

@@ -2,8 +2,8 @@
 
 Tested with:
 
-    The Coq Proof Assistant, version 8.16.1
-    compiled with OCaml 4.11.1
+    The Coq Proof Assistant, version 8.18.0
+    compiled with OCaml 5.1.1
 
     coq-metalib pinned to version dev at
       git+https://github.com/plclub/metalib.git
@@ -11,7 +11,7 @@ Tested with:
 To install using OPAM:
 
     opam repo add coq-released https://coq.inria.fr/opam/released
-    opam pin coq 8.16.1
+    opam pin coq 8.18.0
     opam pin add coq-metalib https://github.com/plclub/metalib.git
 
 To compile:
@@ -38,24 +38,24 @@ All additional axioms are listed in the file axioms.v.
 ## Mechanization summary
 
 ```
-github.com/AlDanial/cloc v 1.98  T=0.03 s (383.9 files/s, 143155.8 lines/s)
------------------------------------------------------------------------------
-File                           blank        comment           code
------------------------------------------------------------------------------
-StraTT_inf.v                     362            156           1065
-StraTT_ott.v                      49             26            477
-ctx.v                             53             17            323
-typesafety.v                      24              9            303
-restrict.v                        15              6            227
-inversion.v                       18             20            219
-basics.v                          38             10            205
-subst.v                           11             15            204
-incr.v                            14             14            121
-tactics.v                          6              5             36
-axioms.v                          14              9             31
------------------------------------------------------------------------------
-SUM:                             604            287           3211
------------------------------------------------------------------------------
+github.com/AlDanial/cloc v 2.00  T=0.03 s (338.4 files/s, 126676.0 lines/s)
+-------------------------------------------------------------------------------
+File                             blank        comment           code
+-------------------------------------------------------------------------------
+StraTT_inf.v                       362            156           1065
+StraTT_ott.v                        49             26            477
+ctx.v                               53             17            323
+typesafety.v                        21              9            322
+restrict.v                          15              6            227
+inversion.v                         18             20            219
+basics.v                            38             10            205
+subst.v                             11             15            204
+incr.v                              14             14            121
+tactics.v                            6              5             36
+axioms.v                            14              9             31
+-------------------------------------------------------------------------------
+SUM:                               601            287           3230
+-------------------------------------------------------------------------------
 ```
 
 
