@@ -199,15 +199,6 @@ Proof.
     econstructor; eauto.
 Qed.
 
-Lemma WHNF_Preservation : forall S a b, WHNF S a b ->
-  forall G A k, DTyping S G a A k ->  DTyping S G b A k.
-Proof.
-  intros.
-  induction H; auto.
-  apply IHWHNF.
-  apply (Reduce_Preservation H); auto.
-Qed.
-
 Inductive Value : tm -> Prop :=
  | V_Abs  : forall b, Value (a_Abs b)
  | V_Type : Value a_Type
@@ -331,22 +322,18 @@ Unshelve.
 all: exact nil.
 Qed.
 
-Lemma WHNF_Reduce : forall S a b,
-    Reduce S a b -> WHNF S a b.
-Proof.
-  intros S a b r.
-  econstructor. apply r. constructor.
-Abort.
+(* Evaluation will either step to a value or diverge *)
+CoInductive Eval S a : Prop :=
+| E_Value : Value a -> Eval S a
+| E_Step b : Reduce S a b -> Eval S b -> Eval S a.
 
-Lemma WHNF_Progress : forall S a A k,
-    DTyping S nil a A k -> Value a \/ exists b, WHNF S a b.
+CoFixpoint TypeSafety : forall S a A k,
+  DTyping S nil a A k -> Eval S a.
 Proof.
   intros S a A k H.
-  have LC: lc_tm a. eauto with lc.
-  destruct (Reduce_Progress H) as [v | [b r]]; auto.
-  right. exists b. econstructor. apply r. constructor.
-  pose (Reduce_Preservation r H) as p.
-  eauto with lc.
-Unshelve.
-all: exact nil.
+  destruct (Reduce_Progress H) as [v | [b r]].
+  - now constructor.
+  - eapply E_Step; eauto.
+    eapply TypeSafety.
+    eapply Reduce_Preservation; eauto.
 Qed.
