@@ -319,7 +319,7 @@ Inductive Equiv : tm -> tm -> Prop :=    (* defn Equiv *)
 
 (* defns JTyping *)
 Inductive Ctx : context -> Prop :=    (* defn Ctx *)
- | G_Empty : 
+ | G_Nil : 
      Ctx  nil 
  | G_Cons : forall (G:context) (x:var) (A:tm) (k:nat),
      Ctx G ->
@@ -430,7 +430,7 @@ Inductive DEquiv : signature -> tm -> tm -> Prop :=    (* defn DEquiv *)
 
 (* defns JDTyping *)
 Inductive DSig : signature -> Prop :=    (* defn DSig *)
- | D_Empty : 
+ | D_Nil : 
      DSig  nil 
  | D_Cons : forall (S:signature) (x:var) (A:tm) (k:nat) (a:tm),
      DSig S ->
@@ -439,7 +439,7 @@ Inductive DSig : signature -> Prop :=    (* defn DSig *)
       ~ AtomSetImpl.In  x  (dom  S )  ->
      DSig  (  ( x ~ (Def A k a) )  ++ S ) 
 with DCtx : signature -> context -> Prop :=    (* defn DCtx *)
- | DG_Empty : forall (S:signature),
+ | DG_Nil : forall (S:signature),
      DSig S ->
      DCtx S  nil 
  | DG_Cons : forall (S:signature) (G:context) (x:var) (A:tm) (k:nat),

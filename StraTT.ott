@@ -368,7 +368,7 @@ defn
   {{ com Context formation }}
 by
 
--------- :: Empty
+-------- :: Nil
 |- empty
 
 |- G
@@ -533,7 +533,7 @@ defn
   {{ com Signature well-formedness }}
 by
 
--------- :: Empty
+-------- :: Nil
 |- empty
 
 |- S
@@ -549,7 +549,7 @@ S |- G  ::     :: DCtx :: 'DG_'
 by
 
 |- S
----------- :: Empty
+---------- :: Nil
 S |- empty
 
 S |- G
