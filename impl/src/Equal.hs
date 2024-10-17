@@ -14,8 +14,8 @@ import qualified Environment as Env
 import qualified Unbound.Generics.LocallyNameless as Unbound
 import PrettyPrint (D(..), pp, Disp(..))
 
-
-import Control.Monad.Except (when, unless, throwError, catchError, zipWithM, zipWithM_)
+import Control.Monad (when, unless, zipWithM, zipWithM_)
+import Control.Monad.Except (throwError, catchError)
 import Debug.Trace
 
 type Result = [LevelConstraint]

@@ -44,8 +44,9 @@ module Environment
   )
 where
 
+import Control.Monad (unless)
 import Control.Monad.Except
-    ( unless, MonadError(..), MonadIO(..), ExceptT, runExceptT )
+    ( MonadError(..), ExceptT, runExceptT )
 import Control.Monad.Reader
     ( MonadReader(local), asks, ReaderT(runReaderT) )
 import Control.Monad.State

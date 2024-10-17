@@ -5,7 +5,9 @@
 {-# HLINT ignore "Use list comprehension" #-}
 module TypeCheck (tcModules, inferType, checkType) where
 
+import Control.Monad (foldM, unless)
 import Control.Monad.Except
+import Control.Monad.IO.Class (MonadIO(..))
 import Data.List (nub)
 import GHC.Generics (Generic)
 import Data.Maybe ( catMaybes, fromMaybe )

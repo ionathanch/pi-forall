@@ -24,7 +24,8 @@ import Text.Parsec hiding (State,Empty)
 import Text.Parsec.Expr(Operator(..),Assoc(..),buildExpressionParser)
 import qualified LayoutToken as Token
 
-import Control.Monad.State.Lazy hiding (join)
+import Data.Foldable (forM_)
+import Control.Monad.State.Lazy
 import Control.Monad.Except ( MonadError(throwError) )
 import Data.List ( foldl' )
 import qualified Data.Set as S

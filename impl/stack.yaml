@@ -1,4 +1,4 @@
-resolver: lts-21.15
+resolver: lts-22.38
 
 system-ghc: true
 
@@ -8,7 +8,7 @@ packages:
 
 extra-deps:
 - git: https://github.com/lambdageek/unbound-generics.git
-  commit: a2a558058012b09bb313b3eb03cddb734fcf4a98
+  commit: c44b60ae27774df59210457472cb317253fe94e1
 
 flags: {}
 

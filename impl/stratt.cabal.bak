@@ -10,7 +10,7 @@ maintainer: Jonathan Chan <jcxz@seas.upenn.edu>
 synopsis: A prototype implementation of Stratified Type Theory
 description:
 category: Compilers/Interpreters
-tested-with: GHC == 9.4.7
+tested-with: GHC == 9.6.6
 
 source-repository head
   type: git
