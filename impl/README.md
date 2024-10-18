@@ -5,8 +5,10 @@ extended with datatypes, recursive global functions, and level inference.
 
 ## Installation
 
-This project requires Stack and Cabal, and has been tested with GHC 9.2.7.
-It also uses Z3 to solve level constraints, and has been tested with version 4.12.1.
+This project requires Stack and Cabal, and has been tested with GHC 9.6.6.
+These can be installed using [GHCup](https://www.haskell.org/ghcup/).
+It also uses [Z3](https://github.com/Z3Prover/z3) to solve level constraints,
+and has been tested with version 4.13.0.
 To compile the type checker, run `stack build`.
 To check a file `<file>`, run `stack exec -- stratt <file>`.
 If successful, the definitions in that file will be printed out

@@ -1,6 +1,19 @@
 # Mechanization of consistency of subStraTT
 
-This mechanization has been checked with Agda 2.6.4.1 using agda-stdlib 2.0.
+This mechanization has been checked with
+[Agda](https://wiki.portal.chalmers.se/agda/Main/HomePage) 2.7.0.1,
+compiled using GHC 9.6.6,
+and using [agda-stdlib](https://github.com/agda/agda-stdlib) 2.1.1.
+Instructions for the standard library can be found in their repository,
+but Agda can be installed using Cabal and Stack,
+which are recommended to be installed using [GHCup](https://www.haskell.org/ghcup/).
+
+```sh
+cabal get Agda-2.7.0.1
+cd Agda-2.7.0.1
+stack --stack-yaml stack-9.6.6.yaml install
+```
+
 The top-level file can be checked by `agda consistency.agda`.
 
 ## Axioms
@@ -14,6 +27,9 @@ which in turn is only used to prove `accU` in `semantics.agda`.
 
 ## Contents
 
+The modules below are in approximate dependency order,
+with the corresponding lemmas and theorems from the paper
+that they contain in parentheses.
 Most of the modules are parametrized over an abstract `Level`
 and its strict transitive order,
 only to be instantiated at the very end by the naturals.
@@ -23,13 +39,13 @@ only to be instantiated at the very end by the naturals.
 * `accessibility.agda`: The accessibility predicate and its mere propositionality.
 * `syntactics.agda`: Syntax, substitution, contexts, and context membership.
 * `reduction.agda`: Parallel reduction, substitution lemmas, confluence, and conversion.
-* `typing.agda`: Definitional equality, context well-formedness, and well-typedness.
-* `semantics.agda`: Logical relations stating semantic typing and semantic context formation,
-  along with important properties.
+* `typing.agda`: Definitional equality (Lemma 3), context well-formedness, and well-typedness.
+* `semantics.agda`: Logical relations stating semantic typing and semantic context formation (Figure 7, Figure 8),
+  along with important properties such as cumulativity (Lemma 4), conversion (Lemma 5), and backward preservation (Lemma 6).
 * `soundness.agda`: The fundamental theorem of soundness of typing —
-  syntactic well-typedness implies semantic well-typedness.
+  syntactic well-typedness implies semantic well-typedness (Theorem 1).
 * `consistency.agda`: Strict order on the naturals, well-foundedness of the naturals
-  with respect to its strict order, and logical consistency using the naturals as levels.
+  with respect to its strict order, and logical consistency using the naturals as levels (Corollary 1).
 
 ## Statistics
 
