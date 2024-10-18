@@ -337,3 +337,5 @@ Proof.
     eapply TypeSafety.
     eapply Reduce_Preservation; eauto.
 Qed.
+
+Print Assumptions TypeSafety.
