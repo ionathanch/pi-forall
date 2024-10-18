@@ -1,9 +1,13 @@
 cabal-version: 2.2
 name: stratt
-version: 0.1
+version: 1.0
 build-type: Simple
 synopsis: A prototype implementation of Stratified Type Theory
 tested-with: GHC == 9.6.6
+
+source-repository head
+  type: git
+  location: https://github.com/plclub/StraTT
 
 common shared-properties
   default-language:
