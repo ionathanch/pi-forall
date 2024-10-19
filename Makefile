@@ -24,7 +24,7 @@ clean:
 
 zip:
 	rm -f stratt.zip
-	zip stratt -r Makefile README.md StraTT.ott \
+	zip stratt -r Makefile README.md LICENSE StraTT.ott start.sh disk.qcow2 \
 		impl/app/ impl/pi/ impl/src/ impl/README.md impl/stack.yaml impl/stratt.cabal \
 		coq/_CoqProject coq/CoqSrc.mk coq/README.md coq/*.v agda/*.agda \
 		-x agda/model.agda
