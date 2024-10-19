@@ -24,7 +24,7 @@ esac
 qemu-system-x86_64 \
   -m     2048 \
   -accel ${QEMU_ACCEL} \
-  -cpu   host \
+  -cpu   max \
   -nic   user \
   -hda   disk.qcow2
   "$@"

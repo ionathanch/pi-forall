@@ -24,15 +24,19 @@ and "[No artifact]" if running locally,
 which assumes that Coq, Agda, and GHCup are installed.
 
 0. [Artifact only] Install [QEMU](https://www.qemu.org/download/)
-1. [Artifact only] Run the script `./start.sh`;
-   alternatively, you can run the QEMU command directly:
+   * On Windows, virtualization needs to be enabled:
+     from the Start menu, search for and open Windows Features,
+     select Hyper-V and Windows Hypervisor Platform,
+     and click OK
+1. [Artifact only] Run the script `start.sh` or `start.bat` (Windows),
+   which will run the following command:
    ```sh
-   qemu-system-x86_64 -m 2048 -accel <accel> -cpu host -nic user -hda disk.qcow2
+   qemu-system-x86_64 -m 2048 -accel <accel> -cpu max -nic user -hda disk.qcow2
    ```
-   * Linux:     use `kvm`  for `<accel>`
-   * Apple:     use `hvf`  for `<accel>`
-   * Windows:   use `whpx` for `<accel>`
-   * Otherwise: use `tcg`  for `<accel>`
+   * Linux:   `kvm` for `<accel>`
+   * Apple:   `hvf` for `<accel>`
+   * Windows: `tcg` for `<accel>`
+   * Other:   `tcg` for `<accel>`
 2. [Artifact only] Within QEMU, login as `root` (blank password)
    and `cd StraTT` for artifact files
 4. To check the Coq development:
@@ -54,12 +58,14 @@ which assumes that Coq, Agda, and GHCup are installed.
    4. `stratt pi/README.pi` to check all examples provided
 7. [Artifact only] All changes made can be undone by `git reset && git restore .`
 
-## Artifact troubleshooting
+### Artifact troubleshooting
 
 The [Arch Linux wiki on QEMU](https://wiki.archlinux.org/title/QEMU)
 has good guidance on using QEMU if problems persist.
 Flags can be passed directly to the `start.sh` script.
 
+* If `qemu-system-x86_64` cannot be found,
+  ensure that the path to QEMU binaries is in your `PATH` environment variable
 * If there is an "invalid accelerator" error, use `tcg` for `<accel>`
 * If more memory is required, increase the number of MB in `-m 2048`
 * If things aren't displaying correctly, add the `-nographic` flag
