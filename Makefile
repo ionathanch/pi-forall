@@ -5,6 +5,9 @@ FORCE:
 coq: coq/*.v coq/_CoqProject
 	cd coq; make -f $(COQMK)
 
+coqmk: coq/_CoqProject
+	cd coq; coq_makefile -f _CoqProject -o CoqSrc.mk
+
 coq/StraTT_ott.v: StraTT.ott
 	ott -i StraTT.ott -o coq/StraTT_ott.v -coq_lngen true -coq_expand_list_types true
 
@@ -17,7 +20,7 @@ impl: FORCE
 clean:
 	cd coq; rm -f *.vo *.vok *.vos *.glob *.conf .*.aux .lia.cache $(COQMK).conf .$(COQMK).d
 	cd agda; rm -f *.agdai
-	cd impl; stack clean --full
+	cd impl; stack purge
 
 zip:
 	rm -f stratt.zip
