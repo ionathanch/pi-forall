@@ -23,8 +23,8 @@ which assumes that Coq, Agda, and GHCup are installed.
    * Apple:   `hvf` for `<accel>`
    * Windows: `tcg` for `<accel>`
    * Other:   `tcg` for `<accel>`
-2. [Artifact only] Within QEMU, login as `root` (blank password)
-   and `cd StraTT` for artifact files
+2. [Artifact only] Within QEMU, login as `root` (blank password);
+   you should already be in the `/root/StraTT` directory
 4. To check the Coq development:
    1. `cd coq` from the `StraTT` directory
    2. `make -Bf CoqSrc.mk` to force check proof of type safety
