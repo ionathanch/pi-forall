@@ -58,6 +58,7 @@ Proof.
     rewrite_subst_open_hyp.
 Qed.
 
+(* Lemma 8 (substitution) in the paper *)
 Lemma DCtx_DTyping_subst : forall S1 F b B j, DTyping S1 F b B j ->
   ((forall S, DSig S -> S1 = S -> True) /\
     (forall S G, DCtx S G -> forall E x, (G = E ++ x ~ Tm B j ++ F) -> S1 = S -> DCtx S (subst_ctx j b x E ++ F)) /\

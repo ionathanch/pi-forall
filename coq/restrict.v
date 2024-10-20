@@ -43,16 +43,16 @@ Proof.
   + rewrite h; auto.
 Qed.
 
-(* TRUE but unused. *)
-Lemma SubG_restrict : forall i j G, i <= j -> SubG (restrict G j) (restrict G i).
-intros. induction G; simpl; auto.
-destruct a. destruct a0.
-destruct (k <=? j) eqn:E1; destruct (k <=? i) eqn:E2.
-all: fix_bools.
-all: eauto.
-econstructor; eauto.
-econstructor; eauto.
-lia.
+(* Lemma 12 (restriction subsumption) in the paper *)
+Lemma SubG_restrict : forall i G, SubG G (restrict G i).
+Proof.
+  intros. induction G; simpl; auto.
+  destruct a. destruct a0.
+  destruct (k <=? i) eqn:E2.
+  all: fix_bools.
+  all: eauto.
+  econstructor; eauto.
+  econstructor; eauto.
 Qed.
 
 Lemma SubG_float_lt : forall i j k1 k2 G,
@@ -71,7 +71,6 @@ Proof.
   + lia.
 Qed.
 
-(* This is really more of a weakening than a narrowing. *)
 Lemma SubG_float_leq : forall i j k G,
     i <= j -> j <= k ->
     SubG (float j k (restrict G j)) (float i k (restrict G i)).
@@ -102,7 +101,7 @@ Proof.
   unfold refocus.
   destruct (k0 == j) eqn:E2; rewrite E2.
   all: lia.
-Qed.
+Qed.  
 
 Lemma DCtx_DTyping_float_restrict :
   (forall S,
@@ -194,6 +193,7 @@ Proof.
     eapply SubG_float_lt; auto.
 Qed.
 
+(* Lemma 13 (restricted floating) in the paper *)
 Lemma DTyping_float_restrict :
   (forall S G a A j,
       DTyping S G a A j ->
@@ -224,6 +224,7 @@ Proof.
     - contradiction.
 Qed.
 
+(* Lemma 1, 14 (cumulativity) in the paper *)
 Lemma DTyping_cumul : forall S G a A j k, j <= k ->
   DTyping S G a A j -> DTyping S G a A k.
 Proof.

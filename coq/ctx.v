@@ -119,6 +119,7 @@ Qed.
 
 #[local] Hint Resolve restrict_binds : core.
 
+(* Lemma 11 (restriction) in the paper *)
 Lemma DSig_DCtx_DTyping_restriction :
   (forall S, DSig S -> True) /\
   (forall S G, DCtx S G -> forall k, DCtx S (restrict G k)) /\
@@ -294,6 +295,7 @@ Proof. induction 1; intros.
        all: eauto using DTyping_weakening1.
 Qed.
 
+(* Lemma 9 (regularity) in the paper *)
 Lemma DCtx_DSig : forall S G, DCtx S G -> DSig S.
 Proof. induction 1; auto. Qed.
 Lemma DTyping_DCtx : forall S G a A k, DTyping S G a A k -> DCtx S G.
@@ -365,6 +367,7 @@ Proof.
  edestruct IHSubG; eauto. split_hyp. exists x1.  split; eauto.
 Qed.
 
+(* Lemma 7 (weakening) in the paper *)
 Lemma DTyping_SubG :
   forall S G a A k, DTyping S G a A k -> forall G', DCtx S G' -> SubG G' G -> DTyping S G' a A k.
 Proof.

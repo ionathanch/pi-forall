@@ -12,7 +12,7 @@ open syntactics Level
 open reduction Level
 
 {--------------------------------------------------------
-  Semantic well-typedness:
+  Figure 7 in the paper, semantic well-typedness:
   ∗       ∈ ⟦∗⟧ₖ       = ⊤
   mty     ∈ ⟦∗⟧ₖ       = ⊤
   Π a j b ∈ ⟦∗⟧ₖ       = j < k ∧ a ∈ ⟦∗⟧ⱼ ∧ (∀ x → x ∈ ⟦a⟧ⱼ → b{x} ∈ ⟦∗⟧ₖ)
@@ -108,6 +108,7 @@ accEl : ∀ {k a A} (acc₁ acc₂ : Acc k)
         el k acc₁ a u₁ → el k acc₂ a u₂
 accEl acc₁ acc₂ u₁ u₂ = elProp acc₁ acc₂ u₁ u₂ ⇔-refl
 
+-- Lemma 5 (conversion) in the paper
 -- elProp specialized to identical proofs of accessibility
 ⇔-el : ∀ {k a A B} (acc : Acc k)
        (uA : U k acc A) (uB : U k acc B) (A⇔B : A ⇔ B) →
@@ -120,7 +121,7 @@ accEl acc₁ acc₂ u₁ u₂ = elProp acc₁ acc₂ u₁ u₂ ⇔-refl
 ≡-el acc u refl elA = elA
 
 {------------------------------------------
-  U, el, and cumulativity:
+  Lemma 4 (cumulativity) in the paper:
   * Given j < k, U j can be lifted to U k
   * Given j < k and u : U j,
     the interpretation of u can be lifted
@@ -192,6 +193,7 @@ invΠ-el acc@(acc< _) (⇒̂  (Π a j b) (Π a' j b') (⇒-Π a⇒a' b⇒b') u) 
 ⇒-el acc (Π̂ j j<k _ A _ B) a⇒b elB x elA = ⇒-el acc (B x elA) (⇒-$ᵈ a⇒b (⇒-refl x)) (elB x elA)
 ⇒-el acc (⇒̂  A B A⇒B u) a⇒b = ⇒-el acc u a⇒b
 
+-- Lemma 6 (backward preservation) in the paper
 ⇒⋆-el : ∀ {k} (acc : Acc k) {a b A} (u : U k acc A) → a ⇒⋆ b → el k acc b u → el k acc a u
 ⇒⋆-el acc u (⇒⋆-refl a) elU = elU
 ⇒⋆-el acc u (⇒⋆-trans a⇒b b⇒⋆c) elU = ⇒-el acc u a⇒b (⇒⋆-el acc u b⇒⋆c elU)
@@ -217,11 +219,13 @@ SRU⋆ : ∀ {k a b} acc → a ⇒⋆ b → U k acc a → U k acc b
 SRU⋆ acc (⇒⋆-refl a) u = SRU acc (⇒-refl a) u
 SRU⋆ acc (⇒⋆-trans a⇒b b⇒⋆c) u = SRU⋆ acc b⇒⋆c (SRU acc a⇒b u)
 
+-- Lemma 5 (conversion) in the paper
 ⇔-U : ∀ {k a b} acc → a ⇔ b → U k acc a → U k acc b
 ⇔-U acc (_ , a⇒⋆c , b⇒⋆c) u = ⇒⋆-U acc b⇒⋆c (SRU⋆ acc a⇒⋆c u)
 
 {-----------------------------------------
-  Semantic well-formedness:
+  Figure 8 in the paper,
+  semantic well-formedness:
     σ ∈ ⟦Γ⟧ = x ⦂ A # k ∈ Γ → σ x ∈ ⟦A⟧ₖ
 -----------------------------------------}
 

@@ -29,6 +29,7 @@ soundVar {σ} (∷̂  _ v _) (emV , _) (there {x = x} {A = A} where?) =
   in acc , transp (U _ acc) (sym p) u ,
      ≡-el acc u (sym p) elU
 
+-- Theorem 1 (soundness) in the paper
 soundness : ∀ {σ Γ a A k} (acc : Acc k) (v : V Γ) → em σ v → Γ ⊢ a ⦂ A # k →
             Σ[ u ∈ U k acc (subst σ A) ] el k acc (subst σ a) u
 soundness acc v emV (⊢var ⊢Γ eq where?) =

@@ -7,11 +7,12 @@ Require Export Metalib.Metatheory.
 
 Set Implicit Arguments.
 
-(* Axioms needed for preservation lemma *)
-
-(* These results require long proofs, but the system is extremely similar to
-   existing definitions of beta-eta-equivalence so there is nothing to be learned
-   from mechanizing them here.
+(* Axiom 2 (function type injectivity) in the paper,
+   needed for preservation lemma.
+   These results require long proofs,
+   but the system is extremely similar to existing definitions of βη-equivalence,
+   and have been mechanized in the Agda development,
+   so there is nothing to be learned from mechanizing them here.
 *)
 
 Axiom DEquiv_Arrow_inj1 : forall S A1 B1 A2 B2,
@@ -27,7 +28,9 @@ Axiom DEquiv_Pi_inj3 : forall S A1 B1 j1 j2 A2 B2 a,
     -> DEquiv S (a_Pi A1 j1 B1) (a_Pi A2 j2 B2)
     -> DEquiv S (open_tm_wrt_tm B1 a) (open_tm_wrt_tm B2 a).
 
-(* Axioms needed for progress lemma *)
+(* Axiom 3 (consistency of definitional equality) in the paper,
+   needed for progress lemma.
+*)
 
 Axiom ineq_Arrow_Pi : forall S A1 B1 A2 j B2,
     DEquiv S (a_Arrow A1 A2) (a_Pi B1 j B2) -> False.

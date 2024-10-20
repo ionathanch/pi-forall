@@ -67,6 +67,8 @@ data _≈_ : Term → Term → Set where
 ⇒⋆-≈ (⇒⋆-refl a) = ≈-refl
 ⇒⋆-≈ (⇒⋆-trans a⇒b b⇒⋆c) = ≈-trans (⇒-≈ a⇒b) (⇒⋆-≈ b⇒⋆c)
 
+-- Lemma 3 (implementation of definitional equality) in the paper
+
 ⇔-≈ : ∀ {a b} → a ⇔ b → a ≈ b
 ⇔-≈ (_ , a⇒⋆c , b⇒⋆c) = ≈-trans (⇒⋆-≈ a⇒⋆c) (≈-sym (⇒⋆-≈ b⇒⋆c))
 

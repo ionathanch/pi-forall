@@ -75,6 +75,7 @@ Qed.
 
 (* --------------- regularity ----------------- *)
 
+(* Lemma 9 (regularity) in the paper *)
 Lemma DTyping_regularity : (forall S G a A k, DTyping S G a A k -> DTyping S G A a_Type k).
 Proof.
   induction 1; eauto.

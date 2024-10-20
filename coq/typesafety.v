@@ -110,6 +110,7 @@ Proof.
   eapply DCtx_DTyping_conversion; eauto.
 Qed.
 
+(* Theorem 4 (preservation) in the paper *)
 Lemma Reduce_Preservation : forall S G a b,
     Reduce S a b
     -> forall A k, DTyping S G a A k ->  DTyping S G b A k.
@@ -284,6 +285,7 @@ Proof.
     contradiction.
 Qed.
 
+(* Theorem 5 (progress) in the paper *)
 Lemma Reduce_Progress : forall S a A k,
     DTyping S nil a A k -> Value a \/ exists b, Reduce S a b.
 Proof.

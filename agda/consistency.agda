@@ -52,6 +52,7 @@ wfNat : ∀ k → Acc k
 wfNat zero = acc< (λ ())
 wfNat (suc k) with acc< f ← wfNat k = acc< (λ {(suc j≤k) → acc< (λ i<j → f (trans<' i<j j≤k))})
 
+-- Corollary 1 (consistency) in the paper
 consistency : ∀ {k b} → ∙ ⊢ b ⦂ mty # k → ⊥
 consistency {k} tb
   with b , elb ← soundness {σ = var} (wfNat k) ∙̂  tt tb

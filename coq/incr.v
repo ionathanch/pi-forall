@@ -145,5 +145,6 @@ Qed.
 Lemma DCtx_incr : forall S G, DCtx S G -> forall j, DCtx S (IncG j G).
 Proof. eapply DTyping_DCtx_incr; eauto. Qed.
 
+(* Lemma 2 (displaceability) in the paper *)
 Lemma DTyping_incr : forall S G a A k, DTyping S G a A k -> forall j, DTyping S (IncG j G) (incr j a) (incr j A) (j + k).
 Proof. eapply DTyping_DCtx_incr; eauto. Qed.
