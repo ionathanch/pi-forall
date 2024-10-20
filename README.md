@@ -19,7 +19,8 @@ The material consists of three parts:
 * `impl/`: A Haskell implementation of a type checker for StraTT augmented with datatypes,
   based on [pi-forall](https://github.com/sweirich/pi-forall).
 
-They have also been packaged in a paper artifact at [TODO].
+They have also been packaged in a paper artifact on
+[Zenodo](https://doi.org/10.5281/zenodo.13958530).
 Detailed descriptions of their contents and of local build instructions
 are found in the `README.md`s of their respective directories.
 Instructions for running the artifact is found in `INSTALL.md`,
