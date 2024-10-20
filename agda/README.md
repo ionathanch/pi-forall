@@ -14,22 +14,6 @@ cd Agda-2.7.0.1
 stack --stack-yaml stack-9.6.6.yaml install
 ```
 
-## Expected output
-
-The top-level file can be checked by `agda consistency.agda`,
-with the following expected output when run in the VM.
-
-```
-Checking consistency (/root/StraTT/agda/consistency.agda).
- Checking common (/root/StraTT/agda/common.agda).
- Checking accessibility (/root/StraTT/agda/accessibility.agda).
- Checking syntactics (/root/StraTT/agda/syntactics.agda).
- Checking reduction (/root/StraTT/agda/reduction.agda).
- Checking typing (/root/StraTT/agda/typing.agda).
- Checking semantics (/root/StraTT/agda/semantics.agda).
- Checking soundness (/root/StraTT/agda/soundness.agda).
-```
-
 ## Axioms
 
 The only axiom used is function extensionality,
@@ -44,6 +28,8 @@ which in turn is only used to prove `accU` in `semantics.agda`.
 The modules below are in approximate dependency order,
 with the corresponding lemmas and theorems from the paper
 that they contain in parentheses.
+They are also marked in the proof files by comments
+"Lemma/Theorem/Corollary <n> (<description>) in the paper".
 Most of the modules are parametrized over an abstract `Level`
 and its strict transitive order,
 only to be instantiated at the very end by the naturals.
