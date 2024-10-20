@@ -50,10 +50,9 @@ which assumes that Coq, Agda, and GHCup are installed.
    4. `grep "postulate" *.agda` to find postulates
 6. To run prototype implementation:
    1. `cd impl` from the `StraTT` directory
-   2. [No artifact] Build implementation
-      (will increase total disk size to ~8.2 GB):
+   2. [No artifact] Build implementation:
       1. `ghcup install ghc 9.6.6` to install GHC
-      2. `stack install` to recompile implementation
+      2. `stack install` to compile implementation
    3. `stratt pi/StraTT.pi` to check examples listed in paper
    4. `stratt pi/README.pi` to check all examples provided
 7. [Artifact only] All changes made can be undone by `git reset && git restore .`
