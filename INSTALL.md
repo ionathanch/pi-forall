@@ -2,12 +2,12 @@
 
 These are instructions on how to install and verify the supplementary material,
 either locally or using the paper artifact.
-The artifact is a QEMU virtual machine image with only necessary prerequisites installed,
+The artifact is a QEMU virtual machine image with only necessary dependencies installed,
 and is approximately 2 GB, but may grow up to 12 GB if modified (say, by installing GHC).
 The virtual machine may use up to 2 GB of memory only following these instructions.
 The instructions are also labelled with "[Artifact only]" iff using the VM,
 and "[No artifact]" iff running locally,
-which assumes that Coq, Agda, and GHCup are installed.
+which requires Coq, Agda, GHC, and other dependencies to be installed.
 
 0. [Artifact only] Install [QEMU](https://www.qemu.org/download/)
    * On Windows, virtualization needs to be enabled:
@@ -55,6 +55,25 @@ Flags can be passed directly to the `start.sh` script.
 * If more memory is required, increase the number of MB in `-m 2048`
 * If things aren't displaying correctly, add the `-nographic` flag
   to see the output directly in the terminal
+
+## Dependency and version summary
+
+The below table summarizes the versions of the various required dependencies when running locally.
+Brief installation details are found in the `README.md` files of each of the three subdirectories.
+
+| Dependency  | Version |
+| ----------- | ------- |
+| OCaml       | 4.14.2  |
+| Coq         | 8.19.1  |
+| Metalib     | latest  |
+| Ott         | 0.33    |
+| LNgen       | 0.3.2   |
+| GHC         | 9.6.6   |
+| Stack       | latest  |
+| Cabal       | latest  |
+| Agda        | 2.7.0.1 |
+| agda-stdlib | 2.1.1   |
+| Z3          | 4.13.0  |
 
 ## Expected outputs
 
