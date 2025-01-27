@@ -1,6 +1,6 @@
 module Blowup where
 
-{-
+{- Coq example:
   Set Universe Polymorphism.
   Time Definition T1 : Type := Type -> Type -> Type -> Type -> Type -> Type.
   Time Definition T2 : Type := T1 -> T1 -> T1 -> T1 -> T1 -> T1.
@@ -12,7 +12,7 @@ module Blowup where
   Time Definition T8 : Type := T7 -> T7 -> T7 -> T7 -> T7 -> T7.
 -}
 
-{-
+{- Lean example:
   def T1 : Type _ := Type _ → Type _ → Type _ → Type _ → Type _ → Type _
   def T2 : Type _ := T1 → T1 → T1 → T1 → T1 → T1
   def T3 : Type _ := T2 → T2 → T2 → T2 → T2 → T2
